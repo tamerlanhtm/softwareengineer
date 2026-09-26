@@ -1,0 +1,19 @@
+{
+  "name": "pmsnow-reel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PMSNow 30s Instagram Reel (1080x1920) — HTML/GSAP motion graphics rendered frame-by-frame with Playwright + ffmpeg",
+  "type": "module",
+  "scripts": {
+    "render": "node scripts/render.mjs",
+    "snap": "node scripts/snap.mjs"
+  },
+  "devDependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/unbounded": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.2.0",
+    "gsap": "^3.15.0",
+    "lucide-static": "^1.48.0",
+    "three": "^0.186.1"
+  }
+}

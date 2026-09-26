@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PMSNow — Instagram Reel</title>
+<meta name="viewport" content="width=1080, height=1920">
+<link rel="stylesheet" href="/node_modules/@fontsource-variable/unbounded/index.css">
+<link rel="stylesheet" href="/node_modules/@fontsource-variable/inter/index.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/jetbrains-mono/500.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/jetbrains-mono/700.css">
+<link rel="stylesheet" href="src/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "gsap": "/node_modules/gsap/index.js",
+    "gsap/": "/node_modules/gsap/",
+    "three": "/node_modules/three/build/three.module.js",
+    "three/addons/": "/node_modules/three/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+  <div id="stage">
+    <div id="bg" class="layer">
+      <div id="bg-color" class="layer"></div>
+      <div id="bg-glow" class="layer"></div>
+      <div id="bg-dots" class="layer"></div>
+    </div>
+    <div id="shake" class="layer">
+      <div id="camera" class="layer">
+        <div id="world" class="layer"></div>
+      </div>
+    </div>
+    <canvas id="gl" width="1080" height="1920"></canvas>
+    <div id="overlay" class="layer"></div>
+    <div id="hud" class="layer"></div>
+    <div id="fx" class="layer">
+      <div id="flash" class="layer"></div>
+      <div id="vignette" class="layer"></div>
+      <canvas id="grain" width="540" height="960"></canvas>
+    </div>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
