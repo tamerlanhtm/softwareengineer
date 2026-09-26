@@ -82,6 +82,7 @@ async function init() {
     for (const u of updaters) u(t, frame);
   };
   window.__cues = cues;
+  window.__tl = tl;
   window.__duration = DURATION;
   window.__fps = FPS;
   window.__seek(0, 0);

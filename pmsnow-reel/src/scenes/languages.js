@@ -14,7 +14,7 @@ export const SEED = { x: 540, y: 960, size: 132 };
 
 export function build({ world, hud }) {
   const scene = add(world, `<div class="scene" id="s-lang"><div class="dots"></div></div>`);
-  windowed(scene, T_IN - 0.25, T_OUT + 0.1);
+  windowed(scene, T_IN - 0.25, T_OUT + 0.26);
 
   add(document.head, `<style>
     #s-lang .word { position:absolute; left:0; width:1080px; text-align:center; font-family:var(--display); font-weight:800;
@@ -57,12 +57,23 @@ export function build({ world, hud }) {
     const h = size * lines.length;
     const w = add(scene, `<div class="word" style="font-size:${size}px;top:${880 - h / 2}px">${lines.map((l) => `<span class="wl">${l}</span>`).join('')}</div>`);
     const chars = splitChars(w);
-    const c = add(codes, `<span>${code} · ${name}</span>`);
+    // flip-in animates the glyph, flip-out its wrapper — so a late flip-in can never undo the exit
+    const outs = chars.map((ch) => {
+      const o = document.createElement('span');
+      o.style.display = 'inline-block';
+      o.style.transformOrigin = '50% 50% -40px';
+      ch.replaceWith(o);
+      o.appendChild(ch);
+      return o;
+    });
+    const c = add(codes, `<span><span class="in">${code} · ${name}</span></span>`);
+    const cIn = c.querySelector('.in');
+    cIn.style.display = 'inline-block';
     const tIn = b(40 + k) - (k === 0 ? 0.1 : 0.02);
     tl.fromTo(chars, { rotationX: -95, yPercent: 40, opacity: 0 }, { rotationX: 0, yPercent: 0, opacity: 1, duration: 0.5, ease: 'expo.out', stagger: 0.018 }, tIn);
-    tl.fromTo(c, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: 'expo.out' }, tIn + 0.05);
-    const tOut = k < 3 ? b(41 + k) - 0.2 : T_OUT - 0.34;
-    tl.to(chars, { rotationX: 95, yPercent: -40, opacity: 0, duration: 0.16, ease: 'power2.in', stagger: 0.004 }, tOut);
+    tl.fromTo(cIn, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: 'expo.out' }, tIn + 0.05);
+    const tOut = k < 3 ? b(41 + k) - 0.2 : T_OUT - 0.06;
+    tl.to(outs, { rotationX: 95, yPercent: -40, opacity: 0, duration: 0.16, ease: 'power2.in', stagger: 0.004 }, tOut);
     tl.to(c, { opacity: 0, y: -16, duration: 0.15 }, tOut);
     if (k > 0) {
       tl.to(hi, { x: k * segW, duration: 0.38, ease: 'expo.inOut' }, b(40 + k) - 0.2);
@@ -73,11 +84,11 @@ export function build({ world, hud }) {
   });
 
   // exit: the orange selector becomes the seed square of the next scene
-  hlOut(hl, T_OUT - 0.4);
-  tl.to([seg, ...lbls], { opacity: 0, y: 30, duration: 0.25, ease: 'power2.in', stagger: 0.02 }, T_OUT - 0.4);
+  hlOut(hl, T_OUT - 0.32);
+  tl.to([seg, ...lbls], { opacity: 0, y: 30, duration: 0.25, ease: 'power2.in', stagger: 0.02 }, T_OUT - 0.22);
   tl.to(hi, {
     left: SEED.x - SEED.size / 2, top: SEED.y - SEED.size / 2, x: 0, width: SEED.size, height: SEED.size, borderRadius: SEED.size * 0.1875,
     duration: 0.42, ease: 'expo.inOut',
-  }, T_OUT - 0.4);
-  cue('morph', T_OUT - 0.4);
+  }, T_OUT - 0.2);
+  cue('morph', T_OUT - 0.2);
 }

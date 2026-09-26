@@ -47,7 +47,11 @@ The top-left HUD is a mini version of the mark: one square fills per feature sce
 npm install                      # gsap, three, fonts (Unbounded, Inter, JetBrains Mono), lucide icons
 ./build.sh                       # ≈15 min on 4 cores → deliverables/
 node scripts/snap.mjs --out preview 6.4 26.5   # quick stills of any timestamps
+node scripts/check-tweens.mjs                  # lint: tweens that fight over the same property
 ```
+
+To re-render only part of the film, delete those frames from `out/frames/` (`fNNNN_*.jpg`, NNNN = frame at 30 fps)
+and run `./build.sh` again — existing sub-frames are reused.
 
 * Copy lives in the scene files: `src/scenes/*.js` (e.g. CTA text / URL in `src/scenes/cta.js`).
 * Brand: orange `#FF4D1F`; the mark is rebuilt as vectors from the brand PNG in `src/logo-mark.js`

@@ -13,7 +13,7 @@ mkdir -p out deliverables
 node scripts/render.mjs "$@"                                   # → out/frames/*.jpg + out/cues.json
 python3 audio/soundtrack.py out/cues.json out/soundtrack.wav   # music + sound design, synced to cues
 python3 audio/soundtrack.py out/cues.json out/sfx_only.wav --no-music
-python3 scripts/blend.py --out deliverables/PMSNow_Reel_1080x1920.mp4
+python3 scripts/blend.py --out deliverables/PMSNow_Reel_1080x1920.mp4 --grain 1.3 --crf 18
 
 # variant with sound effects only (lay a trending Instagram track underneath)
 ffmpeg -y -loglevel error -i deliverables/PMSNow_Reel_1080x1920.mp4 -i out/sfx_only.wav -map 0:v -map 1:a \

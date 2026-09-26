@@ -87,7 +87,7 @@ export function build({ world, hud }) {
   // staff hop onto their rooms
   tiles.filter((t) => t.who).forEach((t, k) => {
     const w = t.el.querySelector('.who');
-    tl.fromTo(w, { scale: 0, y: -40 }, { scale: 1, y: 0, duration: 0.4, ease: 'back.out(3)' }, b(24.05) + k * 0.07);
+    tl.fromTo(w, { scale: 0, y: -40 }, { scale: 1, y: 0, duration: 0.26, ease: 'back.out(3)' }, b(24.05) + k * 0.07);
     cue('pop', b(24.05) + k * 0.07, { v: 0.6 + k * 0.1 });
     tl.to(w, { scale: 0, duration: 0.18, ease: 'power2.in' }, FLIP0 + t.beat * FLIPK - 0.12);
   });

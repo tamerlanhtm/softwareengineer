@@ -25,7 +25,7 @@ const MODULES = [
 
 export async function build({ world, overlay, gl }) {
   const scene = add(world, `<div class="scene" id="s-mods"><div class="dots"></div></div>`);
-  windowed(scene, T_IN - 0.05, T_LOGO + 0.5);
+  windowed(scene, T_IN + 0.21, T_LOGO + 0.5);   // seed hand-off from the language switcher lands at T_IN + 0.22
 
   add(document.head, `<style>
     #s-mods .seed { position:absolute; left:${SEED.x - SEED.size / 2}px; top:${SEED.y - SEED.size / 2}px; width:${SEED.size}px; height:${SEED.size}px;
@@ -46,12 +46,12 @@ export async function build({ world, overlay, gl }) {
 
   // ---------- 2D: pills + counter ----------
   const seed = add(scene, `<div class="seed"></div>`);
-  tl.fromTo(seed, { scale: 1, rotation: 0 }, { scale: 0, rotation: 90, duration: 0.35, ease: 'back.in(2)' }, T_IN + 0.05);
+  tl.fromTo(seed, { scale: 1, rotation: 0 }, { scale: 0, rotation: 90, duration: 0.35, ease: 'back.in(2)' }, T_IN + 0.24);
   const num = add(scene, `<div class="num">0</div>`);
   const lbl = add(scene, `<div class="lbl">modules</div>`);
   const legend = add(scene, `<div class="legend"><span><i style="background:var(--orange)"></i>Core — included</span><span><i style="border:2.5px dashed var(--blue)"></i>Add-ons — as you grow</span></div>`);
-  tl.fromTo(num, { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)' }, T_IN + 0.05);
-  tl.fromTo([lbl, legend], { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'expo.out', stagger: 0.08 }, T_IN + 0.2);
+  tl.fromTo(num, { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)' }, T_IN + 0.24);
+  tl.fromTo([lbl, legend], { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'expo.out', stagger: 0.08 }, T_IN + 0.36);
 
   const rows = [330, 420, 510, 600, 1330, 1420, 1510, 1600, 1690];
   const R = rng(27);
@@ -71,7 +71,7 @@ export async function build({ world, overlay, gl }) {
     rowP.forEach((p) => { p.x = x + p.w / 2; p.y = rows[r]; x += p.w + 18; });
   }
   measure.remove();
-  const POP0 = T_IN + 0.12, POPK = 0.04;   // every pop starts before the implosion
+  const POP0 = T_IN + 0.3, POPK = 0.04;    // every pop starts before the implosion (last: T_IN + 1.34)
   const popT = [];
   order.forEach((idx, k) => {
     const p = pills[idx];
