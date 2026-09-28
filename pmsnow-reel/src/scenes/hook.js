@@ -1,22 +1,15 @@
 // 0 – 3.75s  "RUNNING A HOTEL?" → notification chaos → everything is sucked
 // into one orange square (the fix).
-import { tl, b, add, gsap, onFrame, cue, rng, prog, clamp, splitChars, icon, windowed, $ } from '../lib.js';
+import { tl, b, add, gsap, onFrame, cue, rng, prog, clamp, splitChars, icon, windowed, fitWidth, $ } from '../lib.js';
+import { T } from '../i18n.js';
 
+// icon, x, y, rot, beat — texts come from T.chips (same order)
 const CHIPS = [
-  // icon, title, subtitle, x, y, rot, beat
-  ['calendar-x', 'Overbooking!', 'Room 204 · two guests, one bed', 330, 470, -5, 2.5],
-  ['spray-can', '12 rooms not cleaned', 'Arrivals in 40 min', 735, 610, 4, 3],
-  ['file-x', 'Invoice missing', 'Corporate · Caspian Tours', 360, 1300, 3, 3.5],
-  ['user-round', 'Walk-in at the desk', 'Which rooms are free?', 720, 1440, -4, 4],
-  ['credit-card', 'Deposit not received', 'Booking #4821', 590, 300, 2, 4.5],
-  ['moon', 'Night audit', 'Still not closed · 02:14', 770, 1120, -6, 4.75],
-  ['star', 'New 2★ review', '“Nobody answered the phone”', 330, 790, 5, 5],
-  ['trending-up', 'Rates not updated', 'Weekend +20%?', 610, 1600, -3, 5.25],
-  ['wrench', 'AC broken', 'Room 118 · since Monday', 300, 1730, 4, 5.5],
-  ['users', 'Group booking', '18 rooms · still in Excel', 560, 940, -2, 5.625],
-  ['package', 'Linen out of stock', 'Floor 3', 800, 1790, -5, 5.75],
-  ['phone-missed', 'Owner calling…', '3 missed calls', 700, 200, 3, 5.875],
-];
+  ['calendar-x', 330, 470, -5, 2.5], ['spray-can', 735, 610, 4, 3], ['file-x', 360, 1300, 3, 3.5],
+  ['user-round', 720, 1440, -4, 4], ['credit-card', 590, 300, 2, 4.5], ['moon', 770, 1120, -6, 4.75],
+  ['star', 330, 790, 5, 5], ['trending-up', 610, 1600, -3, 5.25], ['wrench', 300, 1730, 4, 5.5],
+  ['users', 560, 940, -2, 5.625], ['package', 800, 1790, -5, 5.75], ['phone-missed', 700, 200, 3, 5.875],
+].map(([ic, x, y, rot, beat], i) => [ic, T.chips[i][0], T.chips[i][1], x, y, rot, beat]);
 
 export function build({ world }) {
   const T0 = 0, T_END = b(8);
@@ -46,14 +39,22 @@ export function build({ world }) {
 
   // ---------- headline ----------
   const txtWrap = add(scene, `<div class="wrap"></div>`);
-  const txt = add(txtWrap, `<div class="hook-txt"><div class="l1">RUNNING</div><div class="l2">A HOTEL<span class="q">?</span></div></div>`);
-  const l1 = splitChars(txt.querySelector('.l1'));
+  const HL = T.hook.lines;   // [text, beat] — the last line gets the orange "?"
+  const txt = add(txtWrap, `<div class="hook-txt">${HL.map(([str], i) => `<div class="hl">${str}${i === HL.length - 1 ? '<span class="q">?</span>' : ''}</div>`).join('')}</div>`);
+  const rows = [...txt.querySelectorAll('.hl')];
+  // one size for every line: as big as the longest line allows (max 158px); block stays centred
+  const size = Math.min(...rows.map((r) => fitWidth(r, 940, 158)));
+  rows.forEach((r) => { r.style.fontSize = ''; });
+  txt.style.fontSize = size + 'px';
+  txt.style.top = 700 + ((2 - rows.length) * size) / 2 + 'px';
   const q = txt.querySelector('.q');
-  const l2 = splitChars(txt.querySelector('.l2')).filter((c) => !q.contains(c));
-  gsap.set(txt.querySelectorAll('.l1, .l2'), { overflow: 'hidden', padding: '0.06em 0 0.1em', margin: '-0.06em 0 -0.1em' });
+  const lineChars = rows.map((r) => splitChars(r).filter((c) => !q.contains(c)));
+  gsap.set(rows, { overflow: 'hidden', padding: '0.06em 0 0.1em', margin: '-0.06em 0 -0.1em' });
 
-  tl.fromTo(l1, { yPercent: 42, rotate: 3 }, { yPercent: 0, rotate: 0, duration: 0.5, ease: 'expo.out', stagger: 0.022 }, 0);
-  tl.fromTo(l2, { yPercent: 115, rotate: 6 }, { yPercent: 0, rotate: 0, duration: 0.55, ease: 'expo.out', stagger: 0.028 }, b(1));
+  lineChars.forEach((cs, i) => {
+    if (i === 0) tl.fromTo(cs, { yPercent: 42, rotate: 3 }, { yPercent: 0, rotate: 0, duration: 0.5, ease: 'expo.out', stagger: 0.022 }, b(HL[i][1]));
+    else tl.fromTo(cs, { yPercent: 115, rotate: 6 }, { yPercent: 0, rotate: 0, duration: 0.55, ease: 'expo.out', stagger: 0.028 }, b(HL[i][1]));
+  });
   tl.fromTo(q, { scale: 0, rotation: -140 }, { scale: 1, rotation: 0, duration: 0.6, ease: 'back.out(2.6)' }, b(2));
   tl.fromTo(txt, { scale: 1 }, { scale: 1.07, duration: b(6), ease: 'none' }, 0);
   tl.to(txt, { opacity: 0.42, duration: b(3), ease: 'power1.in' }, b(3));

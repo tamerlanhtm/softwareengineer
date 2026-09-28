@@ -8,9 +8,11 @@ import { startServer, openPage, CHROME_ARGS } from './server.mjs';
 
 const args = process.argv.slice(2);
 let out = 'preview';
+let lang = 'en';
 const times = [];
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--out') out = args[++i];
+  else if (args[i] === '--lang') lang = args[++i];
   else if (args[i] === '--range') {
     const [a, b, s] = args[++i].split(':').map(Number);
     for (let t = a; t <= b + 1e-9; t += s) times.push(+t.toFixed(4));
@@ -21,7 +23,7 @@ fs.mkdirSync(out, { recursive: true });
 
 const { server, port } = await startServer();
 const browser = await chromium.launch({ args: CHROME_ARGS });
-const page = await openPage(browser, port);
+const page = await openPage(browser, port, lang);
 const cdp = await page.context().newCDPSession(page);
 for (const t of times) {
   const frame = Math.round(t * 30);

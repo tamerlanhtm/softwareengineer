@@ -1,6 +1,6 @@
 // Frame-accurate renderer with real (temporally super-sampled) motion blur.
 //
-//   node scripts/render.mjs [--sub 4] [--subfast 8] [--shutter 0.5] [--workers 4] [--dir out/frames] [--from 0] [--to 900]
+//   node scripts/render.mjs [--lang en|az] [--sub 4] [--subfast 8] [--shutter 0.5] [--workers 4] [--dir out/frames] [--from 0] [--to 900]
 //
 // For every output frame n (30 fps) we render several sub-frames spread across a
 // `shutter` fraction of the frame interval (0.5 = 180° shutter), centred on
@@ -13,12 +13,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { startServer, openPage, CHROME_ARGS, ROOT } from './server.mjs';
 
-const opt = { sub: 4, subfast: 8, shutter: 0.5, workers: 4, dir: 'out/frames', from: 0, to: null, q: 94, chunk: 10 };
+const opt = { lang: 'en', sub: 4, subfast: 8, shutter: 0.5, workers: 4, dir: null, from: 0, to: null, q: 94, chunk: 10 };
 // seconds with very fast motion (transitions) → more sub-frames
 const FAST = [[3.4, 4.3], [5.0, 5.75], [7.2, 7.9], [9.0, 9.5], [10.85, 11.65], [12.6, 13.3], [14.1, 14.5], [14.6, 15.1],
   [16.4, 16.95], [18.3, 18.85], [20.1, 20.7], [22.1, 23.4], [25.95, 26.35]];
 const a = process.argv.slice(2);
 for (let i = 0; i < a.length; i += 2) opt[a[i].replace(/^--/, '')] = isNaN(+a[i + 1]) ? a[i + 1] : +a[i + 1];
+opt.dir ??= opt.lang === 'en' ? 'out/frames' : `out/frames_${opt.lang}`;
 const dir = path.resolve(ROOT, opt.dir);
 fs.mkdirSync(dir, { recursive: true });
 
@@ -27,9 +28,9 @@ const { server, port } = await startServer();
 // one page just to read metadata + cues
 {
   const b = await chromium.launch({ args: CHROME_ARGS });
-  const p = await openPage(b, port);
+  const p = await openPage(b, port, opt.lang);
   const meta = await p.evaluate(() => ({ fps: window.__fps, duration: window.__duration, cues: window.__cues }));
-  fs.writeFileSync(path.resolve(ROOT, 'out/cues.json'), JSON.stringify(meta.cues, null, 1));
+  fs.writeFileSync(path.resolve(ROOT, opt.lang === 'en' ? 'out/cues.json' : `out/cues_${opt.lang}.json`), JSON.stringify(meta.cues, null, 1));
   opt.fps = meta.fps; opt.duration = meta.duration;
   await b.close();
 }
@@ -55,7 +56,7 @@ const subTimes = (n) => {
 
 async function worker(id) {
   const browser = await chromium.launch({ args: CHROME_ARGS });
-  const page = await openPage(browser, port);
+  const page = await openPage(browser, port, opt.lang);
   const cdp = await page.context().newCDPSession(page);
   while (queue.length) {
     const [s, e] = queue.shift();

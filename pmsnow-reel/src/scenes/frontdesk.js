@@ -2,6 +2,8 @@
 // card: room rolls to 305, checklist ticks, signature, one click → checked in.
 import { tl, b, add, gsap, cue, headline, hlIn, windowed, icon, makeCursor, moveTo, click, onFrame, prog, odometer, setOdo, rng } from '../lib.js';
 import { barRect, DROP } from './reservations.js';
+import { T } from '../i18n.js';
+const FD = T.desk;
 
 export const T_IN = b(20), T_OUT = b(24);
 const CARD = { x: 60, y: 590, w: 960, h: 860 };
@@ -43,31 +45,31 @@ export function build({ world, hud }) {
   tl.to(morph, { opacity: 0, duration: 0.22, ease: 'power1.in' }, M0 + 0.5);
   cue('morph', M0);
 
-  const hl = headline(scene, ['Check-in in', '<span class="accent">seconds.</span>'], { top: 312 });
+  const hl = headline(scene, FD.hl, { top: 312 });
   hlIn(hl, T_IN + 0.05);
-  hud.step(2, 'Front desk', T_IN);
+  hud.step(2, FD.hud, T_IN);
 
   const card = add(scene, `<div class="card" style="left:${CARD.x}px;top:${CARD.y}px;width:${CARD.w}px;height:${CARD.h}px"></div>`);
   tl.fromTo(card, { opacity: 0 }, { opacity: 1, duration: 0.01 }, M0 + 0.45);
-  const avatar = add(card, `<div class="avatar">AK</div>`);
-  const name = add(card, `<div class="name">Ayşe Kaya</div>`);
-  const sub = add(card, `<div class="sub">3 nights · Deluxe King · 2 adults</div>`);
-  const st1 = add(card, `<div class="status pill blue">${icon('clock', { size: 22, sw: 2.6 })}Arriving today</div>`);
-  const st2 = add(card, `<div class="status pill green">${icon('check', { size: 22, sw: 3 })}In-house</div>`);
+  const avatar = add(card, `<div class="avatar">${FD.initials}</div>`);
+  const name = add(card, `<div class="name">${FD.name}</div>`);
+  const sub = add(card, `<div class="sub">${FD.sub}</div>`);
+  const st1 = add(card, `<div class="status pill blue">${icon('clock', { size: 22, sw: 2.6 })}${FD.arriving}</div>`);
+  const st2 = add(card, `<div class="status pill green">${icon('check', { size: 22, sw: 3 })}${FD.inhouse}</div>`);
   add(card, `<div class="div"></div>`);
-  add(card, `<div class="roomlbl kicker">Room</div>`);
+  add(card, `<div class="roomlbl kicker">${FD.room}</div>`);
   const roomNo = add(card, `<div class="roomno"></div>`);
   const odo = odometer(roomNo, { digits: 3 });
-  add(card, `<div class="roomsub">Floor 3 · Deluxe King · Upgrade-ready</div>`);
-  const checks = [['shield-check', 'ID scanned'], ['credit-card', 'Deposit received'], ['file-text', 'Registration card']].map(([ic, txt], k) =>
+  add(card, `<div class="roomsub">${FD.roomSub}</div>`);
+  const checks = [['shield-check', FD.checks[0]], ['credit-card', FD.checks[1]], ['file-text', FD.checks[2]]].map(([ic, txt], k) =>
     add(card, `<div class="chk" style="top:${262 + k * 82}px"><div class="c">${icon('check', { size: 28, sw: 3.4, color: '#062b1c' })}</div><span class="li">${icon(ic, { size: 28, sw: 2.2 })}</span>${txt}</div>`));
-  const sig = add(card, `<div class="sig"><div class="kicker">Guest signature</div>
+  const sig = add(card, `<div class="sig"><div class="kicker">${FD.sig}</div>
     <svg style="position:absolute;left:250px;top:10px" width="560" height="120" viewBox="0 0 400 110" fill="none" stroke="#f6f3ef" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round">
       <path class="s1" d="M10 80 C 30 20, 55 8, 60 58 C 62 86, 38 96, 34 74 C 30 54, 70 38, 90 60 C 104 76, 110 38, 126 44 C 141 50, 130 82, 151 70 C 170 58, 176 28, 191 34 C 206 40, 196 76, 216 72 C 236 68, 240 38, 261 44 C 281 50, 271 86, 301 58"/>
       <path class="s2" d="M322 26 C 319 58, 316 80, 313 98 M 321 64 C 340 46, 356 40, 368 36 M 330 64 C 346 76, 362 86, 384 90"/>
     </svg></div>`);
-  const btn = add(card, `<div class="btn"><div class="a">Check in ${icon('arrow-right', { size: 40, sw: 2.8, color: '#fff' })}</div>
-    <div class="b2">${icon('check', { size: 42, sw: 3.4, color: '#062b1c' })}Checked in</div></div>`);
+  const btn = add(card, `<div class="btn"><div class="a">${FD.btn} ${icon('arrow-right', { size: 40, sw: 2.8, color: '#fff' })}</div>
+    <div class="b2">${icon('check', { size: 42, sw: 3.4, color: '#062b1c' })}${FD.done}</div></div>`);
   const btnA = btn.querySelector('.a'), btnB = btn.querySelector('.b2');
 
   const C0 = T_IN + 0.1;

@@ -7,6 +7,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { tl, b, add, gsap, cue, headline, hlIn, hlOut, windowed, icon, onFrame, prog, rng, clamp, lerp, E, shake } from '../lib.js';
 import { SEED } from './languages.js';
+import { T } from '../i18n.js';
 
 export const T_IN = b(44);
 export const P0 = b(48);          // 3D burst — drop 2
@@ -14,13 +15,13 @@ export const T_LOGO = b(53);      // cube face == 2D logo
 export const LOGO = { cx: 540, cy: 560, size: 320 };
 
 const MODULES = [
-  ['calendar-days', 'Reservations'], ['concierge-bell', 'Front Desk'], ['door-open', 'Rooms'], ['brush-cleaning', 'Housekeeping'],
-  ['users-round', 'Guest CRM'], ['star', 'Guest Feedback'], ['receipt', 'Billing'], ['credit-card', 'Payments'],
-  ['trending-up', 'Revenue'], ['landmark', 'Accounting'], ['moon', 'Night Audit'], ['cable', 'Channel Manager', 1],
-  ['globe', 'Booking Engine', 1], ['building-2', 'Corporate', 1], ['wrench', 'Maintenance', 1], ['boxes', 'Inventory', 1],
-  ['users', 'Staff', 1], ['utensils', 'Restaurant POS', 1], ['flower-2', 'Spa & Wellness', 1], ['presentation', 'Events', 1],
-  ['layout-dashboard', 'Dashboard'], ['chart-line', 'Reports'], ['shield-check', 'Users & Roles'], ['bell', 'Notifications'],
-  ['file-text', 'Documents'], ['plug', 'API'], ['settings', 'Settings'],
+  ['calendar-days', T.mods.names[0]], ['concierge-bell', T.mods.names[1]], ['door-open', T.mods.names[2]], ['brush-cleaning', T.mods.names[3]],
+  ['users-round', T.mods.names[4]], ['star', T.mods.names[5]], ['receipt', T.mods.names[6]], ['credit-card', T.mods.names[7]],
+  ['trending-up', T.mods.names[8]], ['landmark', T.mods.names[9]], ['moon', T.mods.names[10]], ['cable', T.mods.names[11], 1],
+  ['globe', T.mods.names[12], 1], ['building-2', T.mods.names[13], 1], ['wrench', T.mods.names[14], 1], ['boxes', T.mods.names[15], 1],
+  ['users', T.mods.names[16], 1], ['utensils', T.mods.names[17], 1], ['flower-2', T.mods.names[18], 1], ['presentation', T.mods.names[19], 1],
+  ['layout-dashboard', T.mods.names[20]], ['chart-line', T.mods.names[21]], ['shield-check', T.mods.names[22]], ['bell', T.mods.names[23]],
+  ['file-text', T.mods.names[24]], ['plug', T.mods.names[25]], ['settings', T.mods.names[26]],
 ];
 
 export async function build({ world, overlay, gl }) {
@@ -48,8 +49,8 @@ export async function build({ world, overlay, gl }) {
   const seed = add(scene, `<div class="seed"></div>`);
   tl.fromTo(seed, { scale: 1, rotation: 0 }, { scale: 0, rotation: 90, duration: 0.35, ease: 'back.in(2)' }, T_IN + 0.24);
   const num = add(scene, `<div class="num">0</div>`);
-  const lbl = add(scene, `<div class="lbl">modules</div>`);
-  const legend = add(scene, `<div class="legend"><span><i style="background:var(--orange)"></i>Core — included</span><span><i style="border:2.5px dashed var(--blue)"></i>Add-ons — as you grow</span></div>`);
+  const lbl = add(scene, `<div class="lbl">${T.mods.label}</div>`);
+  const legend = add(scene, `<div class="legend"><span><i style="background:var(--orange)"></i>${T.mods.core}</span><span><i style="border:2.5px dashed var(--blue)"></i>${T.mods.addons}</span></div>`);
   tl.fromTo(num, { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)' }, T_IN + 0.24);
   tl.fromTo([lbl, legend], { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'expo.out', stagger: 0.08 }, T_IN + 0.36);
 
@@ -64,6 +65,18 @@ export async function build({ world, overlay, gl }) {
   });
   // lay pills out 3 per row, rows alternately shifted (brick pattern)
   pills.forEach((p, i) => { p.w = p.el.getBoundingClientRect().width; });
+  // longer names (translations): shrink every pill uniformly until the widest row fits
+  const rowW = (r) => pills.slice(r * 3, r * 3 + 3).reduce((a, p) => a + p.w, 0) + 2 * 18;
+  const worst = Math.max(...Array.from({ length: 9 }, (_, r) => rowW(r)));
+  if (worst > 1000) {
+    const k = 1000 / worst;
+    pills.forEach((p) => {
+      Object.assign(p.el.style, { fontSize: 27 * k + 'px', height: 66 * k + 'px', padding: `0 ${24 * k}px 0 ${16 * k}px`, gap: 12 * k + 'px', borderRadius: 33 * k + 'px' });
+      const ico = p.el.querySelector('.ico');
+      ico.style.width = ico.style.height = 30 * k + 'px';
+      p.w = p.el.getBoundingClientRect().width;
+    });
+  }
   for (let r = 0; r < 9; r++) {
     const rowP = pills.slice(r * 3, r * 3 + 3);
     const total = rowP.reduce((a, p) => a + p.w, 0) + 2 * 18;
@@ -214,7 +227,7 @@ export async function build({ world, overlay, gl }) {
   });
 
   // headline for the cube moment lives above the WebGL layer
-  const hl = headline(overlay, ['27 modules.', '<span class="accent">One system.</span>'], { top: 300, align: 'center', size: 100 });
+  const hl = headline(overlay, T.mods.hl, { top: 300, align: 'center', size: 100 });
   hlIn(hl, P0 + 0.25);
   hlOut(hl, T_LOGO - 0.8);
   shake(A0 + 26 * AK + AD * 0.85, 0.3, 9);

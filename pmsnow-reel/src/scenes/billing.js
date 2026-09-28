@@ -1,6 +1,8 @@
 // 13.125 – 15.0s  05 BILLING — on orange: the folio builds itself, one click
 // splits it between guest and company, both stamped PAID.
-import { tl, b, add, gsap, cue, headline, hlIn, hlOut, windowed, icon, onFrame, prog, makeCursor, moveTo, click, shake } from '../lib.js';
+import { tl, b, add, gsap, cue, headline, hlIn, hlOut, windowed, icon, onFrame, prog, makeCursor, moveTo, click, shake, fitWidth } from '../lib.js';
+import { T } from '../i18n.js';
+const BL = T.bill, NUM = T.num;
 
 export const T_IN = b(28), T_OUT = b(32);
 const CARD = { x: 90, y: 580, w: 900, h: 830 };
@@ -43,31 +45,31 @@ export function build({ world, hud }) {
   hud.theme(T_IN - 0.15, { '--hud-fill': '#0b0b0f', '--hud-line': 'rgba(0,0,0,.28)', '--hud-text': 'rgba(11,11,15,.7)', '--hud-num': '#0b0b0f' }, 0.15);
   tl.to('#bg-glow', { opacity: 0, duration: 0.2 }, T_IN - 0.15);
 
-  const hl = headline(scene, ['Split bills.', '<span class="w">Instant invoices.</span>'], { top: 312 });
+  const hl = headline(scene, BL.hl, { top: 312 });
   hlIn(hl, T_IN + 0.02);
-  hud.step(4, 'Billing & payments', T_IN);
+  hud.step(4, BL.hud, T_IN);
 
   const inv = add(scene, `<div class="inv" style="left:${CARD.x}px;top:${CARD.y}px;width:${CARD.w}px;height:${CARD.h}px">
-    <div class="h1">Folio #10482</div><div class="h2">Room 305 · Ayşe Kaya · 3 nights</div>
-    <div class="split">${icon('split', { size: 26, sw: 2.6, color: '#fff' })}Split bill</div>
+    <div class="h1">${BL.folio}</div><div class="h2">${BL.folioSub}</div>
+    <div class="split">${icon('split', { size: 26, sw: 2.6, color: '#fff' })}${BL.split}</div>
     <div class="hr" style="top:150px"></div></div>`);
   tl.fromTo(inv, { y: 1000, rotation: 6 }, { y: 0, rotation: 0, duration: 0.7, ease: 'expo.out' }, T_IN - 0.08);
   cue('whoosh_s', T_IN - 0.1);
 
-  const items = [['bed-double', 'Room · 3 nights', '$372.00'], ['utensils', 'Restaurant · room charge', '$64.00'], ['flower-2', 'Spa · massage', '$90.00'], ['package', 'Minibar', '$18.00']];
+  const items = [['bed-double', NUM.room], ['utensils', NUM.rest], ['flower-2', NUM.spa], ['package', NUM.mini]].map(([ic, v], k) => [ic, BL.items[k], T.money(v, 2)]);
   const rows = items.map(([ic, l, a], k) => add(inv, `<div class="row" style="top:${178 + k * 76}px"><div class="ic">${icon(ic, { size: 28, sw: 2.3, color: '#ff4d1f' })}</div>${l}<span class="amt">${a}</span></div>`));
   add(inv, `<div class="hr" style="top:492px"></div>`);
-  const sub = [add(inv, `<div class="row sm" style="top:510px">Subtotal<span class="amt">$544.00</span></div>`),
-    add(inv, `<div class="row sm" style="top:556px">VAT 18%<span class="amt">$97.92</span></div>`)];
-  const tot = add(inv, `<div class="tot" style="top:620px"><span class="l">Total</span><span class="v">$0.00</span></div>`);
-  const methods = add(inv, `<div class="methods"><div class="pill">${icon('banknote', { size: 24, sw: 2.3 })}Cash</div><div class="pill">${icon('credit-card', { size: 24, sw: 2.3 })}Card</div><div class="pill">${icon('landmark', { size: 24, sw: 2.3 })}Bank transfer</div></div>`);
+  const sub = [add(inv, `<div class="row sm" style="top:510px">${BL.subtotal}<span class="amt">${T.money(NUM.sub, 2)}</span></div>`),
+    add(inv, `<div class="row sm" style="top:556px">${BL.vat}<span class="amt">${T.money(NUM.vat, 2)}</span></div>`)];
+  const tot = add(inv, `<div class="tot" style="top:620px"><span class="l">${BL.total}</span><span class="v">${T.money(0, 2)}</span></div>`);
+  const methods = add(inv, `<div class="methods"><div class="pill">${icon('banknote', { size: 24, sw: 2.3 })}${BL.methods[0]}</div><div class="pill">${icon('credit-card', { size: 24, sw: 2.3 })}${BL.methods[1]}</div><div class="pill">${icon('landmark', { size: 24, sw: 2.3 })}${BL.methods[2]}</div></div>`);
   const R0 = T_IN + 0.15;
   tl.fromTo(rows, { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'expo.out', stagger: 0.07 }, R0);
   rows.forEach((_, k) => cue('tick', R0 + k * 0.07, { v: 0.4 + k * 0.1 }));
   tl.fromTo([...sub, tot, methods], { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'expo.out', stagger: 0.05 }, R0 + 0.3);
   const tv = tot.querySelector('.v');
   onFrame((t) => {
-    const s = '$' + (641.92 * prog(t, R0 + 0.3, 0.7, 'expo.out')).toFixed(2);
+    const s = T.money(NUM.total * prog(t, R0 + 0.3, 0.7, 'expo.out'), 2);
     if (tv.__s !== s) { tv.textContent = s; tv.__s = s; }
   });
 
@@ -82,13 +84,15 @@ export function build({ world, hud }) {
 
   // split into two bills
   const halves = [
-    { x: 58, rot: -3.5, k: 'Guest', n: 'Ayşe Kaya', a: '$202.96', ic: 'credit-card', m: 'Card ···· 4821' },
-    { x: 572, rot: 3.5, k: 'Company', n: 'Nexa Corp.', a: '$438.96', ic: 'landmark', m: 'Bank transfer' },
+    { x: 58, rot: -3.5, k: BL.guest, n: BL.guestName, a: T.money(NUM.guestPays, 2), ic: 'credit-card', m: BL.card },
+    { x: 572, rot: 3.5, k: BL.company, n: 'Nexa Corp.', a: T.money(NUM.companyPays, 2), ic: 'landmark', m: BL.bank },
   ].map((h, i) => {
     const el = add(scene, `<div class="inv half" style="left:${h.x}px;top:700px"><div class="k">${h.k}</div><div class="n">${h.n}</div>
       <div class="a">${h.a}</div><div class="m">${icon(h.ic, { size: 28, sw: 2.3, color: '#ff4d1f' })}${h.m}</div>
       <div class="lines"><div style="width:88%"></div><div style="width:64%"></div><div style="width:76%"></div></div>
-      <div class="stamp">PAID</div></div>`);
+      <div class="stamp">${BL.paid}</div></div>`);
+    fitWidth(el.querySelector('.a'), 385, 70);
+    fitWidth(el.querySelector('.stamp'), 300, 48);
     tl.fromTo(el, { y: 120, opacity: 0, rotation: 0, scale: 0.9 },
       { y: 0, opacity: 1, rotation: h.rot, scale: 1, duration: 0.6, ease: 'back.out(1.6)' }, CLICK + 0.1);
     const st = el.querySelector('.stamp');
@@ -105,7 +109,7 @@ export function build({ world, hud }) {
     // clones carry build-time styles: put them in the folio's settled state
     c.style.transform = '';
     c.querySelectorAll('.row, .tot, .methods').forEach((e) => { e.style.opacity = 1; e.style.transform = 'none'; });
-    c.querySelector('.tot .v').textContent = '$641.92';
+    c.querySelector('.tot .v').textContent = T.money(NUM.total, 2);
     scene.appendChild(c);
     gsap.set(c, { x: 0, y: 0, rotation: 0, opacity: 0, transformOrigin: i ? '100% 100%' : '0% 100%' });
     tl.set(c, { opacity: 1 }, CLICK + 0.04);

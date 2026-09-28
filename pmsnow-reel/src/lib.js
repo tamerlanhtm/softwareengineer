@@ -90,10 +90,30 @@ export function splitChars(root) {
 }
 
 /** big masked headline; lines may contain <span class="accent"> */
-export function headline(parent, lines, { top = 300, left = 80, size = 94, cls = '', align = 'left' } = {}) {
+/** untransformed layout width of an element's content (safe to call before/while things are tweened) */
+export function contentWidth(node) {
+  const w0 = node.style.width;
+  node.style.width = 'max-content';   // intrinsic width, ignores fixed/stretched CSS widths
+  const w = node.offsetWidth;
+  node.style.width = w0;
+  return w;
+}
+/** shrink `node`'s font-size (never grow) so its content is at most maxW wide; returns the size used */
+export function fitWidth(node, maxW, size) {
+  const w = contentWidth(node);
+  const s = w > maxW ? Math.floor((size * maxW) / w) : size;
+  node.style.fontSize = s + 'px';
+  return s;
+}
+
+export function headline(parent, lines, { top = 300, left = 80, size = 94, cls = '', align = 'left', maxW } = {}) {
   const h = add(parent, `<div class="headline ${cls}" style="top:${top}px;left:${left}px;font-size:${size}px;text-align:${align}"></div>`);
   if (align === 'center') { h.style.left = '0px'; h.style.width = W + 'px'; }
   const lines_ = lines.map((txt) => add(h, `<span class="ln"><span class="ln-in">${txt}</span></span>`));
+  // longer translations shrink the whole headline so the widest line still fits
+  const limit = maxW ?? (align === 'center' ? W - 120 : W - left - 50);
+  const widest = Math.max(...lines_.map((ln) => contentWidth(ln.querySelector('.ln-in'))));
+  if (widest > limit) h.style.fontSize = Math.floor((size * limit) / widest) + 'px';
   const chars = lines_.map((ln) => splitChars(ln.querySelector('.ln-in')));
   return { el: h, lines: lines_, chars, all: chars.flat() };
 }

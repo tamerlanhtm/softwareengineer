@@ -10,6 +10,7 @@ Everything — animation, 3D, music and sound design — is generated from code 
 | `PMSNow_Reel_1080x1920.mp4` | Main upload — H.264 High, 30 fps, BT.709, AAC 48 kHz, original soundtrack |
 | `PMSNow_Reel_1080x1920_sfx-only.mp4` | Same picture, sound effects only — lay a trending Instagram track underneath |
 | `PMSNow_Reel_cover.jpg` | Reel cover (key content sits inside the 3:4 profile-grid crop) |
+| `PMSNow_Reel_AZ_1080x1920.mp4` · `…_AZ_…_sfx-only.mp4` · `PMSNow_Reel_AZ_cover.jpg` | **Azerbaijani** version (all on-screen text in AZ, prices in ₼) |
 
 ## Storyboard (128 BPM · 16 bars · every cut on the beat)
 
@@ -41,11 +42,20 @@ The top-left HUD is a mini version of the mark: one square fills per feature sce
   128 BPM, A minor (Am–F–C–G), two drops, plus ~200 sound effects. Their timings come from `out/cues.json`,
   which the composition exports while building its timeline — sound always follows picture.
 
+## Languages
+
+Every on-screen string, illustrative figure and number format lives in `src/i18n.js` (`en`, `az`).
+Pick a language with `?lang=az` (preview) or `./build.sh az` (render). Headlines, the hook, amounts and the CTA
+button shrink automatically when a translation runs longer, and `html[lang]` is set so CSS upper-casing is correct
+(`i → İ`). Timing is identical across languages, so the same soundtrack fits every version. To add a language,
+copy the `az` block, translate it and run `./build.sh xx`.
+
 ## Edit & re-render
 
 ```bash
 npm install                      # gsap, three, fonts (Unbounded, Inter, JetBrains Mono), lucide icons
-./build.sh                       # ≈15 min on 4 cores → deliverables/
+./build.sh                       # English, ≈20 min on 4 cores → deliverables/
+./build.sh az                    # Azerbaijani
 node scripts/snap.mjs --out preview 6.4 26.5   # quick stills of any timestamps
 node scripts/check-tweens.mjs                  # lint: tweens that fight over the same property
 ```

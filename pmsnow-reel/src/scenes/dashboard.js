@@ -2,6 +2,8 @@
 // occupancy chart draws itself.
 import { tl, b, add, gsap, onFrame, cue, prog, counter, headline, hlIn, windowed, clipToTarget, icon } from '../lib.js';
 import { PORTAL_T0, PORTAL_T1, portalProbe } from './logo.js';
+import { T } from '../i18n.js';
+const D = T.dash, NUM = T.num;
 
 export const T_OUT = b(16);
 
@@ -45,16 +47,16 @@ export function build({ world, hud }) {
     .to(content, { scale: 1, duration: 0.7, ease: 'expo.out' }, T_IN);
   cue('land', T_IN);
 
-  const hl = headline(content, ['Your hotel,', '<span class="accent">live.</span>'], { top: 312 });
+  const hl = headline(content, D.hl, { top: 312 });
   hlIn(hl, T_IN - 0.02);
-  hud.step(0, 'Dashboard', T_IN);
+  hud.step(0, D.hud, T_IN);
 
   const panel = add(content, `<div class="card" style="left:60px;top:590px;width:960px;height:870px"></div>`);
   const kpis = [
-    ['Occupancy', 87, (v) => Math.round(v) + '<small>%</small>', null],
-    ['ADR', 124, (v) => '$' + Math.round(v), '+4%'],
-    ['RevPAR', 108, (v) => '$' + Math.round(v), '+11%'],
-    ['Revenue', 48.9, (v) => '$' + v.toFixed(1) + '<small>K</small>', '+12%'],
+    [D.kpi[0], 87, (v) => Math.round(v) + '<small>%</small>', null],
+    [D.kpi[1], NUM.adr, (v) => T.money(Math.round(v)), '+4%'],
+    [D.kpi[2], NUM.revpar, (v) => T.money(Math.round(v)), '+11%'],
+    [D.kpi[3], NUM.revenueK, (v) => T.moneyK(v), '+12%'],
   ];
   const tiles = kpis.map(([label, val, fmt, delta], k) => {
     const x = 32 + (k % 2) * 460, y = 32 + Math.floor(k / 2) * 218;
@@ -79,9 +81,9 @@ export function build({ world, hud }) {
 
   // chart
   const chart = add(panel, `<div class="tile chart" style="left:32px;top:468px;width:896px;height:370px">
-    <div class="title">Occupancy</div><div class="sub">Last 14 days</div>
-    <div class="pills"><div class="pill blue">${icon('arrow-down-left', { size: 22, sw: 2.6 })}24 arrivals</div>
-    <div class="pill orange">${icon('arrow-up-right', { size: 22, sw: 2.6 })}18 departures</div></div></div>`);
+    <div class="title">${D.chart}</div><div class="sub">${D.sub}</div>
+    <div class="pills"><div class="pill blue">${icon('arrow-down-left', { size: 22, sw: 2.6 })}${D.arrivals}</div>
+    <div class="pill orange">${icon('arrow-up-right', { size: 22, sw: 2.6 })}${D.departures}</div></div></div>`);
   const data = [58, 55, 63, 69, 66, 72, 79, 74, 70, 77, 83, 80, 84, 87];
   const X0 = 36, X1 = 820, Y0 = 330, Y1 = 128;
   const pts = data.map((v, i) => [X0 + (i * (X1 - X0)) / (data.length - 1), Y0 - ((v - 45) / 50) * (Y0 - Y1)]);
@@ -95,7 +97,7 @@ export function build({ world, hud }) {
     <path class="line" d="${line}" fill="none" stroke="#ff4d1f" stroke-width="6" stroke-linecap="round" style="filter:drop-shadow(0 6px 14px rgba(255,77,31,.6))"/>
     <circle class="pulse" cx="${last[0]}" cy="${last[1]}" r="12" fill="none" stroke="#ff4d1f" stroke-width="4"/>
     <circle class="dot" cx="${last[0]}" cy="${last[1]}" r="11" fill="#f6f3ef" stroke="#ff4d1f" stroke-width="6"/></svg>`);
-  const tip = add(chart, `<div class="tip" style="left:${last[0] - 104}px;top:${last[1] - 84}px">Today · 87%</div>`);
+  const tip = add(chart, `<div class="tip" style="left:${last[0] - 104}px;top:${last[1] - 84}px">${D.tip}</div>`);
   const DRAW = T_IN + 0.02;
   tl.fromTo(chart.querySelector('.line'), { drawSVG: '0%' }, { drawSVG: '100%', duration: 0.95, ease: 'power2.inOut' }, DRAW);
   tl.fromTo(chart.querySelector('.reveal'), { attr: { width: 0 } }, { attr: { width: 896 }, duration: 0.95, ease: 'power2.inOut' }, DRAW);

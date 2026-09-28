@@ -1,17 +1,19 @@
 // 11.25 – 13.125s  04 HOUSEKEEPING — zoom out of room 305 onto the live room
 // board; a wave of flips turns dirty rooms clean. Exit: tiles flood orange.
 import { tl, b, add, gsap, cue, headline, hlIn, hlOut, windowed, icon, onFrame, prog, $ } from '../lib.js';
+import { T } from '../i18n.js';
+const HK = T.hk;
 
 export const T_IN = b(24), T_OUT = b(28);
 const G = { x: 60, y: 650, tile: 176, gap: 20 };
 
 const ST = {
-  occ: ['#1b1b22', 'var(--text)', 'bed-double', 'Occupied', 'rgba(255,255,255,.4)'],
-  dirty: ['#ff4d1f', '#fff', 'spray-can', 'Dirty', '#fff'],
-  clean: ['#3ddc97', '#062b1c', 'check', 'Clean', '#062b1c'],
-  insp: ['#f6f3ef', '#0b0b0f', 'check-check', 'Inspected', '#0b0b0f'],
-  cleaning: ['transparent', '#ff7a45', 'brush-cleaning', 'Cleaning', '#ff7a45'],
-  inhouse: ['#1b1b22', 'var(--text)', 'user', 'Checked in', '#3ddc97'],
+  occ: ['#1b1b22', 'var(--text)', 'bed-double', HK.st.occ, 'rgba(255,255,255,.4)'],
+  dirty: ['#ff4d1f', '#fff', 'spray-can', HK.st.dirty, '#fff'],
+  clean: ['#3ddc97', '#062b1c', 'check', HK.st.clean, '#062b1c'],
+  insp: ['#f6f3ef', '#0b0b0f', 'check-check', HK.st.insp, '#0b0b0f'],
+  cleaning: ['transparent', '#ff7a45', 'brush-cleaning', HK.st.cleaning, '#ff7a45'],
+  inhouse: ['#1b1b22', 'var(--text)', 'user', HK.st.inhouse, '#3ddc97'],
 };
 
 export function build({ world, hud }) {
@@ -40,12 +42,12 @@ export function build({ world, hud }) {
     #s-hk .prog i { position:absolute; left:0; top:0; bottom:0; width:100%; background:var(--green); border-radius:6px; transform-origin:0 50%; }
   </style>`);
 
-  const hl = headline(scene, ['Rooms ready.', '<span class="accent">In real time.</span>'], { top: 312 });
+  const hl = headline(scene, HK.hl, { top: 312 });
   hlIn(hl, T_IN + 0.08);
-  hud.step(3, 'Housekeeping', T_IN);
+  hud.step(3, HK.hud, T_IN);
 
-  const bar = add(scene, `<div class="bar"><div class="pill on">All floors</div><div class="pill">F2</div><div class="pill">F3</div><div class="pill">F4</div><div class="pill">F5</div>
-    <div class="ready">Ready <b class="cnt">4</b><span>/ 20</span></div></div>`);
+  const bar = add(scene, `<div class="bar">${HK.floors.map((f, i) => `<div class="pill${i ? '' : ' on'}">${f}</div>`).join('')}
+    <div class="ready">${HK.ready} <b class="cnt">4</b><span>/ 20</span></div></div>`);
   const cnt = bar.querySelector('.cnt');
   const progEl = add(scene, `<div class="prog"><i></i></div>`);
 

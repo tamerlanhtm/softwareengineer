@@ -1,6 +1,8 @@
 // 7.5 – 9.375s  02 RESERVATIONS — tape chart fills itself, a booking is dragged
 // into room 305 and gets an automatic rate quote.
 import { tl, b, add, gsap, cue, headline, hlIn, hlOut, windowed, icon, makeCursor, moveTo, click, onFrame, prog } from '../lib.js';
+import { T } from '../i18n.js';
+const RV = T.resv;
 
 export const T_IN = b(16), T_OUT = b(20);
 // geometry shared with the front-desk morph
@@ -48,16 +50,16 @@ export function build({ world, hud }) {
   // whip in from the right
   tl.fromTo(scene, { x: 1350, skewX: -6 }, { x: 0, skewX: 0, duration: 0.55, ease: 'expo.out' }, T_IN);
 
-  const hl = headline(scene, ['Every booking.', '<span class="accent">One view.</span>'], { top: 312 });
+  const hl = headline(scene, RV.hl, { top: 312 });
   hlIn(hl, T_IN + 0.02);
-  hud.step(1, 'Reservations', T_IN);
+  hud.step(1, RV.hud, T_IN);
 
   const panel = add(scene, `<div class="card" style="left:${PANEL.x}px;top:${PANEL.y}px;width:${PANEL.w}px;height:${PANEL.h}px"></div>`);
-  const days = [['MO', 14], ['TU', 15], ['WE', 16], ['TH', 17], ['FR', 18], ['SA', 19], ['SU', 20]];
+  const days = RV.days.map((d, i) => [d, 14 + i]);
   add(panel, `<div class="today" style="left:${PAD + LEFT + 2 * COLW + 4}px;top:${PAD - 10}px;width:${COLW - 8}px;height:${TOP + 8 * ROW - PAD + 6}px"></div>`);
   days.forEach(([d, n], i) => add(panel, `<div class="hdr" style="left:${PAD + LEFT + i * COLW}px;width:${COLW}px">${d}<b>${n}</b></div>`));
   const rooms = ['301', '302', '303', '304', '305', '306', '307', '308'];
-  const types = ['Deluxe', 'Deluxe', 'Twin', 'Twin', 'Deluxe', 'Suite', 'Twin', 'Deluxe'];
+  const types = RV.types;
   rooms.forEach((r, i) => {
     add(panel, `<div class="gl" style="left:${PAD}px;width:${PANEL.w - PAD * 2}px;top:${TOP + i * ROW}px"></div>`);
     add(panel, `<div class="room" style="top:${TOP + i * ROW + 16}px">${r}<small>${types[i]}</small></div>`);
@@ -65,16 +67,16 @@ export function build({ world, hud }) {
   add(panel, `<div class="gl" style="left:${PAD}px;width:${PANEL.w - PAD * 2}px;top:${TOP + 8 * ROW}px"></div>`);
 
   const bookings = [
-    [0, 0.5, 3.5, 'b-or', 'Leyla M.', '3n'],
-    [1, 1.5, 5.5, 'b-lt', 'Murat Y.', '4n'],
+    [0, 0.5, 3.5, 'b-or', 'Leyla M.', RV.n(3)],
+    [1, 1.5, 5.5, 'b-lt', 'Murat Y.', RV.n(4)],
     [2, -0.5, 1.5, 'b-gr', 'John S.', ''],
-    [2, 2.5, 6.5, 'b-bl', 'Caspian Tours', 'Group'],
-    [3, 2.5, 6.5, 'b-bl', 'Caspian Tours', 'Group'],
-    [4, 0.5, 2.5, 'b-or', 'Anna P.', '2n'],
-    [5, 1.5, 4.5, 'b-gr', 'Elvin H.', '3n'],
+    [2, 2.5, 6.5, 'b-bl', 'Caspian Tours', RV.group],
+    [3, 2.5, 6.5, 'b-bl', 'Caspian Tours', RV.group],
+    [4, 0.5, 2.5, 'b-or', 'Anna P.', RV.n(2)],
+    [5, 1.5, 4.5, 'b-gr', 'Elvin H.', RV.n(3)],
     [5, 5.5, 7.5, 'b-or', 'Sophie L.', ''],
-    [6, -0.5, 3.5, 'b-lt', 'Ivan K.', '4n'],
-    [7, 3.5, 7.5, 'b-wl', 'Waitlist', '· 2'],
+    [6, -0.5, 3.5, 'b-lt', 'Ivan K.', RV.n(4)],
+    [7, 3.5, 7.5, 'b-wl', RV.waitlist, '· 2'],
   ];
   // clip bars to the grid area
   const gridClip = add(panel, `<div style="position:absolute;left:${PAD + LEFT}px;top:0;width:${7 * COLW}px;height:${PANEL.h}px;overflow:hidden"></div>`);
@@ -86,12 +88,12 @@ export function build({ world, hud }) {
   tl.fromTo(bars, { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.55, ease: 'expo.out', stagger: 0.045 }, T_IN + 0.12);
   bars.forEach((_, k) => cue('blip', T_IN + 0.12 + k * 0.045, { v: k / bars.length }));
 
-  add(panel, `<div class="legend"><span><i style="background:var(--orange)"></i>Confirmed</span><span><i style="background:var(--text)"></i>In-house</span>
-    <span><i style="background:var(--blue)"></i>Group</span><span><i style="border:2.5px dashed rgba(255,255,255,.4)"></i>Waitlist</span></div>`);
+  add(panel, `<div class="legend"><span><i style="background:var(--orange)"></i>${RV.legend[0]}</span><span><i style="background:var(--text)"></i>${RV.legend[1]}</span>
+    <span><i style="background:var(--blue)"></i>${RV.legend[2]}</span><span><i style="border:2.5px dashed rgba(255,255,255,.4)"></i>${RV.legend[3]}</span></div>`);
 
   // --- drag a new booking into room 305 ---
   const tgt = barRect(DROP.row, DROP.d0, DROP.d1);
-  const drag = add(scene, `<div class="bar b-or drag" style="width:${tgt.w}px;height:${tgt.h}px">Ayşe K.<small>3n</small></div>`);
+  const drag = add(scene, `<div class="bar b-or drag" style="width:${tgt.w}px;height:${tgt.h}px">${RV.guest}<small>${RV.n(3)}</small></div>`);
   const cur = makeCursor(scene);
   const GRAB = b(17.25), DROP_T = b(18.6);
   const start = { x: 700, y: 1560 };
@@ -117,7 +119,7 @@ export function build({ world, hud }) {
   tl.to(cur.el, { opacity: 0, duration: 0.25 }, DROP_T + 0.35);
   cue('grab', GRAB); cue('snap', DROP_T);
 
-  const quote = add(scene, `<div class="quote" style="left:${tgt.x - 10}px;top:${tgt.y - 86}px">Auto rate quote · <span>$372</span></div>`);
+  const quote = add(scene, `<div class="quote" style="left:${tgt.x - 10}px;top:${tgt.y - 86}px">${RV.quote} · <span>${T.money(T.num.room)}</span></div>`);
   tl.fromTo(quote, { scale: 0.3, opacity: 0, y: 20, transformOrigin: '40px 100%' }, { scale: 1, opacity: 1, y: 0, duration: 0.45, ease: 'back.out(2.4)' }, DROP_T + 0.12);
   cue('pop', DROP_T + 0.12);
 

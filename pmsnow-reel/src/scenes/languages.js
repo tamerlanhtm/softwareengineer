@@ -1,14 +1,10 @@
 // 18.75 – 20.625s  08 LANGUAGES — "Welcome" flips through EN / AZ / TR / RU on
 // the beat while the switcher's orange block slides along.
 import { tl, b, add, gsap, cue, headline, hlIn, hlOut, windowed, splitChars } from '../lib.js';
+import { T } from '../i18n.js';
 
 export const T_IN = b(40), T_OUT = b(44);
-const WORDS = [
-  ['EN', 'English', ['Welcome']],
-  ['AZ', 'Azərbaycanca', ['Xoş', 'gəlmisiniz']],
-  ['TR', 'Türkçe', ['Hoş', 'geldiniz']],
-  ['RU', 'Русский', ['Добро', 'пожаловать']],
-];
+const WORDS = T.lang.words;   // [code, language name, lines]
 export const SEG = { x: 540 - 344, y: 1296, w: 688, h: 116 };
 export const SEED = { x: 540, y: 960, size: 132 };
 
@@ -30,9 +26,9 @@ export function build({ world, hud }) {
       font-family:var(--display); font-weight:700; font-size:34px; color:var(--muted); }
   </style>`);
 
-  const hl = headline(scene, ['Speaks your', '<span class="accent">language.</span>'], { top: 312 });
+  const hl = headline(scene, T.lang.hl, { top: 312 });
   hlIn(hl, T_IN - 0.1);
-  hud.step(7, 'EN · AZ · TR · RU', T_IN);
+  hud.step(7, T.lang.hud, T_IN);
 
   const seg = add(scene, `<div class="seg"></div>`);
   const hi = add(scene, `<div class="hi"></div>`);

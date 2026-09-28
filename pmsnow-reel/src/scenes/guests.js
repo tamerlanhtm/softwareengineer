@@ -2,6 +2,8 @@
 // avatar; profile, tags, stay count; 5 stars from an in-room QR card.
 import { tl, b, add, gsap, cue, headline, hlIn, hlOut, windowed, icon, onFrame, prog, rng, typewriter } from '../lib.js';
 import { AVATAR } from './audit.js';
+import { T } from '../i18n.js';
+const GU = T.guest;
 
 export const T_IN = b(36), T_OUT = b(40);
 const P = { x: 60, y: 590, w: 960, h: 500 };
@@ -37,25 +39,25 @@ export function build({ world, hud }) {
     #s-guest .qrl { position:absolute; right:40px; top:266px; width:210px; text-align:center; font-family:var(--mono); font-size:19px; color:var(--muted); letter-spacing:.08em; }
   </style>`);
 
-  const hl = headline(scene, ['Know every', '<span class="accent">guest.</span>'], { top: 312 });
+  const hl = headline(scene, GU.hl, { top: 312 });
   hlIn(hl, T_IN + 0.02);
-  hud.step(6, 'Guest CRM', T_IN);
+  hud.step(6, GU.hud, T_IN);
 
   const prof = add(scene, `<div class="card" style="left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px"></div>`);
-  const av = add(prof, `<div class="av"><span>MY</span></div>`);
-  const nm = add(prof, `<div class="nm">Murat Yılmaz</div>`);
-  const sb = add(prof, `<div class="sb">Corporate · Istanbul</div>`);
+  const av = add(prof, `<div class="av"><span>${GU.initials}</span></div>`);
+  const nm = add(prof, `<div class="nm">${GU.name}</div>`);
+  const sb = add(prof, `<div class="sb">${GU.sub}</div>`);
   const vip = add(prof, `<div class="pill gold vip">${icon('crown', { size: 30, sw: 2.4 })}VIP</div>`);
-  const tags = add(prof, `<div class="tags"><div class="pill orange">${icon('heart', { size: 22, sw: 2.6 })}Loyalty · Gold</div>
-    <div class="pill blue">${icon('clock', { size: 22, sw: 2.6 })}Late check-out</div><div class="pill">${icon('building-2', { size: 22, sw: 2.4 })}High floor</div></div>`);
+  const tags = add(prof, `<div class="tags"><div class="pill orange">${icon('heart', { size: 22, sw: 2.6 })}${GU.tags[0]}</div>
+    <div class="pill blue">${icon('clock', { size: 22, sw: 2.6 })}${GU.tags[1]}</div><div class="pill">${icon('building-2', { size: 22, sw: 2.4 })}${GU.tags[2]}</div></div>`);
   const note = add(prof, `<div class="note">${icon('message-circle', { size: 30, sw: 2.3 })}<span class="tx"></span></div>`);
-  typewriter(note.querySelector('.tx'), 'Prefers a quiet room · extra pillows', T_IN + 0.45, 0.55);
-  const stats = add(prof, `<div class="stats"><div class="stat"><div class="l">Stays</div><div class="v s1">0</div></div>
-    <div class="stat"><div class="l">Nights</div><div class="v s2">0</div></div><div class="stat"><div class="l">Lifetime value</div><div class="v s3">$0</div></div></div>`);
+  typewriter(note.querySelector('.tx'), GU.note, T_IN + 0.45, 0.55);
+  const stats = add(prof, `<div class="stats"><div class="stat"><div class="l">${GU.stats[0]}</div><div class="v s1">0</div></div>
+    <div class="stat"><div class="l">${GU.stats[1]}</div><div class="v s2">0</div></div><div class="stat"><div class="l">${GU.stats[2]}</div><div class="v s3">${T.ltv(0)}</div></div></div>`);
   const s1 = stats.querySelector('.s1'), s2 = stats.querySelector('.s2'), s3 = stats.querySelector('.s3');
   onFrame((t) => {
     const p = prog(t, T_IN + 0.3, 0.9, 'expo.out');
-    const a = String(Math.round(7 * p)), c = String(Math.round(23 * p)), d = '$' + (4.2 * p).toFixed(1) + 'K';
+    const a = String(Math.round(7 * p)), c = String(Math.round(23 * p)), d = T.ltv(T.num.ltv * p);
     if (s1.__s !== a) { s1.textContent = a; s1.__s = a; }
     if (s2.__s !== c) { s2.textContent = c; s2.__s = c; }
     if (s3.__s !== d) { s3.textContent = d; s3.__s = d; }
@@ -72,11 +74,11 @@ export function build({ world, hud }) {
 
   // feedback card
   const fb = add(scene, `<div class="card" style="left:${F.x}px;top:${F.y}px;width:${F.w}px;height:${F.h}px">
-    <div class="ft">Guest feedback</div><div class="fs">From the in-room QR card</div>
+    <div class="ft">${GU.fb}</div><div class="fs">${GU.fbSub}</div>
     <div class="stars">${'<div class="s">' + icon('star', { size: 66, sw: 0 }) + '</div>'.repeat(1)}</div>
     <div class="rate"><span class="rv">0.0</span><small>/ 5</small></div>
-    <div class="pill green alert">${icon('bell', { size: 22, sw: 2.6 })}Low-score alerts on</div>
-    <div class="qr"></div><div class="qrl">SCAN · RATE · SHARE</div></div>`);
+    <div class="pill green alert">${icon('bell', { size: 22, sw: 2.6 })}${GU.alert}</div>
+    <div class="qr"></div><div class="qrl">${GU.qr}</div></div>`);
   const starsEl = fb.querySelector('.stars');
   starsEl.innerHTML = Array.from({ length: 5 }, () => `<div class="s">${icon('star', { size: 66, sw: 0 })}</div>`).join('');
   tl.fromTo(fb, { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'expo.out' }, T_IN + 0.1);
@@ -88,7 +90,7 @@ export function build({ world, hud }) {
   });
   const rv = fb.querySelector('.rv');
   onFrame((t) => {
-    const s = (4.9 * prog(t, T_IN + 0.55, 0.6, 'power2.out')).toFixed(1);
+    const s = T.dec(4.9 * prog(t, T_IN + 0.55, 0.6, 'power2.out'), 1);
     if (rv.__s !== s) { rv.textContent = s; rv.__s = s; }
   });
   tl.fromTo(fb.querySelector('.alert'), { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: 'back.out(2.5)' }, T_IN + 1.1);

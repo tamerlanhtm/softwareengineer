@@ -1,8 +1,9 @@
 // 24.84 – 30s  CTA — the cube's face hands over to the flat logo; tagline lands,
 // "Now." slams in, then the contact block. Holds long enough to read the URL.
-import { tl, b, add, gsap, cue, headline, hlIn, windowed, icon, onFrame, prog, rng, shake, makeCursor, moveTo, click, splitChars } from '../lib.js';
+import { tl, b, add, gsap, cue, headline, hlIn, windowed, icon, onFrame, prog, rng, shake, makeCursor, moveTo, click, splitChars, contentWidth } from '../lib.js';
 import { makeLogo } from '../logo-mark.js';
 import { T_LOGO, LOGO } from './modules.js';
+import { T } from '../i18n.js';
 
 export const T_END = 30;
 
@@ -85,13 +86,16 @@ export function build({ world }) {
   cue('logo_land', T_LOGO);
 
   // tagline
-  const tag = add(scene, `<div class="tag"><span class="ln"><span class="ln-in">Everything your</span></span><span class="ln"><span class="ln-in">hotel needs.</span></span></div>`);
+  const tag = add(scene, `<div class="tag">${T.cta.tag.map((l) => `<span class="ln"><span class="ln-in">${l}</span></span>`).join('')}</div>`);
+  // shrink the tagline if a translation runs wide
+  const tagW = Math.max(...[...tag.querySelectorAll('.ln-in')].map(contentWidth));
+  if (tagW > 960) tag.style.fontSize = Math.floor((84 * 960) / tagW) + 'px';
   const tagChars = [...tag.querySelectorAll('.ln-in')].map((e) => splitChars(e));
   tagChars.forEach((cs, i) => tl.fromTo(cs, { yPercent: 118, rotate: 7 }, { yPercent: 0, rotate: 0, duration: 0.75, ease: 'expo.out', stagger: 0.018 }, b(53.4) + i * 0.1));
   cue('whoosh_s', b(53.3));
 
   // "Now." slam
-  const now = add(scene, `<div class="now">Now.</div>`);
+  const now = add(scene, `<div class="now" style="margin-top:${T.cta.nowDy}px">${T.cta.now}</div>`);
   const NOW = b(56);
   tl.fromTo(now, { scale: 3.2, opacity: 0, filter: 'blur(18px)' }, { scale: 1, opacity: 1, filter: 'blur(0px)', duration: 0.26, ease: 'power4.in' }, NOW - 0.26);
   tl.fromTo('#flash', { opacity: 0.32 }, { opacity: 0, duration: 0.35, ease: 'power2.out', immediateRender: false }, NOW);
@@ -101,7 +105,10 @@ export function build({ world }) {
 
   // contact block
   const CT = b(57);
-  const btn = add(scene, `<div class="btn"><div class="shine"></div>Book a demo ${icon('arrow-right', { size: 44, sw: 2.8, color: '#fff' })}</div>`);
+  const btn = add(scene, `<div class="btn"><div class="shine"></div>${T.cta.btn} ${icon('arrow-right', { size: 44, sw: 2.8, color: '#fff' })}</div>`);
+  // button grows with its label (stays centred)
+  const bw = Math.max(600, Math.min(960, contentWidth(btn) + 130));
+  Object.assign(btn.style, { width: bw + 'px', left: 540 - bw / 2 + 'px' });
   const url = add(scene, `<div class="url">www.<b>ineed.now</b></div>`);
   const ig = add(scene, `<div class="ig">${icon('at-sign', { size: 36, sw: 2.4 })}<span>ineednow_</span></div>`);
   tl.fromTo(btn, { y: 80, opacity: 0, scale: 0.85 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.8)' }, CT);

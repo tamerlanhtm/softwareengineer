@@ -30,11 +30,11 @@ export const CHROME_ARGS = [
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
 ];
 
-export async function openPage(browser, port) {
+export async function openPage(browser, port, lang = 'en') {
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
   page.on('pageerror', (e) => console.error('[pageerror]', e.message));
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.error('[console]', m.text()); });
-  await page.goto(`http://127.0.0.1:${port}/index.html`);
+  await page.goto(`http://127.0.0.1:${port}/index.html?lang=${lang}`);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
   return page;
 }

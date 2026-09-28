@@ -4,7 +4,7 @@ import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { startServer, openPage, CHROME_ARGS } from './server.mjs';
 const { server, port } = await startServer();
 const browser = await chromium.launch({ args: CHROME_ARGS });
-const page = await openPage(browser, port);
+const page = await openPage(browser, port, process.argv[2] || 'en');
 const res = await page.evaluate(() => {
   const SKIP = new Set(['duration', 'ease', 'stagger', 'delay', 'immediateRender', 'yoyo', 'repeat', 'onUpdate', 'onComplete',
     'overwrite', 'lazy', 'startAt', 'runBackwards', 'data', 'id', 'paused', 'transformOrigin', 'xPercent', 'yPercent_', 'parent', 'repeatDelay', 'yoyoEase', 'inherit', 'callbackScope', 'keyframes']);

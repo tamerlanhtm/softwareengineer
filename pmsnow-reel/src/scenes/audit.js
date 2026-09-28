@@ -3,6 +3,8 @@
 // becomes the next guest's avatar.
 import { tl, b, add, gsap, cue, headline, hlIn, hlOut, windowed, icon, onFrame, prog, rng } from '../lib.js';
 import { WIPE_ORIGIN } from './billing.js';
+import { T } from '../i18n.js';
+const AU = T.audit;
 
 export const T_IN = b(32), T_OUT = b(36);
 const RC = { x: 540, y: 905 };
@@ -54,9 +56,9 @@ export function build({ world, hud }) {
     <circle cx="75" cy="75" r="62" fill="#f6f1e6" mask="url(#moonm)"/></svg>`);
   tl.fromTo(moon, { y: 60, opacity: 0, rotation: -30 }, { y: 0, opacity: 1, rotation: 0, duration: 0.9, ease: 'expo.out' }, T_IN);
 
-  const hl = headline(scene, ['Night audit,', '<span class="accent">automated.</span>'], { top: 312 });
+  const hl = headline(scene, AU.hl, { top: 312 });
   hlIn(hl, T_IN + 0.02);
-  hud.step(5, 'Night audit', T_IN);
+  hud.step(5, AU.hud, T_IN);
 
   // progress ring
   const ringWrap = add(scene, `<div style="position:absolute;left:${RC.x - 260}px;top:${RC.y - 260}px;width:520px;height:520px"></div>`);
@@ -78,7 +80,7 @@ export function build({ world, hud }) {
     if (pn.__s !== s) { pn.textContent = s; pn.__s = s; }
   });
   for (let k = 0; k < 16; k++) cue('tick', A0 + (k * (A1 - A0)) / 16, { v: k / 16 });
-  const plbl = add(scene, `<div class="plbl"><span class="run">Closing the day…</span><span class="done">✓ Day closed</span></div>`);
+  const plbl = add(scene, `<div class="plbl"><span class="run">${AU.running}</span><span class="done">${AU.done}</span></div>`);
   tl.fromTo([pct, plbl], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'expo.out', stagger: 0.05 }, T_IN + 0.05);
   gsap.set(plbl.querySelector('.done'), { opacity: 0 });
   tl.to(plbl.querySelector('.run'), { opacity: 0, y: -20, duration: 0.2 }, A1);
@@ -87,10 +89,10 @@ export function build({ world, hud }) {
   cue('success', A1);
 
   // checklist
-  const items = ['Room charges posted', 'No-shows processed'];
+  const items = AU.items;
   const cls = items.map((txt, k) => add(scene, `<div class="cl" style="top:${1230 + k * 76}px"><div class="c">${icon('check', { size: 30, sw: 3.4, color: '#062b1c' })}</div>${txt}</div>`));
-  const dateRow = add(scene, `<div class="cl" style="top:${1230 + 2 * 76}px"><div class="c">${icon('check', { size: 30, sw: 3.4, color: '#062b1c' })}</div>Business date
-    <span class="flapw"><span class="d0">26 SEP</span><span class="d1" style="transform:rotateX(180deg)">27 SEP</span></span></div>`);
+  const dateRow = add(scene, `<div class="cl" style="top:${1230 + 2 * 76}px"><div class="c">${icon('check', { size: 30, sw: 3.4, color: '#062b1c' })}</div>${AU.date}
+    <span class="flapw"><span class="d0">${AU.d0}</span><span class="d1" style="transform:rotateX(180deg)">${AU.d1}</span></span></div>`);
   cls.push(dateRow);
   tl.fromTo(cls, { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'expo.out', stagger: 0.06 }, T_IN + 0.15);
   cls.forEach((c, k) => {
