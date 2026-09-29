@@ -45,7 +45,7 @@ GSAP timeline. `window.__seek(t)` renders any moment deterministically.
 - `src/scenes/*.js`: one file per scene. Each file adds its tweens to the master timeline and registers audio cues.
 - `src/lib.js`, `src/ui.js`: helpers (vector logo rebuilt from the brand file's geometry, masked headlines, chips, counters, phone mockup).
 - `scripts/render.mjs`: headless Chromium renders each frame as the average of 8 sub-frames over a 180° shutter (16 during the fastest moves). This is real motion blur. Static frames are captured once.
-- `scripts/audio.py`: synthesizes the 120 BPM music bed and every sound effect from `out/cues.json`, so hits land on the exact frame of each on-screen event.
+- `scripts/audio.py`: synthesizes the whole soundtrack with numpy/scipy, using no samples. That's a 120 BPM F-minor track plus 18 kinds of sound effects placed sample-accurately from the 153 cues in `out/cues.json`, so every pop, stamp, whoosh and impact lands on its frame. It's mastered to −14 LUFS with a −1.3 dBTP true peak. Details are in `out/audio_report/NOTES.md`, and the background glow pulses on the soundtrack's kicks.
 - `scripts/encode.sh`: BT.709-tagged H.264 encode, so the brand orange (#FE4D1E) survives.
 
 ```bash

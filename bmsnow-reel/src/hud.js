@@ -45,7 +45,7 @@ export function buildHud({ layers }) {
       } else {
         tl.to(c, { backgroundColor: '#FE4D1E', duration: 0.2 }, t + 0.1);
       }
-      tl.fromTo(c, { scale: 1.9 }, { scale: 1, duration: 0.55, ease: 'back.out(3)' }, t + 0.1);
+      tl.fromTo(c, { scale: 1.9 }, { scale: 1, duration: 0.55, ease: 'back.out(3)', immediateRender: false }, t + 0.1);
       current = i;
     },
   };

@@ -106,16 +106,13 @@ export default function numbers({ layers, tl, bg, hud, cue }) {
   const ZX = 540, ZY = 800; // centre of the orange square while it fills the screen
   const scaleFull = 2400 / RING.size;
   const sq = el('div', 'abs', sec);
+  // filled via an inset shadow so the hole can later open as a real (transparent) cut-out
   css(sq, {
     left: RING.cx - RING.size / 2 + 'px', top: RING.cy - RING.size / 2 + 'px', width: RING.size + 'px', height: RING.size + 'px',
-    borderRadius: LOGO.HR + '%', background: COLOR.orange, zIndex: 5,
+    borderRadius: LOGO.HR + '%', background: 'transparent', boxShadow: `inset 0 0 0 ${RING.size / 2 + 1}px ${COLOR.orange}`, zIndex: 5,
   });
   const zero = el('div', 'abs', sq, '0');
   css(zero, { left: 0, top: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', font: `900 ${560 / scaleFull}px/1 var(--display)`, color: COLOR.ink, letterSpacing: '-0.05em' });
-  const hole = el('div', 'abs', sq);
-  const holeS = RING.size * (100 - 2 * LOGO.RING) / 100;
-  css(hole, { left: (RING.size - holeS) / 2 + 'px', top: (RING.size - holeS) / 2 + 'px', width: holeS + 'px', height: holeS + 'px', borderRadius: (LOGO.IR / 100) * RING.size + 'px', background: COLOR.ink });
-  gsap.set(hole, { scale: 0 });
   gsap.set(sq, { x: ZX - RING.cx, y: ZY - RING.cy, scale: 0, transformOrigin: '50% 50%' });
 
   const add = el('div', 'abs', sec);
@@ -141,7 +138,7 @@ export default function numbers({ layers, tl, bg, hud, cue }) {
   tl.to([add, inc], { opacity: 0, y: -30, duration: 0.14, ease: 'power2.in' }, M - 0.04);
   tl.to(sq, { x: 0, y: 0, scale: 1, duration: 0.36, ease: 'expo.inOut' }, M);
   tl.to(zero, { opacity: 0, duration: 0.12 }, M + 0.12);
-  tl.to(hole, { scale: 1, duration: 0.24, ease: 'back.out(1.8)' }, M + 0.16);
+  tl.to(sq, { boxShadow: `inset 0 0 0 ${(RING.size * LOGO.RING) / 100}px ${COLOR.orange}`, duration: 0.24, ease: 'back.out(1.8)' }, M + 0.16);
   boostBlur(M, M + 0.3, 16);
   cue(M, 'whoosh', { dur: 0.34, gain: 0.9 });
   bg.to(tl, M, { glow: 0.55, particles: 0.6, orbY: 0.3, dur: 0.5 });

@@ -1,7 +1,8 @@
 node_modules/
 out/frames*/
 out/stems/
-out/audio_report/
-out/render.log
+out/audio_report/spectrum*.png
+out/audio_report/waveform.png
+out/render*.log
 out/*.wav
 __pycache__/

@@ -21,7 +21,7 @@ export default function cta({ layers, tl, bg, cue }) {
     const cy = CTA_LOGO.cy + (y + 50 - 201) * k;
     const s = el('div', 'abs', sec);
     css(s, { left: cx - size / 2 + 'px', top: cy - size / 2 + 'px', width: size + 'px', height: size + 'px', borderRadius: LOGO.R + '%', background: COLOR.orange });
-    tl.fromTo(s, { x: RING.cx - cx, y: RING.cy - cy, scale: 0.2, rotation: -90 }, { x: 0, y: 0, scale: 1, rotation: 0, duration: 0.55, ease: 'back.out(1.6)' }, t0 + 0.02 + n * 0.035);
+    tl.fromTo(s, { x: RING.cx - cx, y: RING.cy - cy, scale: 0, rotation: -90 }, { x: 0, y: 0, scale: 1, rotation: 0, duration: 0.55, ease: 'back.out(1.6)' }, t0 + 0.02 + n * 0.035);
     cue(t0 + 0.04 + n * 0.035, 'tick', { gain: 0.3, pitch: 1.3 - n * 0.05 });
     return { el: s, i };
   });

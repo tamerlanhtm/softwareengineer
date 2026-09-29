@@ -59,13 +59,15 @@ export function buildBackground({ layers, onFrame }) {
 
   const state = { glow: 0.0, dots: 0.0, particles: 0.0, vignette: 1, orbX: 0.5, orbY: 0.42, speed: 1, lift: 0 };
 
-  // kick-synced glow pulse (120 BPM): a short lift on every beat while the drums play
-  const KICK_SPANS = [[2.0, 22.0], [24.0, 29.5]];
+  // kick-synced glow pulse: a short lift on every kick of the soundtrack
+  // (kick times from out/audio_report/metrics.json; the 0-1 s intro kicks are muffled, so skipped)
+  const KICKS = [];
+  for (let k = 2.0; k <= 23.0 + 1e-9; k += 0.5) KICKS.push(+k.toFixed(2));
+  KICKS.push(24.0, 24.5, 24.96, 25.5, 26.0, 26.5, 27.0, 27.5, 28.0, 28.5, 29.0);
   const kickPulse = (t) => {
-    for (const [a, b] of KICK_SPANS) {
-      if (t >= a && t < b) return Math.exp(-((t - a) % 0.5) / 0.1);
-    }
-    return 0;
+    let last = -1;
+    for (const k of KICKS) if (k <= t) last = k;
+    return last < 0 || t - last > 0.5 ? 0 : Math.exp(-(t - last) / 0.1);
   };
 
   onFrame((t) => {
