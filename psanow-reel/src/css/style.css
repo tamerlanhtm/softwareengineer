@@ -1,0 +1,24 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #000; }
+body { width: 1080px; height: 1920px; overflow: hidden; }
+#stage {
+  position: relative; width: 1080px; height: 1920px; overflow: hidden;
+  background: #0B0908; color: #F7F3F0;
+  font-family: 'Inter Variable', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  font-kerning: normal;
+}
+#bg, #cam, #flash, #vignette, #grain { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+#cam { transform-origin: 540px 960px; }
+#flash, #vignette { pointer-events: none; }
+#vignette { background: radial-gradient(130% 85% at 50% 46%, rgba(0,0,0,0) 52%, rgba(0,0,0,0.62) 100%); }
+.scene { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 540px 960px; }
+.abs { position: absolute; left: 0; top: 0; }
+.mask { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.08em 0.03em 0.16em; margin: -0.08em -0.03em -0.16em; }
+.mask-in { display: inline-block; }
+.ch { display: inline-block; white-space: pre; }
+.sp { display: inline-block; }
+.f-disp { font-family: 'Unbounded Variable', sans-serif; }
+.f-head { font-family: 'Inter Tight Variable', sans-serif; }
+.f-mono { font-family: 'JetBrains Mono Variable', monospace; }
+.nowrap { white-space: nowrap; }
