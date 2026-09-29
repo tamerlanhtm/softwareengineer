@@ -10,11 +10,13 @@ function buildLogo(tl) {
     <div class="s2-bg"></div>
     <div class="s2-word"><span class="tos">TOS</span><span class="now">Now</span></div>
     <div class="s2-sub"></div>
-    <div class="s2-line"><span class="mask"><span>One system for your</span></span></div>
+    <div class="s2-line"><span class="mask"><span>${L.logo.line}</span></span></div>
     <div class="s2-roll"></div>`;
-  const words = ['enquiries.', 'itineraries.', 'suppliers.', 'departures.', 'vouchers.'];
+  const words = L.logo.roll;
   const roll = $('.s2-roll', S);
   const W8 = words.map((w) => { const n = el(`<span>${w}</span>`); roll.appendChild(n); return n; });
+  fitWidth(W8, 860);                     // one size for every rolling word
+  fitWidth($('.s2-sub', S), 1000);
 
   tl.set(S, { autoAlpha: 1 }, B(8));
   tl.set(S, { autoAlpha: 0 }, B(16.5));
@@ -43,7 +45,8 @@ function buildLogo(tl) {
   const chars = SplitText.create($('.s2-word', S), { type: 'chars', mask: 'chars' }).chars;
   tl.fromTo(chars, { yPercent: 115 }, { yPercent: 0, duration: 0.7, ease: 'expo.out', stagger: 0.04, immediateRender: false }, B(10.85));
   gsap.set(chars, { yPercent: 115 });
-  scrambleIn($('.s2-sub', S), 'TOUR OPERATOR SYSTEM', B(11.25), 0.5);
+  $('.s2-sub', S).textContent = L.logo.sub;   // measured by fitWidth, then scrambled in
+  scrambleIn($('.s2-sub', S), L.logo.sub, B(11.25), 0.5);
   cue('scramble', B(11.25), { dur: 0.5 });
 
   /* ── rolling value line ────────────────────────────── */

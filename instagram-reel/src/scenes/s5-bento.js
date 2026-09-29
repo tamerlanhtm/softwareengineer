@@ -15,35 +15,36 @@ function buildBento(tl) {
   tl.set(S, { autoAlpha: 1 }, B(47.3));
   tl.set(S, { autoAlpha: 0 }, B(56.6));
 
-  const langs = [['Hello', 'EN'], ['Salam', 'AZ'], ['Merhaba', 'TR'], ['Привет', 'RU'], ['Salom', 'UZ']];
+  const T = L.bento;
+  const langs = T.langs;
   const tiles = {
-    0: `<div class="bt-l">${icon('layout-dashboard', 24, 2.2)}Dashboard</div>
+    0: `<div class="bt-l">${icon('layout-dashboard', 24, 2.2)}${T.dash[0]}</div>
         <div class="bt-ring"><svg viewBox="0 0 160 160"><circle cx="80" cy="80" r="66" class="trk"/><circle cx="80" cy="80" r="66" class="arc"/></svg><b class="tnum">0%</b></div>
-        <div class="bt-c">Departures loading</div>`,
-    1: `<div class="bt-l">${icon('languages', 24, 2.2)}5 languages</div>
+        <div class="bt-c">${T.dash[1]}</div>`,
+    1: `<div class="bt-l">${icon('languages', 24, 2.2)}${T.langsLabel}</div>
         <div class="bt-word">${langs.map(([w]) => `<span>${w}</span>`).join('')}</div>
         <div class="bt-codes">${langs.map(([, c]) => `<i>${c}</i>`).join('')}</div>`,
-    2: `<div class="bt-l">${icon('coins', 24, 2.2)}Multi-currency</div>
+    2: `<div class="bt-l">${icon('coins', 24, 2.2)}${T.fx[0]}</div>
         <div class="bt-fx"><b>USD</b><span class="sw">${icon('arrow-left-right', 34, 2.4)}</span><b>AZN</b></div>
-        <div class="bt-rate tnum">1 USD = 1.70 AZN</div>
+        <div class="bt-rate tnum">${T.fx[1]}</div>
         <div class="bt-tape"><div>EUR · TRY · UZS · RUB · GBP · USD · AZN · EUR · TRY · UZS · RUB · GBP · USD · AZN ·</div></div>`,
-    3: `<div class="bt-l">${icon('trending-up', 24, 2.2)}Margins</div>
-        <div class="bt-big tnum">15.3%</div>
+    3: `<div class="bt-l">${icon('trending-up', 24, 2.2)}${T.margins[0]}</div>
+        <div class="bt-big tnum">${L.pct(15.3)}</div>
         <div class="bt-bars">${[46, 62, 38, 74, 90].map((h, k) => `<i style="height:${h}%" class="${k === 4 ? 'hi' : ''}"></i>`).join('')}</div>
-        <div class="bt-c">Booking · departure · agent</div>`,
-    5: `<div class="bt-l">${icon('store', 24, 2.2)}Agent portal</div>
+        <div class="bt-c">${T.margins[1]}</div>`,
+    5: `<div class="bt-l">${icon('store', 24, 2.2)}${T.agent[0]}</div>
         <div class="bt-av"><i style="background:#FF8A5C">SW</i><i style="background:#E0B25C">GT</i><i style="background:#7C8CF8">BX</i><i class="more">+9</i></div>
-        <div class="bt-c two">Partners quote &amp; book<br>themselves</div>
-        <div class="bt-notif">${icon('circle-check-big', 20, 2.6)} New agent booking</div>`,
-    6: `<div class="bt-l">${icon('user-cog', 24, 2.2)}Roles &amp; access</div>
-        <div class="bt-roles">${['Reservations', 'Operations', 'Finance', 'Sales', 'Product', 'Management'].map((r) => `<span><i class="lk">${icon('lock', 16, 2.6)}</i><i class="ok">${icon('check', 16, 3)}</i>${r}</span>`).join('')}</div>`,
-    7: `<div class="bt-l">${icon('workflow', 24, 2.2)}Automation</div>
+        <div class="bt-c two">${T.agent[1]}</div>
+        <div class="bt-notif">${icon('circle-check-big', 20, 2.6)} ${T.agent[2]}</div>`,
+    6: `<div class="bt-l">${icon('user-cog', 24, 2.2)}${T.roles[0]}</div>
+        <div class="bt-roles">${T.roles[1].map((r) => `<span><i class="lk">${icon('lock', 16, 2.6)}</i><i class="ok">${icon('check', 16, 3)}</i>${r}</span>`).join('')}</div>`,
+    7: `<div class="bt-l">${icon('workflow', 24, 2.2)}${T.auto[0]}</div>
         <div class="bt-flow">
-          <div class="nd a">${icon('zap', 22, 2.4)}Payment received</div>
+          <div class="nd a">${icon('zap', 22, 2.4)}${T.auto[1]}</div>
           <div class="wire"><i></i></div>
-          <div class="nd b">${icon('send', 22, 2.4)}Send voucher</div>
+          <div class="nd b">${icon('send', 22, 2.4)}${T.auto[2]}</div>
         </div>`,
-    8: `<div class="bt-hol-in"><div class="bt-plus">${icon('plus', 40, 3)}</div><div class="bt-you">Your agency<br>here.</div></div>`,
+    8: `<div class="bt-hol-in"><div class="bt-plus">${icon('plus', 40, 3)}</div><div class="bt-you">${T.you}</div></div>`,
   };
   const nodes = {};
   Object.entries(tiles).forEach(([i, html]) => {
@@ -60,7 +61,9 @@ function buildBento(tl) {
     tl.from(nodes[i], { autoAlpha: 0, scale: 0.72, y: 50, duration: 0.55, ease: 'back.out(1.5)' }, t0);
   });
   cue('popcascade', B(47.7), { n: 8, dur: 8 * 0.06 });
-  hudStep(tl, 'All 30 modules · one login', ['Plus everything', 'else you need.'], B(47.5), B(54.8));
+  hudStep(tl, T.hud[0], T.hud[1], B(47.5), B(54.8));
+  fitWidth($$('.bt-l', S), 248);
+  fitWidth($('.bt-you', S), 262);
 
   /* ── tile micro-animations ─────────────────────────── */
   // dashboard ring + counter
@@ -87,7 +90,7 @@ function buildBento(tl) {
 
   // margins bars
   tl.from($$('.bt-bars i', nodes[3]), { scaleY: 0, duration: 0.5, ease: 'back.out(1.8)', stagger: B(0.25) }, B(48.6));
-  countUp($('.bt-big', nodes[3]), B(48.6), B(50), 0, 15.3, (v) => v.toFixed(1) + '%', E.outCubic);
+  countUp($('.bt-big', nodes[3]), B(48.6), B(50), 0, 15.3, L.pct, E.outCubic);
 
   // agent portal
   tl.from($$('.bt-av i', nodes[5]), { scale: 0, duration: 0.35, ease: 'back.out(2.5)', stagger: 0.07 }, B(48.7));

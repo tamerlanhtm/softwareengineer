@@ -26,41 +26,36 @@ function buildChaos(tl) {
   const sticky = (txt) => `<div class="fr fr-sticky">${txt}</div>`;
   const badge = (n) => `<div class="fr fr-badge">${n}</div>`;
   const file = (name, kind) => `<div class="fr fr-file"><div class="fr-file-ic ${kind}">${kind.toUpperCase()}</div><span>${name}</span></div>`;
-  const cal = () => `<div class="fr fr-cal"><div class="fr-cal-h">${icon('calendar-days', 24, 2)}<span>JUNE</span></div>
+  const C = L.chaos;
+  const cal = () => `<div class="fr fr-cal"><div class="fr-cal-h">${icon('calendar-days', 24, 2)}<span>${C.cal[0]}</span></div>
       <div class="fr-cal-g">${Array.from({ length: 21 }, (_, i) => `<i>${i + 10}</i>`).join('')}</div>
-      <div class="fr-cal-bar a">Rashad · Group A</div><div class="fr-cal-bar b">Rashad · Group B</div>
+      <div class="fr-cal-bar a">${C.cal[1]}</div><div class="fr-cal-bar b">${C.cal[2]}</div>
       <div class="fr-cal-x">${icon('triangle-alert', 26, 2.4)}</div></div>`;
   const note = (ic, cls, a, b) => `<div class="fr fr-note ${cls}">${icon(ic, 34, 2.2)}<div><div class="fr-note-a">${a}</div><div class="fr-note-b">${b}</div></div></div>`;
 
   const F = [
-    { h: sheet('rates_2026_FINAL_v7.xlsx', [['Hotel', 'Rate', 'Pax', 'Total'], ['Old City Inn', '85', '12', '1020'], ['Riverside', '110', '??', '#REF!'], ['Guide 3d', '150', '—', '450'], ['TOTAL', '', '', '#VALUE!']]), x: 270, y: 350, z: -60, rz: -9, ry: 14 },
-    { h: chat('Hotel Sales', 'Is the hotel confirmed??', '09:41', true), x: 800, y: 250, z: 60, rz: 5 },
-    { h: mail('reservations@', 'RE: RE: FW: Rooming list (final)'), x: 700, y: 560, z: -260, rz: -4 },
-    { h: sticky('Call guide<br>re: 14 Jun!!'), x: 160, y: 760, z: 120, rz: 11 },
+    { h: sheet(...C.sheet), x: 270, y: 350, z: -60, rz: -9, ry: 14 },
+    { h: chat(...C.chat1, '09:41', true), x: 800, y: 250, z: 60, rz: 5 },
+    { h: mail(...C.mail1), x: 700, y: 560, z: -260, rz: -4 },
+    { h: sticky(C.sticky1), x: 160, y: 760, z: 120, rz: 11 },
     { h: badge('99+'), x: 950, y: 730, z: 160 },
-    { h: file('rooming_list_v7_FINAL(2).xlsx', 'xls'), x: 780, y: 1340, z: 40, rz: -7 },
-    { h: chat('Driver', 'Can’t find the group \u{1F629}', '10:02'), x: 260, y: 1420, z: 90, rz: 4 },
+    { h: file(C.file1, 'xls'), x: 780, y: 1340, z: 40, rz: -7 },
+    { h: chat(...C.chat2, '10:02'), x: 260, y: 1420, z: 90, rz: 4 },
     { h: cal(), x: 770, y: 1650, z: -120, rz: 8 },
-    { h: mail('Accounts', 'Invoice #0231 unpaid', 'OVERDUE'), x: 330, y: 1720, z: -40, rz: -6 },
-    { h: chat('Client', 'Which price did you quote us?', '11:15', true), x: 540, y: 120, z: -420, rz: -3 },
-    { h: note('calculator', 'fx', 'USD → AZN → EUR', 'which rate??'), x: 150, y: 1140, z: -230, rz: -12 },
-    { h: note('phone-missed', 'miss', '3 missed calls', 'Supplier · Gabala'), x: 930, y: 1070, z: -70, rz: 9 },
-    { h: note('id-card', 'pass', 'Passport expires', 'in 2 weeks?!'), x: 560, y: 1560, z: 200, rz: -3 },
-    { h: sheet('costs.xlsx', [['A', 'B'], ['#VALUE!', '=SUM('], ['312', '??']]), x: 960, y: 430, z: -560, rz: 10 },
-    { h: file('hotel_rates_2026.pdf', 'pdf'), x: 120, y: 480, z: -480, rz: -8 },
-    { h: chat('Agent', 'Need rooming list ASAP', '12:30'), x: 380, y: 960, z: -700, rz: 6 },
-    { h: sticky('Release<br>date??'), x: 790, y: 900, z: -560, rz: -10 },
+    { h: mail(...C.mail2), x: 330, y: 1720, z: -40, rz: -6 },
+    { h: chat(...C.chat3, '11:15', true), x: 540, y: 120, z: -420, rz: -3 },
+    { h: note('calculator', 'fx', ...C.fx), x: 150, y: 1140, z: -230, rz: -12 },
+    { h: note('phone-missed', 'miss', ...C.missed), x: 930, y: 1070, z: -70, rz: 9 },
+    { h: note('id-card', 'pass', ...C.pass), x: 560, y: 1560, z: 200, rz: -3 },
+    { h: sheet(...C.sheet2), x: 960, y: 430, z: -560, rz: 10 },
+    { h: file(C.file2, 'pdf'), x: 120, y: 480, z: -480, rz: -8 },
+    { h: chat(...C.chat4, '12:30'), x: 380, y: 960, z: -700, rz: 6 },
+    { h: sticky(C.sticky2), x: 790, y: 900, z: -560, rz: -10 },
     { h: badge('37'), x: 140, y: 1570, z: -330 },
   ];
   // Burst of chat bubbles for "217 unread messages" (pop on 16ths).
-  const BURST = [
-    ['Guest', 'Any update?? \u{1F64F}', 250, 580, -2],
-    ['Hotel', 'Sorry, fully booked', 840, 610, 3],
-    ['Client', 'Can you resend the voucher?', 330, 1250, -3],
-    ['Guide', 'Sick tomorrow!!', 840, 1210, 4],
-    ['Partner', 'Invoice please', 240, 1490, 2],
-    ['Driver', 'Which hotel?', 800, 430, -4],
-  ];
+  const BURST = [[250, 580, -2], [840, 610, 3], [330, 1250, -3], [840, 1210, 4], [240, 1490, 2], [800, 430, -4]]
+    .map((p, i) => [...C.burst[i], ...p]);
   const rnd = mulberry32(7);
   const frags = F.map((f, i) => {
     const node = el(f.h);
@@ -75,7 +70,7 @@ function buildChaos(tl) {
     };
   });
   const bursts = BURST.map(([who, msg, x, y, rz], i) => {
-    const node = el(chat(who, msg, 'now', i % 2 === 1));
+    const node = el(chat(who, msg, C.now, i % 2 === 1));
     node.classList.add('burst');
     world.appendChild(node);
     return { node, x, y, z: 0, rz, ry: 0, i: 100 + i, ax: 8, ay: 8, wx: 1.1, wy: 0.9, px: i, py: i * 2, ar: 1.5, wr: 0.7, pr: i, vy: 16, spin: i % 2 ? 1 : -1, lag: 0.03 * i, t0: B(1.75 + i * 0.25) };
@@ -126,12 +121,7 @@ function buildChaos(tl) {
   });
 
   /* ── kinetic pain points ───────────────────────────── */
-  const phrases = [
-    { num: '14', words: ['spreadsheets.'] },
-    { num: '217', words: ['unread', 'messages.'] },
-    { num: '1', words: ['double-booked', 'guide.'], glitch: true },
-    { num: null, words: ['Sound', 'familiar?'] },
-  ];
+  const phrases = C.phrases.map((p, i) => ({ ...p, glitch: i === 2 }));
   const P = phrases.map((p, i) => {
     const inner = `${p.num ? `<div class="s1-num tnum">${p.num}</div>` : ''}
       <div class="s1-words">${p.words.map((w, k) => `<div class="${i === 3 && k === 1 ? 'or' : ''}">${w}</div>`).join('')}</div>`;
@@ -139,6 +129,7 @@ function buildChaos(tl) {
         ${p.glitch ? `<div class="g g-c">${inner}</div><div class="g g-r">${inner}</div>` : ''}
         <div class="g-main">${inner}</div></div>`);
     text.appendChild(node);
+    fitWidth($$('.s1-words', node), 980);
     return node;
   });
 

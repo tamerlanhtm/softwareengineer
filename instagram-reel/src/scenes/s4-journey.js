@@ -49,6 +49,7 @@ function hudStep(tl, kicker, lines, tIn, tOut) {
   tl.to(kIn, { yPercent: 0, duration: 0.45, ease: 'expo.out' }, tIn);
   tl.to(lIn, { yPercent: 0, duration: 0.6, ease: 'expo.out', stagger: 0.07 }, tIn + 0.05);
   if (tOut != null) tl.to([kIn, ...lIn], { yPercent: -115, duration: 0.22, ease: 'power3.in', stagger: 0.025 }, tOut);
+  fitWidth(tt, 880);
   return { k, tt };
 }
 
@@ -59,11 +60,12 @@ function makeCard(i, ic, name, group, route, body, addon = false) {
   const c = el(`<div class="card c${i}" style="left:${x - 440}px;top:${y - 440}px">
       <div class="card-top">
         <div class="mod-ic ${addon ? 'hollow' : ''}">${icon(ic, 34, 2.2)}</div>
-        <div><div class="mod-name">${name}</div><div class="mod-group">${group}${addon ? ' <span class="addon-tag">ADD-ON</span>' : ''}</div></div>
+        <div><div class="mod-name">${name}</div><div class="mod-group">${group}${addon ? ` <span class="addon-tag">${L.addonTag}</span>` : ''}</div></div>
         <div class="route">/a/caspian/<b>${route}</b></div>
       </div>
       <div class="card-div"></div>
       <div class="card-body">${body}</div></div>`);
+  fitWidth($('.mod-name', c), 400);
   return c;
 }
 
@@ -114,15 +116,15 @@ function buildJourney(tl) {
     dot.innerHTML = '<circle r="30" fill="#FE4D1E" opacity=".75" filter="url(#fdot)"/><circle r="11" fill="#fff"/>';
     glow.setAttribute('filter', 'url(#fglow)');
     flow.append(glow, line, dot);
-    const L = line.getTotalLength();
-    segs.push({ glow, line, dot, L, t0: ARRIVE(i) - MOVE - 0.05, t1: ARRIVE(i) - 0.08 });
+    const len = line.getTotalLength();
+    segs.push({ glow, line, dot, len, t0: ARRIVE(i) - MOVE - 0.05, t1: ARRIVE(i) - 0.08 });
   }
   onFrame((t) => {
     for (const s of segs) {
       const p = E.inOutCubic(inv(s.t0, s.t1, t));
-      const off = (s.L * (1 - p)).toFixed(1);
-      for (const pth of [s.line, s.glow]) { pth.style.strokeDasharray = `${s.L} ${s.L}`; pth.style.strokeDashoffset = off; }
-      const pt = s.line.getPointAtLength(s.L * p);
+      const off = (s.len * (1 - p)).toFixed(1);
+      for (const pth of [s.line, s.glow]) { pth.style.strokeDasharray = `${s.len} ${s.len}`; pth.style.strokeDashoffset = off; }
+      const pt = s.line.getPointAtLength(s.len * p);
       s.dot.setAttribute('transform', `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
       s.dot.style.opacity = p > 0 && p < 1 ? 1 : 0;
     }
@@ -147,14 +149,7 @@ function buildJourney(tl) {
   } }, ZOOM_OUT[0]);
 
   /* ── HUD headlines ─────────────────────────────────── */
-  const H = [
-    ['01 · Sales & Reservations', ['Enquiries become', 'bookings.']],
-    ['02 · Tours & Products', ['Itineraries,', 'day by day.']],
-    ['03 · Pricing & Markup', ['Cost. Markup.', 'Sell price. Done.']],
-    ['04 · Departures & Seats', ['Every seat,', 'tracked live.']],
-    ['05 · Operations board', ['Ops board.', 'Zero clashes.']],
-    ['06 · Documents & Vouchers', ['Vouchers with', 'QR check.']],
-  ];
+  const H = L.hud;
   H.forEach(([k, lines], i) => {
     const tIn = i === 0 ? B(23.6) : ARRIVE(i) - B(0.45);
     const tOut = ARRIVE(i + 1) - MOVE - 0.02;
@@ -164,24 +159,24 @@ function buildJourney(tl) {
 
 /* ═════════════════════ 01 · Enquiries & Quotes ═════════════════════ */
 function card1(tl) {
-  const c = makeCard(0, 'inbox', 'Enquiries & Quotes', 'Sales & Reservations', 'enquiries', `
+  const T = L.card1;
+  const opt = ([n, d, p], k) => `<div class="opt ${k === 1 ? 'best' : ''}"><b>${'ABC'[k]}</b><div class="opt-tx"><div class="opt-n">${n}${k === 1 ? ` <span class="pill or">${T.best}</span>` : ''}</div><div class="opt-d">${d}</div></div><div class="opt-p">${p}<small>${T.pp}</small></div></div>`;
+  const c = makeCard(0, 'inbox', T.name, T.group, 'enquiries', `
     <div class="enq-row">
       <div class="avatar">AK</div>
-      <div class="enq-who"><div class="enq-name">Aylin Kaya</div><div class="enq-meta">New enquiry · Istanbul · 2 min ago</div></div>
-      <span class="pill or">NEW</span>
+      <div class="enq-who"><div class="enq-name">Aylin Kaya</div><div class="enq-meta">${T.meta}</div></div>
+      <span class="pill or">${T.fresh}</span>
     </div>
     <div class="enq-chips">
-      <span class="chip">${icon('map-pin', 24, 2.2)}Baku · Gabala</span>
-      <span class="chip">${icon('calendar-days', 24, 2.2)}14–20 Jun</span>
-      <span class="chip">${icon('users', 24, 2.2)}12 pax</span>
+      <span class="chip">${icon('map-pin', 24, 2.2)}${T.chips[0]}</span>
+      <span class="chip">${icon('calendar-days', 24, 2.2)}${T.chips[1]}</span>
+      <span class="chip">${icon('users', 24, 2.2)}${T.chips[2]}</span>
     </div>
-    <div class="label enq-lbl">Quote options</div>
+    <div class="label enq-lbl">${T.label}</div>
     <div class="opts">
-      <div class="opt"><b>A</b><div class="opt-tx"><div class="opt-n">Standard</div><div class="opt-d">3-star hotels · group transfers</div></div><div class="opt-p">$1,240<small>pp</small></div></div>
-      <div class="opt best"><b>B</b><div class="opt-tx"><div class="opt-n">Superior <span class="pill or">BEST VALUE</span></div><div class="opt-d">4-star hotels · English guide</div></div><div class="opt-p">$1,480<small>pp</small></div></div>
-      <div class="opt"><b>C</b><div class="opt-tx"><div class="opt-n">Deluxe</div><div class="opt-d">5-star hotels · private car</div></div><div class="opt-p">$1,890<small>pp</small></div></div>
+      ${T.opts.map(opt).join('\n      ')}
     </div>
-    <div class="btn-cta"><span class="a">Convert to booking ${icon('arrow-right', 30, 2.6)}</span><span class="b">${icon('circle-check-big', 32, 2.4)} Booking TOS-2481 confirmed</span></div>
+    <div class="btn-cta"><span class="a">${T.btn} ${icon('arrow-right', 30, 2.6)}</span><span class="b">${icon('circle-check-big', 32, 2.4)} ${T.done}</span></div>
     ${CURSOR_SVG}<div class="ripple"></div>`);
   const T0 = ARRIVE(0);
   tl.from($('.card-top', c), { autoAlpha: 0, x: -24, duration: 0.45, ease: 'expo.out' }, T0);
@@ -213,20 +208,16 @@ function card1(tl) {
 
 /* ═════════════════════ 02 · Itinerary builder ═════════════════════ */
 function card2(tl) {
-  const days = [
-    ['Day 1 · Baku', [['plane', 'Airport pickup'], ['hotel', 'Old City Inn']]],
-    ['Day 2 · Baku', [['compass', 'Guided city tour'], ['ticket', 'Gobustan']]],
-    ['Day 3 · Gabala', [['bus', 'Transfer'], ['cable-car', 'Tufandag cable car']]],
-    ['Day 4 · Gabala', [['utensils', 'Lakeside dinner'], ['hotel', 'Riverside Hotel']]],
-  ];
-  const c = makeCard(1, 'map', 'Tours & Packages', 'Tours & Products', 'tours', `
-    <div class="it-head"><div class="it-title">Baku &amp; Gabala Explorer</div><span class="pill or">7 DAYS</span></div>
+  const T = L.card2;
+  const days = T.plan;
+  const c = makeCard(1, 'map', T.name, T.group, 'tours', `
+    <div class="it-head"><div class="it-title">${T.title}</div><span class="pill or">${T.days}</span></div>
     <div class="it-rail"><i></i></div>
     <div class="it-days">${days.map(([d, svcs], k) => `
-      <div class="day"><div class="day-b">D${k + 1}</div><div class="day-c"><div class="day-t">${d}</div>
+      <div class="day"><div class="day-b">${T.badges[k]}</div><div class="day-c"><div class="day-t">${d}</div>
       <div class="svc-row">${svcs.map(([ic, n]) => `<span class="chip svc">${icon(ic, 24, 2.2)}${n}</span>`).join('')}</div></div></div>`).join('')}
     </div>
-    <div class="it-foot">${icon('plus', 22, 2.4)} 3 more days <span>·</span> ${icon('check', 22, 2.6)} Inclusions <span>·</span> ${icon('check', 22, 2.6)} Terms</div>`);
+    <div class="it-foot">${icon('plus', 22, 2.4)} ${T.foot[0]} <span>·</span> ${icon('check', 22, 2.6)} ${T.foot[1]} <span>·</span> ${icon('check', 22, 2.6)} ${T.foot[2]}</div>`);
   const T0 = ARRIVE(1);
   tl.from($('.it-head', c), { autoAlpha: 0, y: 24, duration: 0.45, ease: 'expo.out' }, T0);
   tl.from($('.it-rail i', c), { scaleY: 0, duration: B(2.4), ease: 'power2.inOut' }, T0 + B(0.2));
@@ -246,18 +237,20 @@ function card2(tl) {
 
 /* ═════════════════════ 03 · Pricing & Markup ═════════════════════ */
 function card3(tl) {
-  const segs = [['Hotels', 46], ['Transport', 18], ['Guides', 14], ['Entrances', 10], ['Meals', 12]];
-  const c = makeCard(2, 'percent', 'Pricing & Markup', 'Tours & Products', 'pricing', `
-    <div class="pr-head"><div class="pr-title">Cost build-up · Option B</div><span class="pill or">12 PAX · DBL</span></div>
+  const T = L.card3;
+  const segs = [46, 18, 14, 10, 12].map((w, k) => [T.segs[k], w]);
+  const c = makeCard(2, 'percent', T.name, T.group, 'pricing', `
+    <div class="pr-head"><div class="pr-title">${T.title}</div><span class="pill or">${T.pill}</span></div>
     <div class="pr-bar">${segs.map(([n, w], k) => `<i class="s${k}" style="width:${w}%"></i>`).join('')}</div>
     <div class="pr-legend">${segs.map(([n], k) => `<span><i class="d${k}"></i>${n}</span>`).join('')}</div>
     <div class="pr-rows">
-      <div class="pr-row"><span>Total cost</span><b class="pr-cost tnum">$0</b></div>
-      <div class="pr-row"><span>Markup rule · groups 10+</span><span class="pill or pr-mk">+18%</span></div>
+      <div class="pr-row"><span>${T.rows[0]}</span><b class="pr-cost tnum">${L.money(0)}</b></div>
+      <div class="pr-row"><span>${T.rows[1]}</span><span class="pill or pr-mk">+18%</span></div>
       <div class="pr-sep"></div>
-      <div class="pr-row big"><span>Sell price</span><b class="pr-sell tnum">$15,050</b></div>
-      <div class="pr-row"><span>Per person</span><span class="pr-right"><span class="pill green pr-mg">MARGIN 15.3%</span><b class="pr-pp tnum">$1,254</b></span></div>
+      <div class="pr-row big"><span>${T.rows[2]}</span><b class="pr-sell tnum">${L.money(17760)}</b></div>
+      <div class="pr-row"><span>${T.rows[3]}</span><span class="pr-right"><span class="pill green pr-mg">${T.margin}</span><b class="pr-pp tnum">${L.money(1254)}</b></span></div>
     </div>`);
+  fitWidth($('.pr-sell', c), 520);   // sized at the widest value it counts to
   const T0 = ARRIVE(2);
   tl.from($('.pr-head', c), { autoAlpha: 0, y: 24, duration: 0.45, ease: 'expo.out' }, T0);
   const bars = $$('.pr-bar i', c);
@@ -267,11 +260,11 @@ function card3(tl) {
   });
   tl.from($$('.pr-legend span', c), { autoAlpha: 0, y: 10, duration: 0.3, stagger: B(0.25) }, T0 + B(0.3));
   tl.from($$('.pr-row, .pr-sep', c), { autoAlpha: 0, y: 20, duration: 0.4, ease: 'expo.out', stagger: 0.05 }, T0 + B(0.35));
-  countUp($('.pr-cost', c), T0 + B(0.25), T0 + B(1.55), 0, 15050, fmtMoney, (p) => p);
+  countUp($('.pr-cost', c), T0 + B(0.25), T0 + B(1.55), 0, 15050, L.money, (p) => p);
   tl.from($('.pr-mk', c), { scale: 0, duration: 0.4, ease: 'back.out(3)' }, T0 + B(1.75));
   cue('pop', T0 + B(1.75), { note: 4 });
-  countUp($('.pr-sell', c), T0 + B(2), T0 + B(2.8), 15050, 17760, fmtMoney, E.outCubic);
-  countUp($('.pr-pp', c), T0 + B(2), T0 + B(2.8), 1254, 1480, fmtMoney, E.outCubic);
+  countUp($('.pr-sell', c), T0 + B(2), T0 + B(2.8), 15050, 17760, L.money, E.outCubic);
+  countUp($('.pr-pp', c), T0 + B(2), T0 + B(2.8), 1254, 1480, L.money, E.outCubic);
   cue('countroll', T0 + B(2), { to: T0 + B(2.8), n: 14 });
   tl.fromTo($('.pr-sell', c), { textShadow: '0 0 0px rgba(254,77,30,0)' }, { textShadow: '0 0 40px rgba(254,77,30,.9)', duration: 0.12, yoyo: true, repeat: 1, immediateRender: false }, T0 + B(2.8));
   tl.from($('.pr-mg', c), { scale: 0, autoAlpha: 0, duration: 0.4, ease: 'back.out(2.5)' }, T0 + B(2.9));
@@ -282,17 +275,18 @@ function card3(tl) {
 /* ═════════════════════ 04 · Departures & Seats ═════════════════════ */
 function card4(tl) {
   const seats = Array.from({ length: 24 }, (_, k) => k);
-  const c = makeCard(3, 'plane-takeoff', 'Departures & Seats', 'Tours & Products', 'departures', `
-    <div class="dp-head"><div><div class="dp-title">Dep. 14 Jun 2026</div><div class="dp-sub">Baku &amp; Gabala Explorer</div></div>
-      <div class="dp-st"><span class="pill amber a">ON REQUEST</span><span class="pill green b">${icon('check', 18, 3)} GUARANTEED</span></div></div>
+  const T = L.card4;
+  const c = makeCard(3, 'plane-takeoff', T.name, T.group, 'departures', `
+    <div class="dp-head"><div><div class="dp-title">${T.title}</div><div class="dp-sub">${T.sub}</div></div>
+      <div class="dp-st"><span class="pill amber a">${T.onRequest}</span><span class="pill green b">${icon('check', 18, 3)} ${T.guaranteed}</span></div></div>
     <div class="seats">${seats.map((k) => `<i style="left:${(k % 4) * 74 + (k % 4 > 1 ? 40 : 0)}px;top:${Math.floor(k / 4) * 74}px"></i>`).join('')}</div>
     <div class="dp-side">
-      <div class="label">Seats sold</div>
+      <div class="label">${T.sold}</div>
       <div class="dp-count"><b class="tnum">0</b><span>/24</span></div>
       <div class="dp-bar"><i class="fill"></i><i class="min"></i></div>
-      <div class="dp-min">Min <b>12 pax</b> to guarantee</div>
-      <div class="dp-meta">${icon('clock', 24, 2.2)} Booking cutoff · 7 Jun</div>
-      <div class="dp-meta">${icon('hotel', 24, 2.2)} Allotment · 6 rooms</div>
+      <div class="dp-min">${T.min}</div>
+      <div class="dp-meta">${icon('clock', 24, 2.2)} ${T.cutoff}</div>
+      <div class="dp-meta">${icon('hotel', 24, 2.2)} ${T.allot}</div>
     </div>`);
   const T0 = ARRIVE(3);
   tl.from($('.dp-head', c), { autoAlpha: 0, y: 24, duration: 0.45, ease: 'expo.out' }, T0);
@@ -324,25 +318,27 @@ function card4(tl) {
 
 /* ═════════════════════ 05 · Operations board (add-on) ═════════════════════ */
 function card5(tl) {
-  const res = [['user-round', 'Rashad', 'Guide · EN'], ['car-front', 'Elvin', 'Driver'], ['car-front', 'Kamran', 'Driver'], ['bus', 'Van 10-AB', 'Vehicle']];
+  const T = L.card5;
+  const res = T.res;
   const COLW = 78, X0 = 246, ROWH = 86, Y0 = 52;
   const bar = (cls, row, d0, d1, label) => `<div class="op-bar ${cls}" style="left:${X0 + d0 * COLW + 4}px;top:${Y0 + row * ROWH + 14}px;width:${(d1 - d0) * COLW - 8}px">${label}</div>`;
-  const c = makeCard(4, 'kanban', 'Operations Board', 'Operations', 'operations', `
-    <div class="op-head"><div class="op-title">Dispatch · 14–20 Jun</div>
-      <div class="op-st"><span class="pill amber a">3 UNCONFIRMED</span><span class="pill green b">ALL CONFIRMED</span></div></div>
+  const c = makeCard(4, 'kanban', T.name, T.group, 'operations', `
+    <div class="op-head"><div class="op-title">${T.title}</div>
+      <div class="op-st"><span class="pill amber a">${T.unconfirmed}</span><span class="pill green b">${T.allOk}</span></div></div>
     <div class="op-grid">
-      <div class="op-days">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, k) => `<span style="left:${X0 + k * COLW}px;width:${COLW}px">${d}</span>`).join('')}</div>
+      <div class="op-days">${T.days.map((d, k) => `<span style="left:${X0 + k * COLW}px;width:${COLW}px">${d}</span>`).join('')}</div>
       ${res.map(([ic, n, r], k) => `<div class="op-res" style="top:${Y0 + k * ROWH}px">${icon(ic, 26, 2.2)}<div><b>${n}</b><small>${r}</small></div></div>`).join('')}
       ${res.map((_, k) => `<div class="op-line" style="top:${Y0 + k * ROWH}px"></div>`).join('')}
-      ${bar('e1', 0, 0, 3, 'TOS-2481 · Tour')}
-      ${bar('e2', 1, 1, 4, 'TOS-2477')}
-      ${bar('e3', 3, 0, 2, 'TOS-2470')}
-      ${bar('nw', 1, 2, 5, 'TOS-2481 · Transfer')}
+      ${bar('e1', 0, 0, 3, T.bars[0])}
+      ${bar('e2', 1, 1, 4, T.bars[1])}
+      ${bar('e3', 3, 0, 2, T.bars[2])}
+      ${bar('nw', 1, 2, 5, T.bars[3])}
     </div>
-    <div class="op-alert red">${icon('triangle-alert', 28, 2.4)}<span>Double-booking detected · Elvin · Wed</span></div>
-    <div class="op-alert green">${icon('circle-check-big', 28, 2.4)}<span>Resolved · reassigned to Kamran</span></div>
-    <div class="op-conf"><div class="label">Supplier confirmations</div>
-      <div class="op-chips">${['Hotel', 'Transfer', 'Guide'].map((n) => `<span class="chip cf"><span class="st">${icon('clock', 24, 2.4)}</span><span class="ok">${icon('circle-check-big', 24, 2.4)}</span>${n}</span>`).join('')}</div></div>`, true);
+    <div class="op-alert red">${icon('triangle-alert', 28, 2.4)}<span>${T.clash}</span></div>
+    <div class="op-alert green">${icon('circle-check-big', 28, 2.4)}<span>${T.fixed}</span></div>
+    <div class="op-conf"><div class="label">${T.conf}</div>
+      <div class="op-chips">${T.confItems.map((n) => `<span class="chip cf"><span class="st">${icon('clock', 24, 2.4)}</span><span class="ok">${icon('circle-check-big', 24, 2.4)}</span>${n}</span>`).join('')}</div></div>`, true);
+  fitWidth($$('.op-alert span', c), 700);
   const T0 = ARRIVE(4);
   tl.from($('.op-head', c), { autoAlpha: 0, y: 24, duration: 0.45, ease: 'expo.out' }, T0);
   tl.from($$('.op-res, .op-days span', c), { autoAlpha: 0, x: -16, duration: 0.35, ease: 'expo.out', stagger: 0.02 }, T0 + B(0.1));
@@ -382,27 +378,28 @@ function card5(tl) {
 /* ═════════════════════ 06 · Vouchers & QR verification ═════════════════════ */
 function card6(tl) {
   const q = window.QR;
-  const c = makeCard(5, 'folder-open', 'Documents & Files', 'Management & Security', 'documents', `
-    <div class="vc-head"><div class="vc-title">Supplier voucher</div><span class="pill or">TOS-2481</span></div>
+  const T = L.card6;
+  const c = makeCard(5, 'folder-open', T.name, T.group, 'documents', `
+    <div class="vc-head"><div class="vc-title">${T.title}</div><span class="pill or">TOS-2481</span></div>
     <div class="ticket">
       <div class="tk-l">
-        <div class="tk-k">SERVICE VOUCHER</div>
-        <div class="tk-h">Riverside Hotel</div>
-        <div class="tk-s">Gabala, Azerbaijan</div>
+        <div class="tk-k">${T.kicker}</div>
+        <div class="tk-h">${T.hotel}</div>
+        <div class="tk-s">${T.place}</div>
         <div class="tk-grid">
-          <div><small>CHECK-IN</small><b>16 Jun</b></div><div><small>NIGHTS</small><b>2</b></div>
-          <div><small>ROOMS</small><b>6 DBL</b></div><div><small>GUESTS</small><b>12</b></div>
+          ${T.grid.map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('')}
         </div>
-        <div class="tk-lead">${icon('user-round', 22, 2.2)} Lead guest · Aylin Kaya</div>
+        <div class="tk-lead">${icon('user-round', 22, 2.2)} ${T.lead}</div>
       </div>
       <div class="tk-perf"></div>
       <div class="tk-r">
         <svg class="qr" viewBox="-1 -1 ${q.size + 2} ${q.size + 2}" shape-rendering="crispEdges"><rect x="-1" y="-1" width="${q.size + 2}" height="${q.size + 2}" fill="#fff"/><path d="${q.path}" fill="#151110"/></svg>
         <div class="scan"></div>
-        <div class="stamp">${icon('badge-check', 34, 2.4)}VERIFIED</div>
+        <div class="stamp">${icon('badge-check', 34, 2.4)}${T.stamp}</div>
       </div>
     </div>
-    <div class="vc-files"><span class="chip">${icon('file-text', 24, 2.2)}voucher_TOS-2481.pdf</span><span class="pill green">${icon('send', 17, 2.6)} SENT TO SUPPLIER</span></div>`);
+    <div class="vc-files"><span class="chip">${icon('file-text', 24, 2.2)}${T.file}</span><span class="pill green">${icon('send', 17, 2.6)} ${T.sent}</span></div>`);
+  fitWidth($('.stamp', c), 250);
   const T0 = ARRIVE(5);
   tl.from($('.vc-head', c), { autoAlpha: 0, y: 24, duration: 0.45, ease: 'expo.out' }, T0);
   tl.from($('.ticket', c), { autoAlpha: 0, y: 90, rotation: -3, duration: 0.6, ease: 'expo.out' }, T0 + B(0.15));

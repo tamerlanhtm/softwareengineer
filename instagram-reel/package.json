@@ -11,7 +11,10 @@
     "stills": "node scripts/stills.mjs",
     "render": "node scripts/render.mjs --sub 8 --shutter 0.6 --workers 4 --out out/master.mkv",
     "encode": "python3 scripts/encode.py out/master.mkv",
-    "build": "npm run assets && npm run cues && npm run audio && npm run render && npm run encode"
+    "build": "npm run assets && npm run cues && npm run audio && npm run render && npm run encode",
+    "render:az": "node scripts/render.mjs --lang az --sub 8 --shutter 0.6 --workers 4 --out out/master_az.mkv",
+    "encode:az": "python3 scripts/encode.py out/master_az.mkv --lang az",
+    "build:az": "npm run render:az && npm run encode:az"
   },
   "license": "UNLICENSED",
   "dependencies": {

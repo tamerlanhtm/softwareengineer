@@ -4,14 +4,14 @@
  * itself into its group row — 8 groups; add-ons drawn hollow, like the logo. */
 
 const GROUPS = [
-  { key: 'supply', label: 'Suppliers & Contracts', addon: false, mods: [['suppliers', 'building-2'], ['contracts', 'file-signature'], ['services', 'package'], ['allotments', 'calendar-range']] },
-  { key: 'product', label: 'Tours & Products', addon: false, mods: [['tours', 'map'], ['departures', 'plane-takeoff'], ['pricing', 'percent']] },
-  { key: 'sales', label: 'Sales & Reservations', addon: false, mods: [['enquiries', 'inbox'], ['reservations', 'calendar-check'], ['passengers', 'id-card'], ['payments', 'credit-card'], ['activities', 'list-checks']] },
-  { key: 'ops', label: 'Operations', addon: true, mods: [['operations', 'kanban'], ['manifests', 'clipboard-list'], ['resources', 'bus']] },
-  { key: 'finance', label: 'Finance', addon: false, mods: [['invoices', 'receipt'], ['supplier_bills', 'hand-coins'], ['fx', 'arrow-left-right'], ['margins', 'trending-up']] },
-  { key: 'partners', label: 'Agents & Distribution', addon: true, mods: [['agents', 'handshake'], ['agent_portal', 'store']] },
-  { key: 'analytics', label: 'Reporting & Analytics', addon: false, mods: [['dashboard', 'layout-dashboard'], ['reports', 'chart-column']] },
-  { key: 'admin', label: 'Management & Security', addon: false, mods: [['documents', 'folder-open'], ['users_roles', 'user-cog'], ['settings', 'settings'], ['integrations', 'plug'], ['automation', 'workflow'], ['custom_fields', 'text-cursor-input'], ['communications', 'megaphone']] },
+  { key: 'supply', addon: false, mods: [['suppliers', 'building-2'], ['contracts', 'file-signature'], ['services', 'package'], ['allotments', 'calendar-range']] },
+  { key: 'product', addon: false, mods: [['tours', 'map'], ['departures', 'plane-takeoff'], ['pricing', 'percent']] },
+  { key: 'sales', addon: false, mods: [['enquiries', 'inbox'], ['reservations', 'calendar-check'], ['passengers', 'id-card'], ['payments', 'credit-card'], ['activities', 'list-checks']] },
+  { key: 'ops', addon: true, mods: [['operations', 'kanban'], ['manifests', 'clipboard-list'], ['resources', 'bus']] },
+  { key: 'finance', addon: false, mods: [['invoices', 'receipt'], ['supplier_bills', 'hand-coins'], ['fx', 'arrow-left-right'], ['margins', 'trending-up']] },
+  { key: 'partners', addon: true, mods: [['agents', 'handshake'], ['agent_portal', 'store']] },
+  { key: 'analytics', addon: false, mods: [['dashboard', 'layout-dashboard'], ['reports', 'chart-column']] },
+  { key: 'admin', addon: false, mods: [['documents', 'folder-open'], ['users_roles', 'user-cog'], ['settings', 'settings'], ['integrations', 'plug'], ['automation', 'workflow'], ['custom_fields', 'text-cursor-input'], ['communications', 'megaphone']] },
 ];
 
 const GRID = { s: 124, pitch: 146, x0: 248, y0: 648 };       // layout A cell centres
@@ -23,9 +23,9 @@ function buildModules(tl) {
   const S = scene('s3');
   S.innerHTML = `
     <div class="s2-bg"></div>
-    <div class="s3-kicker"><span class="mask"><span>6 CORE &nbsp;·&nbsp; 2 ADD-ONS</span></span></div>
-    <div class="s3-head a"><span class="mask"><span><b class="s3-num tnum">0</b> modules</span></span></div>
-    <div class="s3-head b"><span class="mask"><span><b class="s3-num">8</b> groups</span></span></div>
+    <div class="s3-kicker"><span class="mask"><span>${L.modules.kicker}</span></span></div>
+    <div class="s3-head a"><span class="mask"><span><b class="s3-num tnum">0</b> ${L.modules.modules}</span></span></div>
+    <div class="s3-head b"><span class="mask"><span><b class="s3-num">8</b> ${L.modules.groups}</span></span></div>
     <div class="s3-tiles"></div>
     <div class="s3-labels"></div>`;
   tl.set(S, { autoAlpha: 1 }, B(15.75));
@@ -103,11 +103,12 @@ function buildModules(tl) {
   const labels = $('.s3-labels', S);
   GROUPS.forEach((g, gi) => {
     const row = el(`<div class="grp ${g.addon ? 'addon' : ''}" style="top:${ROWS.y0 + gi * ROWS.rowH - 34}px">
-        <div class="grp-name">${g.label}</div><div class="grp-tag">${g.addon ? 'ADD-ON' : 'CORE'} · ${g.mods.length}</div></div>`);
+        <div class="grp-name">${L.modules.labels[gi]}</div><div class="grp-tag">${g.addon ? L.modules.addon : L.modules.core} · ${g.mods.length}</div></div>`);
     labels.appendChild(row);
     tl.fromTo(row, { x: -60, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.5, ease: 'expo.out', immediateRender: false }, B(20.6) + gi * 0.05);
   });
   gsap.set($$('.grp', labels), { autoAlpha: 0 });
+  fitWidth($$('.grp-name', labels), 430);   // label column ends before the tiles
 
   /* ── exit: everything clears except the Enquiries tile ─ */
   const enq = tiles.find((t) => t.key === 'enquiries');

@@ -11,12 +11,17 @@ function buildCTA(tl) {
   S.innerHTML = `
     <div class="s6-bg"></div>
     <div class="s6-kicker"></div>
-    <div class="s6-head">${maskLines(['Everything your tour', 'company needs.'])}</div>
-    <div class="s6-now"><span class="mask"><span>Now.</span></span></div>
-    <div class="s6-btn"><span>Book a demo</span>${icon('arrow-right', 42, 2.8)}<i class="shine"></i></div>
+    <div class="s6-head">${maskLines(L.cta.head)}</div>
+    <div class="s6-now"><span class="mask"><span>${L.cta.now}</span></span></div>
+    <div class="s6-btn"><span>${L.cta.btn}</span>${icon('arrow-right', 42, 2.8)}<i class="shine"></i></div>
     <div class="s6-url"><span class="tx"></span><span class="caret"></span></div>
-    <div class="s6-handle">${icon('message-circle', 30, 2.2)}<span>DM us <b>@ineednow_</b></span></div>
+    <div class="s6-handle">${icon('message-circle', 30, 2.2)}<span>${L.cta.dm}</span></div>
     ${CURSOR_SVG}<div class="ripple"></div>`;
+  $('.s6-kicker', S).textContent = L.cta.kicker;   // measured by fitWidth, then scrambled in
+  fitWidth($('.s6-kicker', S), 1000);
+  fitWidth($('.s6-head', S), 980);
+  fitWidth($('.s6-now', S), 900);
+  fitWidth($('.s6-btn > span', S), 700);
   tl.set(S, { autoAlpha: 1 }, B(55.2));
 
   /* ── tiles → brand mark, paper floods in ───────────── */
@@ -38,7 +43,7 @@ function buildCTA(tl) {
   });
 
   /* ── brand line ────────────────────────────────────── */
-  scrambleIn($('.s6-kicker', S), 'TOSNOW · TOUR OPERATOR SYSTEM', B(56.4), 0.55);
+  scrambleIn($('.s6-kicker', S), L.cta.kicker, B(56.4), 0.55);
   cue('scramble', B(56.4), { dur: 0.55 });
   const lines = $$('.s6-head .mask > span', S);
   gsap.set(lines, { yPercent: 115 });

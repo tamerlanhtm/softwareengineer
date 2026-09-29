@@ -397,3 +397,7 @@ html, body { margin: 0; padding: 0; background: #000; }
 .s6-handle .ic { color: var(--or); }
 .s6-handle b { color: var(--dk); font-weight: 700; }
 #s6 .cursor { position: absolute; }
+
+/* ───────────────────────── Language tweaks ───────────────────────── */
+/* "İndi." carries a dot above the cap height; give it clearance from the headline. */
+:lang(az) .s6-now { top: 1036px; font-size: 206px; }

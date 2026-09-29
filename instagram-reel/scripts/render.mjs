@@ -2,8 +2,8 @@
 // headless Chromium, captures each frame, and blends sub-frames in ffmpeg for
 // true (temporal super-sampled) motion blur. Output is a lossless FFV1 master.
 //
-//   node scripts/render.mjs [--fps 30] [--sub 4] [--shutter 0.5] [--workers 4]
-//                           [--start 0] [--end <duration>] [--out out/master.mkv]
+//   node scripts/render.mjs [--lang en|az] [--fps 30] [--sub 4] [--shutter 0.5]
+//                           [--workers 4] [--start 0] [--end <duration>] [--out out/master.mkv]
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -23,6 +23,7 @@ const fps = Number(args.fps ?? 30);
 const sub = Number(args.sub ?? 4);
 const shutter = Number(args.shutter ?? 0.5); // fraction of a frame the shutter is open
 const workers = Number(args.workers ?? 4);
+const lang = args.lang ?? 'en';
 const out = path.resolve(root, args.out ?? 'out/master.mkv');
 
 export const LAUNCH_ARGS = [
@@ -34,11 +35,11 @@ export const LAUNCH_ARGS = [
   '--hide-scrollbars',
 ];
 
-export async function openComposition(browser) {
+export async function openComposition(browser, lang = 'en') {
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
   page.on('pageerror', (e) => console.error('[pageerror]', e.message));
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.error('[console]', m.text()); });
-  await page.goto('file://' + path.join(root, 'src/index.html'));
+  await page.goto('file://' + path.join(root, 'src/index.html') + '?lang=' + encodeURIComponent(lang));
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
   const cdp = await page.context().newCDPSession(page);
   const capture = async (t) => {
@@ -51,7 +52,7 @@ export async function openComposition(browser) {
 
 async function renderSegment(idx, k0, k1, segPath) {
   const browser = await chromium.launch({ args: LAUNCH_ARGS });
-  const { capture } = await openComposition(browser);
+  const { capture } = await openComposition(browser, lang);
   const vf = sub > 1
     ? `tmix=frames=${sub},select='eq(mod(n\\,${sub})\\,${sub - 1})',setpts=N/(${fps}*TB)`
     : 'setpts=N/(' + fps + '*TB)';
@@ -85,7 +86,7 @@ async function renderSegment(idx, k0, k1, segPath) {
 async function main() {
   // Probe duration.
   const probe = await chromium.launch({ args: LAUNCH_ARGS });
-  const { page } = await openComposition(probe);
+  const { page } = await openComposition(probe, lang);
   const duration = await page.evaluate(() => window.__duration);
   await probe.close();
 
@@ -94,7 +95,7 @@ async function main() {
   const K0 = Math.round(start * fps);
   const K1 = Math.round(end * fps);
   const total = K1 - K0;
-  console.log(`render ${start}s → ${end}s  (${total} frames @ ${fps}fps, ${sub} sub-frames, shutter ${shutter}) with ${workers} workers`);
+  console.log(`render [${lang}] ${start}s → ${end}s  (${total} frames @ ${fps}fps, ${sub} sub-frames, shutter ${shutter}) with ${workers} workers`);
 
   fs.mkdirSync(path.dirname(out), { recursive: true });
   const segDir = path.join(path.dirname(out), 'segments');

@@ -15,6 +15,17 @@
   buildCTA(tl);
   tl.set({}, {}, DURATION);
 
+  // Lines parked outside their mask (|yPercent| ≥ 99) are fully hidden: tall
+  // diacritics such as İ, Ü, Ö rise above the line box and would otherwise peek
+  // into the mask's padding.
+  const parked = $$('.mask > span, .s2-roll > span, .bt-word > span');
+  onFrame(() => {
+    for (const n of parked) {
+      const v = Math.abs(gsap.getProperty(n, 'yPercent')) >= 99 ? 'hidden' : '';
+      if (n.style.visibility !== v) n.style.visibility = v;
+    }
+  });
+
   // Initialise every tween once, in timeline order, so arbitrary seeks are exact.
   tl.progress(1).progress(0);
 
@@ -30,6 +41,7 @@
   const sample = 'Aa Xoş gəlmisiniz Hoş geldiniz Привет Salom 0123456789 $ · —';
   await Promise.all(fams.flatMap((f) => [400, 600, 800].map((w) => document.fonts.load(`${w} 40px "${f}"`, sample))));
   await document.fonts.ready;
+  applyFits();   // after fonts: long translations shrink to their slots
   window.__seek(0);
   window.__ready = true;
 })();

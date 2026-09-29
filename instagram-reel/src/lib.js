@@ -79,8 +79,26 @@ function scene(id) {
 function maskLines(lines, cls = '') {
   return lines.map((l) => `<span class="mask ${cls}"><span>${l}</span></span>`).join('');
 }
-const fmtMoney = (v) => '$' + Math.round(v).toLocaleString('en-US');
 const fmtInt = (v) => String(Math.round(v));
+
+/* ── fit-to-width (longer translations) ─────────────── */
+const FITS = [];
+// Shrinks font-size (never grows) until every node's content fits maxW. All
+// nodes passed together share the smallest scale, so a group stays uniform.
+function fitWidth(nodes, maxW) { FITS.push({ nodes: [].concat(nodes), maxW }); }
+function contentWidth(n) {           // layout width: unaffected by transforms
+  const w0 = n.style.width;
+  n.style.width = 'max-content';
+  const w = n.offsetWidth;
+  n.style.width = w0;
+  return w;
+}
+function applyFits() {
+  for (const { nodes, maxW } of FITS) {
+    const k = Math.min(1, ...nodes.map((n) => maxW / contentWidth(n)));
+    if (k < 1) nodes.forEach((n) => { n.style.fontSize = (parseFloat(getComputedStyle(n).fontSize) * k).toFixed(2) + 'px'; });
+  }
+}
 
 /* ── timing registries ───────────────────────────────── */
 const CUES = [];          // audio sync cues, exported to audio/cues.json
