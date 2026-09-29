@@ -66,13 +66,13 @@ export function launch() {
   });
 }
 
-export async function openComposition(browser, port) {
+export async function openComposition(browser, port, lang = 'en') {
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   page.on('console', (m) => {
     if (m.type() === 'error' || m.type() === 'warning') console.log(`[page:${m.type()}]`, m.text());
   });
   page.on('pageerror', (e) => console.error('[pageerror]', e.message));
-  await page.goto(`http://127.0.0.1:${port}/index.html?render=1`, { waitUntil: 'load' });
+  await page.goto(`http://127.0.0.1:${port}/index.html?render=1&lang=${lang}`, { waitUntil: 'load' });
   await page.evaluate(() => window.__ready);
   const cdp = await page.context().newCDPSession(page);
   const info = await page.evaluate(() => ({ duration: window.__duration, cues: window.__cues }));

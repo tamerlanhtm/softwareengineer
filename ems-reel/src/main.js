@@ -1,5 +1,6 @@
 import { tl, cues, runProcs, samplesAt, loadIcons, proc, shakeAt, rng } from './lib.js';
 import { T } from './timing.js';
+import { S, LANG } from './i18n.js';
 import { ICON_NAMES } from './modules.js';
 import { buildBackground } from './scenes/background.js';
 import { buildHook } from './scenes/hook.js';
@@ -31,6 +32,8 @@ async function loadFonts() {
 }
 
 async function build() {
+  document.documentElement.lang = S.htmlLang; // Turkic casing (i → İ) for uppercase labels
+  document.title = `EMSNow — Instagram Reel (${LANG.toUpperCase()})`;
   await loadFonts();
   await loadIcons(ICON_NAMES);
 

@@ -1,5 +1,6 @@
 import { el, tl, scene, textLine, riseIn, enter, fit, cue, shake, proc, rng, icon, fast, C } from '../lib.js';
 import { T } from '../timing.js';
+import { S } from '../i18n.js';
 
 // 0–3s · "Still running your school on… spreadsheets? paperwork? 10 different apps?"
 // Desaturated chaos piles up around the question, then everything is sucked
@@ -49,8 +50,8 @@ export function buildHook({ world }) {
     gsap.set(inner, { rotation: rot });
     return inner;
   }
-  const sh1 = sheet(250, 300, 470, 300, -9, 'Budget_FINAL_v7(2).xlsx', [3, 3], 3);
-  const sh2 = sheet(820, 1530, 440, 300, 8, 'attendance_OLD.xlsx', [2, 5], 9);
+  const sh1 = sheet(250, 300, 470, 300, -9, S.hook.files[0], [3, 3], 3);
+  const sh2 = sheet(820, 1530, 440, 300, 8, S.hook.files[1], [2, 5], 9);
   enter(sh1, { x: -700, y: 260, rotation: -40, opacity: 0 }, { x: 0, y: 0, rotation: -9, opacity: 1, duration: 0.55, ease: 'expo.out' }, T.q1 - 0.05);
   enter(sh2, { x: 700, y: 300, rotation: 40, opacity: 0 }, { x: 0, y: 0, rotation: 8, opacity: 1, duration: 0.55, ease: 'expo.out' }, T.q1 + 0.03);
 
@@ -69,7 +70,7 @@ export function buildHook({ world }) {
       cls: 'abs',
       css: 'inset:0;background:#F3EEE4;border-radius:10px;padding:38px 30px;box-shadow:0 26px 50px rgba(0,0,0,.5);',
       html: `<div style="height:16px;width:55%;border-radius:6px;background:#9D958A;margin-bottom:26px"></div>${lines}` +
-        (p.stamp ? `<div style="position:absolute;right:18px;bottom:36px;transform:rotate(-14deg);border:5px solid ${C.red};color:${C.red};font:800 30px var(--f-display);padding:6px 14px;border-radius:10px;letter-spacing:.04em;opacity:.85">URGENT</div>` : ''),
+        (p.stamp ? `<div style="position:absolute;right:18px;bottom:36px;transform:rotate(-14deg);border:5px solid ${C.red};color:${C.red};font:800 30px var(--f-display);padding:6px 14px;border-radius:10px;letter-spacing:.04em;opacity:.85">${S.hook.urgent}</div>` : ''),
     }, inner.firstChild);
     const d = i * 0.06;
     enter(inner, { y: -900, x: (i % 2 ? -1 : 1) * 160, rotation: p.rot + (i % 2 ? 70 : -70), opacity: 0 },
@@ -95,10 +96,10 @@ export function buildHook({ world }) {
   });
 
   // ---------------------------------------------------------- headline + stickers
-  const l1 = textLine(front, 'Still running', { y: 600, size: 100 });
-  const l2 = textLine(front, 'your school on…', { y: 718, size: 100 });
-  const sz = fit(l2.node, 900, 100);
-  l1.node.style.fontSize = `${sz}px`;
+  const l1 = textLine(front, S.hook.lines[0], { y: 600, size: 100 });
+  const l2 = textLine(front, S.hook.lines[1], { y: 718, size: 100 });
+  const sz = Math.min(fit(l1.node, 900, 100), fit(l2.node, 900, 100));
+  l1.node.style.fontSize = l2.node.style.fontSize = `${sz}px`;
   items.push({ wrap: l1.box, cx: 540, cy: 600, w: 900, h: 120, text: true });
   items.push({ wrap: l2.box, cx: 540, cy: 718, w: 900, h: 120, text: true });
   // line 1 is on screen from the very first frame: push-in + tracking-in
@@ -107,9 +108,9 @@ export function buildHook({ world }) {
   riseIn(l2, 0.22, { stagger: 0.022, dur: 0.6 });
 
   const stickers = [
-    { text: 'spreadsheets?', y: 895, rot: -4, x: 520, bg: '#fff' },
-    { text: 'paperwork?', y: 1035, rot: 3.5, x: 585, bg: '#fff' },
-    { text: '10 different apps?', y: 1175, rot: -2.5, x: 530, bg: '#fff' },
+    { text: S.hook.stickers[0], y: 895, rot: -4, x: 520, bg: '#fff' },
+    { text: S.hook.stickers[1], y: 1035, rot: 3.5, x: 585, bg: '#fff' },
+    { text: S.hook.stickers[2], y: 1175, rot: -2.5, x: 530, bg: '#fff' },
   ];
   stickers.forEach((st, i) => {
     const t0 = [T.q1, T.q2, T.q3][i];

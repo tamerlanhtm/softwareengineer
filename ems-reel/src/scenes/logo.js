@@ -1,5 +1,6 @@
 import { el, svg, tl, scene, textLine, riseIn, riseOut, enter, fit, cue, shake, proc, burst, flash, fast, rrect, clamp, lerp, ease, C } from '../lib.js';
 import { T } from '../timing.js';
+import { S as TXT } from '../i18n.js';
 
 // Logo geometry, measured from the brand mark (units of a 1122×1122 box):
 // 280-unit squares on a 421 pitch; filled corners r≈50; the open square has
@@ -99,7 +100,8 @@ export function buildLogo({ world, fx }) {
   fit(wm.node, 760, 150);
   const wmChars = riseIn(wm, T.lockup + 0.3, { stagger: 0.03, dur: 0.55 });
   wmChars.slice(3).forEach((c) => (c.style.color = C.orange));
-  const sub = textLine(top, 'School management system', { y: 1232, size: 30, cls: 'mono', color: 'rgba(255,255,255,.72)' });
+  const sub = textLine(top, TXT.logo.sub, { y: 1232, size: 30, cls: 'mono', color: 'rgba(255,255,255,.72)' });
+  fit(sub.node, 900, 30);
   const subChars = riseIn(sub, T.lockup + 0.4, { stagger: 0.006, dur: 0.45 });
   cue(T.lockup, 'whoosh', { dur: 0.5, pan: 0 });
   cue(T.lockup + 0.3, 'type', { n: 6, spacing: 0.035 });
@@ -109,9 +111,9 @@ export function buildLogo({ world, fx }) {
   riseOut(wmChars, T.one - 0.1, { dur: 0.32, to: 1.1, stagger: 0.015 });
   riseOut(subChars, T.one - 0.12, { dur: 0.3, to: 1.1, stagger: 0.004 });
   tl.to(L, { y: 1150, s: 560 / 1122, duration: 0.8, ease: 'expo.inOut' }, T.one - 0.05);
-  const a = textLine(top, 'One system.', { y: 470, size: 120 });
+  const a = textLine(top, TXT.logo.one, { y: 470, size: 120 });
   fit(a.node, 880, 124);
-  const b = textLine(top, 'Your entire school.', { y: 610, size: 90, color: C.orange });
+  const b = textLine(top, TXT.logo.whole, { y: 610, size: 90, color: C.orange });
   fit(b.node, 880, 84);
   const aC = riseIn(a, T.one + 0.1, { stagger: 0.03, dur: 0.65 });
   const bC = riseIn(b, T.one + 0.55, { stagger: 0.018, dur: 0.5 });

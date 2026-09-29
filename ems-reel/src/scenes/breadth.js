@@ -1,6 +1,7 @@
 import { el, svg, tl, scene, textLine, riseIn, riseOut, enter, fit, cue, shake, proc, burst, fast, icon, clamp, C } from '../lib.js';
 import { T } from '../timing.js';
 import { MODULES } from '../modules.js';
+import { S } from '../i18n.js';
 
 // 21.0–25.0 · breadth: a rapid-fire module blitz, four languages on a
 // rolodex, and the right access for every role.
@@ -15,15 +16,15 @@ function blitz(world) {
   const flood = el('div', { cls: 'layer', css: `background:${C.orange};` }, s);
   gsap.set(flood, { opacity: 0 });
   const words = [
-    ['Admissions', 'admissions', 0.25, 'w'],
-    ['Attendance', 'attendance', 0.25, 'o'],
-    ['Library', 'library', 0.25, 'flood'],
-    ['Transport', 'transport', 0.25, 'w'],
-    ['Hostel', 'hostel', 0.125, 'o'],
-    ['Health', 'health', 0.125, 'w'],
-    ['Cafeteria', 'cafeteria', 0.125, 'o'],
-    ['Alumni', 'alumni', 0.125, 'flood'],
-  ];
+    ['admissions', 0.25, 'w'],
+    ['attendance', 0.25, 'o'],
+    ['library', 0.25, 'flood'],
+    ['transport', 0.25, 'w'],
+    ['hostel', 0.125, 'o'],
+    ['health', 0.125, 'w'],
+    ['cafeteria', 0.125, 'o'],
+    ['alumni', 0.125, 'flood'],
+  ].map(([key, len, style], i) => [S.blitz.words[i], key, len, style]);
   // 36 progress pips, filling as the words fly by
   const pips = el('div', { cls: 'abs row', css: 'left:50%;top:1250px;gap:7px;transform:translateX(-50%);' }, s);
   const pipEls = Array.from({ length: 36 }, () => el('div', { css: 'width:14px;height:14px;border-radius:4px;background:rgba(255,255,255,.14);' }, pips));
@@ -70,7 +71,7 @@ function blitz(world) {
     const p = clamp((time - T.blitz) / total);
     const n = Math.min(36, Math.round(p * 36 + (p > 0 ? 1 : 0)));
     pipEls.forEach((e, k) => (e.style.background = k < n ? C.orange : 'rgba(255,255,255,.14)'));
-    count.textContent = `${String(n).padStart(2, '0')} / 36 modules`;
+    count.textContent = S.blitz.count(String(n).padStart(2, '0'));
   });
   shake(T.blitz, 0.25, 12, 26);
   fast(T.blitz, T.lang, 10);
@@ -79,14 +80,14 @@ function blitz(world) {
 function languages(world) {
   const t0 = T.lang;
   const s = scene(world, 's-lang', t0 - 0.01, T.roles + 0.05);
-  const head = textLine(s, 'Speaks your language.', { y: 560, size: 84 });
+  const head = textLine(s, S.langs.head, { y: 560, size: 84 });
   fit(head.node, 900, 84);
   const hc = riseIn(head, t0, { stagger: 0.016, dur: 0.5 });
-  const k = el('div', { cls: 'kicker', css: 'top:452px;', text: 'EN · AZ · TR · RU' }, s);
+  const k = el('div', { cls: 'kicker', css: 'top:452px;', text: S.langs.kicker }, s);
   enter(k, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35 }, t0 + 0.05);
 
   const drum = el('div', { cls: 'abs', css: 'left:0;right:0;top:760px;height:260px;perspective:900px;perspective-origin:50% 50%;' }, s);
-  const langs = [['School', 'EN'], ['Məktəb', 'AZ'], ['Okul', 'TR'], ['Школа', 'RU']];
+  const langs = S.langs.words;
   const faces = langs.map(([w]) => {
     const f = el('div', { cls: 'abs', css: 'left:0;right:0;top:0;height:260px;display:grid;place-items:center;backface-visibility:hidden;transform-origin:50% 50% -130px;' }, drum);
     const n = el('div', { cls: 'display', text: w, css: `font-size:200px;font-weight:900;color:${C.orange};letter-spacing:-.05em;` }, f);
@@ -118,8 +119,8 @@ function languages(world) {
 function roles(world) {
   const t0 = T.roles;
   const s = scene(world, 's-roles', t0 - 0.02, T.fin + 0.05);
-  const a = textLine(s, 'The right access', { y: 390, size: 96 });
-  const b = textLine(s, 'for every role.', { y: 498, size: 96, color: C.orange });
+  const a = textLine(s, S.roles.head[0], { y: 390, size: 96 });
+  const b = textLine(s, S.roles.head[1], { y: 498, size: 96, color: C.orange });
   const sz = Math.min(fit(a.node, 900, 96), fit(b.node, 900, 96));
   a.node.style.fontSize = b.node.style.fontSize = `${sz}px`;
   const ac = riseIn(a, t0, { stagger: 0.02, dur: 0.5 });
@@ -130,7 +131,7 @@ function roles(world) {
   const lines = svg('svg', { width: 1080, height: 1920, viewBox: '0 0 1080 1920', style: 'position:absolute;inset:0;overflow:visible' }, s);
   const shield = el('div', { cls: 'abs', css: `left:${cx - 100}px;top:${cy - 100}px;width:200px;height:200px;border-radius:52px;background:${C.orange};display:grid;place-items:center;box-shadow:0 0 90px rgba(254,77,30,.55);`, html: icon('shield-check', 110, '#fff', 1.8) }, s);
   enter(shield, { scale: 0, rotation: -30 }, { scale: 1, rotation: 0, duration: 0.45, ease: 'back.out(2.2)' }, t0 + 0.05);
-  const names = ['Owner', 'Principal', 'Teacher', 'Registrar', 'Accountant', 'Librarian'];
+  const names = S.roles.names;
   const chips = names.map((n, i) => {
     const ang = (-90 + i * 60) * (Math.PI / 180);
     const x = cx + Math.cos(ang) * 350;

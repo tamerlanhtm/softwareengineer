@@ -8,6 +8,9 @@ school management system by [ineed.now](https://www.ineed.now).
 | `export/EMSNow-reel.mp4` | Final reel — 1080×1920, 30 fps, H.264 + AAC, original soundtrack (−14 LUFS) |
 | `export/EMSNow-reel-sfx-only.mp4` | Same picture with sound effects only — pair it with a trending track inside Instagram |
 | `export/EMSNow-reel-cover.jpg` | Cover image (end card) for the Reel / profile grid |
+| `export/EMSNow-reel-az.mp4` | **Azerbaijani version** — same motion, sound and timing, all copy localized |
+| `export/EMSNow-reel-az-sfx-only.mp4` | Azerbaijani version with sound effects only |
+| `export/EMSNow-reel-az-cover.jpg` | Azerbaijani cover image |
 
 ## Storyboard
 
@@ -27,6 +30,18 @@ school management system by [ineed.now](https://www.ineed.now).
 | 22.5–23.75s | Languages | School → Məktəb → Okul → Школа (EN · AZ · TR · RU) |
 | 23.75–25s | Access | Owner, Principal, Teacher, Registrar, Accountant, Librarian around a shield |
 | 25–30s | CTA | "Everything your school needs." → *need* becomes **ineed.now** → logo, EMSNow, **Book a demo**, www.ineed.now, @ineednow_ |
+
+### Azerbaijani version (`?lang=az`)
+
+Same storyboard, localized rather than word-for-word translated:
+
+- Hook: "Məktəbiniz hələ də… cədvəllərdə? kağızlarda? 10 fərqli proqramda?"
+- "Bir sistem. Bütün məktəbiniz." · "36 modul. bir platforma." · "Əsasdan başlayın. Lazım olanı əlavə edin."
+- Features: "Toqquşmasız dərs cədvəli." · "Balları yazın. Hesabatı alın." · "Maliyyə tam nəzarətdə." · "Valideynlər hər an xəbərdar." · "Bütün məktəb bir baxışda."
+- UI mock-ups use Azerbaijani spellings of names (Məmmədova, Kərimova, Əliyev…), weekday abbreviations (B.e., Ç.a., Ç., C.a., C.), manat amounts (1 290,00 ₼) and comma decimals (96,4%)
+- Breadth: Qəbul · Davamiyyət · Kitabxana · Nəqliyyat · Yataqxana · Sağlamlıq · Yeməkxana · Məzunlar; "Sizin dilinizdə danışır."; "Hər rol üçün düzgün icazələr."
+- Finale pun: "Məktəbinizə lazım olan hər şey — **indi.**" — *indi* ("now") keeps its i, n, d and dot and becomes **ineed.now**
+- CTA: "Demo sifariş edin"
 
 Key copy sits between y≈250 and y≈1450, clear of the Instagram UI.
 All figures in the UI mock-ups (names, grades, amounts) are illustrative
@@ -50,14 +65,19 @@ seeking.
 npm install
 pip install numpy scipy imageio-ffmpeg
 node tools/render.mjs --workers 4   # → build/frames, build/cues.json
-tools/encode.sh                     # → export/
+tools/encode.sh                     # → export/EMSNow-reel*.{mp4,jpg}
+
+# Azerbaijani
+node tools/render.mjs --lang az --workers 4   # → build/frames-az, build/cues-az.json
+tools/encode.sh az                            # → export/EMSNow-reel-az*.{mp4,jpg}
 ```
 
 Open `index.html` through any static server (e.g. `npx serve .`) to preview
-it live in a browser (space = pause, ←/→ = step a frame).
+it live in a browser (space = pause, ←/→ = step a frame); add `?lang=az` for
+the Azerbaijani version.
 
-Text is easy to change: headlines live next to their animation in
-`src/scenes/*.js` (e.g. the CTA "Book a demo" and the URL/handle are in
-`src/scenes/finale.js`).
+All on-screen text lives in `src/i18n.js` (one pack per language, plus number
+and currency formats), so copy changes — or a new language such as TR or RU —
+don't touch the animation code. Add a pack, then render with `--lang <code>`.
 
 Fonts: Unbounded, Inter and JetBrains Mono (OFL). Icons: Lucide (ISC).

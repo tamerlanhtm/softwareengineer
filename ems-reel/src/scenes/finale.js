@@ -1,5 +1,6 @@
 import { el, svg, tl, scene, textLine, riseIn, riseOut, enter, split, fit, cue, shake, proc, burst, fast, flash, icon, rrect, rng, clamp, C } from '../lib.js';
 import { T } from '../timing.js';
+import { S } from '../i18n.js';
 
 // 25–30s · "Everything your school needs." — "need" stays on screen and
 // becomes ineed.now — then the end card: logo, EMSNow, Book a demo,
@@ -15,30 +16,31 @@ export function buildFinale({ world, fx }) {
   enter(pool, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 1.2, ease: 'expo.out' }, T.fin);
 
   // ---------------------------------------------------------- statement
+  // e.g. "Everything / your school / needs." — the last line morphs into ineed.now
+  const F = S.finale;
   const SZ = 150;
-  const l1 = textLine(mid, 'Everything', { y: 740, size: SZ });
-  const l2 = textLine(mid, 'your school', { y: 890, size: SZ });
-  const l3 = textLine(mid, 'needs.', { y: 1040, size: SZ, color: C.orange });
-  const sz = Math.min(fit(l1.node, 920, SZ), fit(l2.node, 920, SZ), fit(l3.node, 920, SZ));
-  [l1, l2, l3].forEach((l) => (l.node.style.fontSize = `${sz}px`));
-  const c1 = split(l1.node).chars;
-  const c2 = riseIn(l2, T.fin + 0.22, { stagger: 0.025, dur: 0.55 });
-  const c3 = split(l3.node).chars;
+  const nL = F.lines.length;
+  const L = F.lines.map((txt, i) => textLine(mid, txt, { y: F.ys[i], size: SZ, color: i === nL - 1 ? C.orange : '#fff' }));
+  const sz = Math.min(...L.map((l) => fit(l.node, 920, SZ)));
+  L.forEach((l) => (l.node.style.fontSize = `${sz}px`));
+  const c1 = split(L[0].node).chars;
+  const cm = L.slice(1, nL - 1).map((l, i) => riseIn(l, T.fin + 0.22 + i * 0.14, { stagger: 0.025, dur: 0.5 }));
+  const c3 = split(L[nL - 1].node).chars;
 
   // measure the morph before any initial transforms are applied
-  const big = textLine(mid, 'ineed.now', { y: 890, size: sz });
+  const big = textLine(mid, 'ineed.now', { y: F.bigY, size: sz });
   const bsz = fit(big.node, 900, sz);
   const bc = split(big.node).chars; // i n e e d . n o w
   const rc = (n) => n.getBoundingClientRect();
-  const glide = [0, 1, 2, 3].map((i) => {
-    const a = rc(c3[i]);
-    const b = rc(bc[i + 1]);
-    return { dx: b.left + b.width / 2 - (a.left + a.width / 2), dy: b.top + b.height / 2 - (a.top + a.height / 2) };
+  const glide = F.map.map(([si, di]) => {
+    const a = rc(c3[si]);
+    const b = rc(bc[di]);
+    return { si, di, dx: b.left + b.width / 2 - (a.left + a.width / 2), dy: b.top + b.height / 2 - (a.top + a.height / 2) };
   });
-  // "Everything" slams in letter by letter
+  // first line slams in letter by letter
   gsap.set(c1, { opacity: 0, scale: 2.2 });
   c1.forEach((c, i) => tl.fromTo(c, { opacity: 0, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'expo.out' }, T.fin + 0.02 + i * 0.018));
-  // "needs." drops with weight
+  // last line drops with weight
   gsap.set(c3, { y: -260, opacity: 0 });
   c3.forEach((c, i) => tl.fromTo(c, { y: -260, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'bounce.out' }, T.fin + 0.46 + i * 0.035));
   shake(T.fin + 0.02, 0.35, 14, 20);
@@ -48,31 +50,38 @@ export function buildFinale({ world, fx }) {
   cue(T.fin + 0.5, 'thud');
   fast(T.fin, T.fin + 0.35, 10);
 
-  // ---------------------------------------------------------- needs. → ineed.now
-  bc.slice(6).forEach((c) => (c.style.color = C.orange));
-  bc[5].style.color = C.orange;
+  // ---------------------------------------------------------- last line → ineed.now
+  bc.slice(5).forEach((c) => (c.style.color = C.orange));
   gsap.set(bc, { opacity: 0 });
   const k = bsz / sz;
   const tM = T.morph;
   tl.to(c1, { yPercent: -140, opacity: 0, duration: 0.26, ease: 'power2.in', stagger: 0.008 }, tM - 0.06);
-  riseOut(c2, tM, { dur: 0.3, to: -1.2, stagger: 0.01 });
-  // n e e d glide into place (and shrink to the new size)
-  glide.forEach(({ dx, dy }, i) => {
-    tl.to(c3[i], { x: dx, y: dy, scale: k, color: '#ffffff', duration: 0.5, ease: 'expo.inOut' }, tM + 0.04 + i * 0.02);
+  cm.forEach((chars, i) => riseOut(chars, tM + i * 0.03, { dur: 0.3, to: -1.2, stagger: 0.01 }));
+  // shared letters glide into place (and shrink to the new size)
+  glide.forEach(({ si, di, dx, dy }, j) => {
+    tl.to(c3[si], { x: dx, y: dy, scale: k, color: di >= 5 ? C.orange : '#ffffff', duration: 0.5, ease: 'expo.inOut' }, tM + 0.04 + j * 0.02);
   });
-  // "s." falls away
-  tl.to(c3.slice(4), { y: 240, rotation: 40, opacity: 0, duration: 0.4, ease: 'power3.in', stagger: 0.04 }, tM);
+  // the rest falls away
+  const kept = new Set(F.map.map(([si]) => si));
+  tl.to(c3.filter((_, i) => !kept.has(i)), { y: 240, rotation: 40, opacity: 0, duration: 0.4, ease: 'power3.in', stagger: 0.04 }, tM);
   // swap the gliding letters for the real line once they land
   const tLand = tM + 0.62;
-  tl.set(c3.slice(0, 4), { opacity: 0 }, tLand);
-  tl.set(bc.slice(1, 5), { opacity: 1 }, tLand);
-  // "i" drops in, ".now" slides in
-  tl.fromTo(bc[0], { opacity: 0, y: -200 }, { opacity: 1, y: 0, duration: 0.45, ease: 'back.out(2)' }, tM + 0.32);
-  bc.slice(5).forEach((c, i) => tl.fromTo(c, { opacity: 0, x: 160 }, { opacity: 1, x: 0, duration: 0.42, ease: 'expo.out' }, tM + 0.36 + i * 0.04));
+  tl.set(F.map.map(([si]) => c3[si]), { opacity: 0 }, tLand);
+  tl.set(F.map.map(([, di]) => bc[di]), { opacity: 1 }, tLand);
+  // new letters: inside the word they drop in, after it they slide in
+  const landed = new Set(F.map.map(([, di]) => di));
+  const lastLanded = Math.max(...landed);
+  let nDrop = 0;
+  let nSlide = 0;
+  bc.forEach((c, i) => {
+    if (landed.has(i)) return;
+    if (i < lastLanded) tl.fromTo(c, { opacity: 0, y: -200 }, { opacity: 1, y: 0, duration: 0.45, ease: 'back.out(2)' }, tM + 0.32 + nDrop++ * 0.05);
+    else tl.fromTo(c, { opacity: 0, x: 160 }, { opacity: 1, x: 0, duration: 0.42, ease: 'expo.out' }, tM + 0.36 + nSlide++ * 0.04);
+  });
   tl.fromTo(big.node, { scale: 1 }, { scale: 1.06, duration: 0.12, yoyo: true, repeat: 1, ease: 'power2.out' }, tLand);
   cue(tM, 'morph');
   cue(tLand, 'sparkle');
-  burst(top, { t: tLand, x: 540, y: 890, n: 22, seed: 5, colors: [C.orange, '#fff', C.orangeSoft], size: [6, 14], speed: [400, 1100], gravity: 300, drag: 3, life: 0.9 });
+  burst(top, { t: tLand, x: 540, y: F.bigY, n: 22, seed: 5, colors: [C.orange, '#fff', C.orangeSoft], size: [6, 14], speed: [400, 1100], gravity: 300, drag: 3, life: 0.9 });
 
   // ---------------------------------------------------------- end card
   const tE = T.end;
@@ -99,15 +108,18 @@ export function buildFinale({ world, fx }) {
   fit(wm.node, 740, 136);
   const wmc = riseIn(wm, tE + 0.14, { stagger: 0.03, dur: 0.6 });
   wmc.slice(3).forEach((c) => (c.style.color = C.orange));
-  const sub = textLine(top, 'School management system', { y: 912, size: 30, cls: 'mono', color: 'rgba(255,255,255,.72)' });
+  const sub = textLine(top, F.sub, { y: 912, size: 30, cls: 'mono', color: 'rgba(255,255,255,.72)' });
+  fit(sub.node, 900, 30);
   riseIn(sub, tE + 0.3, { stagger: 0.01, dur: 0.5 });
 
   // CTA button
   const btn = el('div', {
     cls: 'abs pill',
     css: `left:540px;top:1066px;height:138px;padding:0 58px 0 66px;gap:24px;background:${C.orange};color:#fff;box-shadow:0 26px 60px rgba(254,77,30,.45), inset 0 2px 0 rgba(255,255,255,.25);overflow:hidden;`,
-    html: `<span style="font:750 50px var(--f-display);letter-spacing:-.03em">Book a demo</span>${icon('arrow-right', 50, '#fff', 3)}`,
+    html: `<span style="font:750 50px var(--f-display);letter-spacing:-.03em">${F.cta}</span>${icon('arrow-right', 50, '#fff', 3)}`,
   }, top);
+  fit(btn.firstChild, 640, 50);
+  const btnW = btn.offsetWidth;
   const shine = el('div', { cls: 'abs', css: 'top:-20px;left:0;width:120px;height:170px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);' }, btn);
   gsap.set(shine, { x: -200 });
   enter(btn, { xPercent: -50, yPercent: -50, scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55, ease: 'back.out(2)' }, tE + 0.42);
@@ -156,7 +168,7 @@ export function buildFinale({ world, fx }) {
   cue(tC + 0.05, 'chime');
 
   // idle life on the end card
-  [tC + 0.55, tC + 1.45].forEach((t) => tl.fromTo(shine, { x: -200 }, { x: 640, duration: 0.7, ease: 'power2.inOut' }, t));
+  [tC + 0.55, tC + 1.45].forEach((t) => tl.fromTo(shine, { x: -200 }, { x: Math.max(640, btnW + 60), duration: 0.7, ease: 'power2.inOut' }, t));
   tl.fromTo(sq[8], { scale: 1, transformOrigin: '50% 50%' }, { scale: 1.12, duration: 0.16, yoyo: true, repeat: 1, ease: 'power2.out' }, 29.05);
   cue(29.05, 'thump', { soft: true });
 

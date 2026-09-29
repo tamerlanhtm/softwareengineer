@@ -2,6 +2,7 @@
 //   node tools/snap.mjs --times 1,2.5,7 [--out build/snaps]
 //   node tools/snap.mjs --from 0 --to 30 --step 0.5 --sheet build/sheet.png [--cols 6] [--thumb 270]
 //   node tools/snap.mjs --cues build/cues.json   (just dump the sound cue list)
+//   add --lang az for the Azerbaijani version
 import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
@@ -20,7 +21,7 @@ times.sort((a, b) => a - b);
 
 const srv = await serve();
 const browser = await launch();
-const comp = await openComposition(browser, srv.address().port);
+const comp = await openComposition(browser, srv.address().port, arg('lang', 'en'));
 
 if (arg('cues')) {
   const file = path.resolve(ROOT, arg('cues'));

@@ -1,12 +1,12 @@
 // Frame renderer with real (temporal super-sampled) motion blur.
 //
-//   node tools/render.mjs [--fps 30] [--shutter 0.5] [--workers 4] [--from 0] [--to 30]
+//   node tools/render.mjs [--lang en|az] [--fps 30] [--shutter 0.5] [--workers 4] [--from 0] [--to 30]
 //
 // Every output frame is the average, in linear light, of N sub-frame renders
 // spread across the (forward) shutter interval [t, t + shutter/fps) (N comes from the composition's
 // __samplesAt(t), so fast whip-pans get more samples). Frames that do not
 // change inside the shutter are detected and written from a single capture.
-// Output: build/frames/00000.png ... and build/cues.json for the audio build.
+// Output: build/frames[-lang]/00000.png ... and build/cues[-lang].json for the audio build.
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -16,13 +16,15 @@ import { serve, launch, openComposition, arg, ROOT, W, H } from './common.mjs';
 
 const fps = Number(arg('fps', 30));
 const shutter = Number(arg('shutter', 0.5)); // fraction of a frame interval (0.5 = 180°)
-const framesDir = path.resolve(ROOT, arg('frames', 'build/frames'));
+const lang = arg('lang', 'en');
+const suffix = lang === 'en' ? '' : `-${lang}`;
+const framesDir = path.resolve(ROOT, arg('frames', `build/frames${suffix}`));
 
 // ---------- worker ----------
 async function worker(first, last) {
   const srv = await serve();
   const browser = await launch();
-  const comp = await openComposition(browser, srv.address().port);
+  const comp = await openComposition(browser, srv.address().port, lang);
 
   // sRGB <-> linear lookup tables
   const toLin = new Float32Array(256);
@@ -103,18 +105,18 @@ async function main() {
   // read duration + cues once
   const srv = await serve();
   const browser = await launch();
-  const comp = await openComposition(browser, srv.address().port);
+  const comp = await openComposition(browser, srv.address().port, lang);
   const { duration, cues } = comp.info;
   await browser.close();
   srv.close();
-  fs.writeFileSync(path.resolve(ROOT, 'build/cues.json'), JSON.stringify({ duration, cues }, null, 1));
+  fs.writeFileSync(path.resolve(ROOT, `build/cues${suffix}.json`), JSON.stringify({ duration, cues }, null, 1));
 
   const from = Math.round(Number(arg('from', 0)) * fps);
   const to = Math.min(Math.round(Number(arg('to', duration)) * fps), Math.round(duration * fps)) - 1;
   const workers = Number(arg('workers', 4));
   const total = to - from + 1;
   const per = Math.ceil(total / workers);
-  console.log(`rendering frames ${from}..${to} (${total}) @${fps}fps, shutter ${shutter}, ${workers} workers`);
+  console.log(`rendering [${lang}] frames ${from}..${to} (${total}) @${fps}fps, shutter ${shutter}, ${workers} workers`);
   const t0 = Date.now();
   const self = fileURLToPath(import.meta.url);
   await Promise.all(
@@ -125,7 +127,7 @@ async function main() {
       return new Promise((resolve, reject) => {
         const p = spawn(
           process.execPath,
-          [self, '--worker', '--first', String(a), '--last', String(b), '--fps', String(fps), '--shutter', String(shutter), '--frames', framesDir],
+          [self, '--worker', '--first', String(a), '--last', String(b), '--fps', String(fps), '--shutter', String(shutter), '--frames', framesDir, '--lang', lang],
           { stdio: 'inherit' },
         );
         p.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`worker ${w} exited ${code}`))));

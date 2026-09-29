@@ -1,6 +1,7 @@
 import { el, tl, scene, textLine, riseIn, riseOut, enter, fit, cue, shake, proc, burst, fast, counter, icon, clamp, C } from '../lib.js';
 import { T } from '../timing.js';
 import { MODULES, GROUPS } from '../modules.js';
+import { S } from '../i18n.js';
 
 export const GRID = { tile: 110, gap: 18, cols: 6, left: 165, top: 650 };
 GRID.pitch = GRID.tile + GRID.gap;
@@ -59,10 +60,10 @@ export function buildModules({ world }) {
   counter(num.node, { t0: t0 + 0.08, dur: 1.05, to: 36, easeName: 'power2.out' });
   enter(num.box, { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: 'expo.out' }, t0);
   cue(t0 + 0.08, 'count', { dur: 1.05, n: 36 });
-  const lab = textLine(hud, 'modules. one platform.', { y: 552, size: 46 });
+  const lab = textLine(hud, S.mods.label, { y: 552, size: 46 });
   fit(lab.node, 820, 46);
   const labC = riseIn(lab, t0 + 0.45, { stagger: 0.016, dur: 0.6 });
-  labC.slice(9).forEach((ch) => (ch.style.color = 'rgba(255,255,255,.55)'));
+  labC.slice(S.mods.label.split(' ')[0].length).forEach((ch) => (ch.style.color = 'rgba(255,255,255,.55)'));
 
   // ---------------------------------------------------------- flip wave
   tiles.forEach((t) => {
@@ -84,8 +85,10 @@ export function buildModules({ world }) {
   // ---------------------------------------------------------- 9.0 · core vs add-ons
   riseOut(labC, T.core - 0.2, { dur: 0.3, stagger: 0.006 });
   tl.to(num.box, { y: -120, opacity: 0, duration: 0.35, ease: 'power3.in' }, T.core - 0.22);
-  const h1a = textLine(hud, 'Start with', { y: 330, size: 112 });
-  const h1b = textLine(hud, 'the core.', { y: 455, size: 112, color: C.orange });
+  const h1a = textLine(hud, S.mods.core[0], { y: 330, size: 112 });
+  const h1b = textLine(hud, S.mods.core[1], { y: 455, size: 112, color: C.orange });
+  const s1 = Math.min(fit(h1a.node, 900, 112), fit(h1b.node, 900, 112));
+  h1a.node.style.fontSize = h1b.node.style.fontSize = `${s1}px`;
   const h1aC = riseIn(h1a, T.core, { stagger: 0.03, dur: 0.6 });
   const h1bC = riseIn(h1b, T.core + 0.12, { stagger: 0.03, dur: 0.6 });
   cue(T.core - 0.05, 'whoosh', { dur: 0.35, pan: -0.2 });
@@ -118,16 +121,18 @@ export function buildModules({ world }) {
     gsap.set(n, { xPercent: -50, yPercent: -50, rotation: -90 });
     return n;
   };
-  const labCore = mkLabel('CORE · 22 MODULES', gtop + (3.5 * pitch) / 2, 'rgba(255,255,255,.75)');
-  const labAdd = mkLabel('ADD-ONS · 14', gtop + 4.3 * pitch, C.orange);
+  const labCore = mkLabel(S.mods.labCore, gtop + (3.5 * pitch) / 2, 'rgba(255,255,255,.75)');
+  const labAdd = mkLabel(S.mods.labAdd, gtop + 4.3 * pitch, C.orange);
   enter(labCore, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5 }, T.core + 0.2);
   enter(labAdd, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5 }, T.core + 0.45);
 
   // ---------------------------------------------------------- 10.0 · add what you need
   riseOut(h1aC, T.addons - 0.12, { dur: 0.28, stagger: 0.01 });
   riseOut(h1bC, T.addons - 0.1, { dur: 0.28, stagger: 0.01 });
-  const h2a = textLine(hud, 'Add what', { y: 330, size: 112 });
-  const h2b = textLine(hud, 'you need.', { y: 455, size: 112, color: C.orange });
+  const h2a = textLine(hud, S.mods.add[0], { y: 330, size: 112 });
+  const h2b = textLine(hud, S.mods.add[1], { y: 455, size: 112, color: C.orange });
+  const s2 = Math.min(fit(h2a.node, 900, 112), fit(h2b.node, 900, 112));
+  h2a.node.style.fontSize = h2b.node.style.fontSize = `${s2}px`;
   const h2aC = riseIn(h2a, T.addons + 0.05, { stagger: 0.02, dur: 0.4 });
   const h2bC = riseIn(h2b, T.addons + 0.12, { stagger: 0.02, dur: 0.4 });
   const addTiles = tiles.filter((t) => !t.base);
