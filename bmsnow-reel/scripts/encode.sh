@@ -28,5 +28,5 @@ else
 fi
 
 # cover: end card (logo + tagline + URL); survives the 3:4 profile-grid crop
-ffmpeg -hide_banner -loglevel warning -y -i out/frames/f_00890.png -q:v 2 out/cover.jpg
+ffmpeg -hide_banner -loglevel warning -y -i out/frames/f_00890.png -frames:v 1 -update 1 -q:v 2 out/cover.jpg
 ls -lh out/*.mp4 out/cover.jpg

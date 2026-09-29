@@ -54,7 +54,8 @@ SEED = 20260929
 FINAL_T = 29.0               # last music hit (Ab add9); tail decays to 30.0
 FADE_IN = 0.005
 FADE_OUT = 0.30
-MUSIC_REF_LUFS = -18.0       # music bus level before the master (SFX levels are set against it)
+MUSIC_REF_LUFS = -21.0       # music bus level before the master (SFX levels are set against it)
+SFX_TRIM_DB = -3.0           # SFX bus trim that goes with MUSIC_REF_LUFS (house balance)
 
 # ----------------------------------------------------------------------------------------
 # small helpers
@@ -198,6 +199,17 @@ def bpf(x, lo, hi, order=2):
     return signal.sosfilt(_sos("bandpass", (float(lo), float(hi)), order), x, axis=0)
 
 
+def low_shelf(x, f0, gain_db, slope=1.0):
+    """RBJ-cookbook low-shelf biquad."""
+    A = 10 ** (gain_db / 40.0)
+    w0 = 2 * math.pi * f0 / SR
+    alpha = math.sin(w0) / 2 * math.sqrt((A + 1 / A) * (1 / slope - 1) + 2)
+    cw, sa = math.cos(w0), 2 * math.sqrt(A) * alpha
+    b = [A * ((A + 1) - (A - 1) * cw + sa), 2 * A * ((A - 1) - (A + 1) * cw), A * ((A + 1) - (A - 1) * cw - sa)]
+    a = [(A + 1) + (A - 1) * cw + sa, -2 * ((A - 1) + (A + 1) * cw), (A + 1) + (A - 1) * cw - sa]
+    return signal.lfilter(np.array(b) / a[0], np.array(a) / a[0], x, axis=0)
+
+
 def one_pole(x, tau):
     a = math.exp(-1.0 / (tau * SR))
     return signal.lfilter([1.0 - a], [1.0, -a], x, axis=0)
@@ -325,7 +337,7 @@ def convolve_stereo(x, ir):
 # ----------------------------------------------------------------------------------------
 
 
-def kick_sample(rng, f0=160.0, f1=44.0, ptau=0.03, tau=0.2, hold=0.035, length=0.46, click=1.0, drive=1.7):
+def kick_sample(rng, f0=160.0, f1=44.0, ptau=0.03, tau=0.17, hold=0.035, length=0.46, click=1.0, drive=1.7):
     n = S(length)
     t = tv(n)
     f = f1 + (f0 - f1) * np.exp(-t / ptau)
@@ -333,7 +345,8 @@ def kick_sample(rng, f0=160.0, f1=44.0, ptau=0.03, tau=0.2, hold=0.035, length=0
     body = np.tanh(drive * np.sin(2 * np.pi * phase_of(f)) * amp) / np.tanh(drive)
     nz = norm(bpf(rng.standard_normal(n), 1400.0, 8000.0) * np.exp(-t / 0.003))
     tick = np.sin(2 * np.pi * 2900.0 * t) * np.exp(-t / 0.0016)
-    y = body + click * (0.22 * nz + 0.2 * tick)
+    knock = np.sin(2 * np.pi * phase_of(118.0 * (1.0 + 0.3 * np.exp(-t / 0.01)))) * np.exp(-t / 0.045)
+    y = body + 0.35 * knock + click * (0.22 * nz + 0.2 * tick)
     y *= np.clip(t / 0.0004, 0.0, 1.0)
     return norm(fade_tail(y, 0.05))
 
@@ -494,8 +507,8 @@ CRASHES = [(2.0, 1.0), (12.0, 0.35), (16.0, 0.35), (20.0, 0.35), (24.0, 1.0), (2
 STABS = [(2.0, "Fm", 1.0, 0.22, 0.9), (24.0, "Fm", 1.0, 0.2, 0.5), (24.5, "Fm", 0.85, 0.2, 0.46),
          (24.96, "Fm", 1.0, 0.24, 0.6), (25.75, "Fm", 0.5, 0.09, 0.25), (26.0, "Db", 0.75, 0.22, 0.9),
          (27.0, "Ab", 1.0, 0.3, 1.0), (28.0, "Db", 0.45, 0.1, 0.3), (28.5, "Eb", 0.5, 0.1, 0.3)]
-MIX = dict(kick=0.82, intro=0.75, perc=2.2, hats=2.5, cym=1.3, room=0.3, bass=1.2, pad=0.26, arp=0.36,
-           stabs=0.63, hall=0.47, fx=0.5, final=0.6, final_verb=0.12)
+MIX = dict(kick=0.75, intro=0.75, perc=2.4, hats=2.2, cym=1.3, room=0.3, bass=1.2, pad=0.32, arp=0.42,
+           stabs=0.63, hall=0.47, fx=0.22, final=0.6, final_verb=0.12)
 
 
 def arp_offset(tok, third):
@@ -540,7 +553,11 @@ def haas_pan(x, p, delay_ms):
 
 
 def render_music(verbose=False):
-    """Returns (music (N,2) normalised to MUSIC_REF_LUFS, info dict)."""
+    """Returns (bed, hits, info): two (N,2) layers, jointly normalised to MUSIC_REF_LUFS.
+
+    bed  = drums, bass, pad, arp, FX, hall reverb (ducked + unmasked under the SFX in main()).
+    hits = crashes, supersaw stabs and the final chord (land with the big slams, never ducked).
+    """
     t_all = np.arange(N) / SR
     iF = S(FINAL_T)
 
@@ -608,7 +625,7 @@ def render_music(verbose=False):
     for k in range(1, 4):
         perc_hit(snare, 11.5 + k * STEP, 0.26 + 0.07 * k, 0.1 * (k - 2))
     for (t, tom, p) in ((15.5, "hi", 0.35), (15.625, "hi", 0.3), (15.75, "mid", 0.0), (15.875, "lo", -0.35)):
-        perc_hit(toms[tom], t, 0.5, p, send=1.0)
+        perc_hit(toms[tom], t, 0.28, p, send=1.0)
     for k in range(6):
         perc_hit(roll_snares[k], 19.625 + k * STEP / 2, 0.2 + 0.05 * k)
     for k, t in enumerate((26.75, 26.875)):
@@ -621,14 +638,13 @@ def render_music(verbose=False):
     roll_t = [22.0 + i * 0.25 for i in range(4)] + [23.0 + i * STEP for i in range(4)] + [23.5 + i * STEP / 2 for i in range(7)]
     for i, t in enumerate(roll_t):
         x = i / (len(roll_t) - 1)
-        perc_hit(roll_snares[min(7, int(x * 7.99))], t, 0.28 + 0.6 * x ** 1.2, 0.0, send=1.1)
+        perc_hit(roll_snares[min(7, int(x * 7.99))], t, 0.28 + 0.45 * x ** 1.2, 0.0, send=1.1)
         if i >= 8:
             perc_hit(clap, t, 0.15 + 0.3 * x, 0.0, send=0.5)
 
-    intro_bus = lpf(intro_bus, 320.0, order=2)
+    intro_bus = lpf(intro_bus, 450.0, order=2)
     room = convolve_stereo(room_send, get_ir("room"))
-    drums = (kick_bus * MIX["kick"] + intro_bus * MIX["intro"] + perc * MIX["perc"] + hat_bus * MIX["hats"]
-             + cym_bus * MIX["cym"] + room * MIX["room"])
+    drums = kick_bus * MIX["kick"] + intro_bus * MIX["intro"] + perc * MIX["perc"] + hat_bus * MIX["hats"] + room * MIX["room"]
 
     # ---------------- bass: mono sub + saturated mid layer, both sidechained ----------------
     sub = np.sin(2 * np.pi * phase_of(glide(mtof(chord_track("sub")), 0.008)))
@@ -638,7 +654,7 @@ def render_music(verbose=False):
 
     fm = glide(mtof(chord_track("mid")), 0.004)
     osc = 0.6 * saw(fm, 0.1) + 0.4 * saw(fm * 1.0045, 0.6)
-    dark, bright = lpf(osc, 650.0), lpf(osc, 2600.0)
+    dark, bright = lpf(osc, 800.0), lpf(osc, 2600.0)
     gate, gate_fast = np.zeros(N), np.zeros(N)
 
     def bass_note(t0, length, vel, tau=0.06, floor=0.7):
@@ -665,7 +681,7 @@ def render_music(verbose=False):
     mid = dark * gate + 0.55 * bright * gate_fast
     mid = np.tanh(1.8 * mid) / np.tanh(1.8)
     mid = lpf(hpf(mid, 75.0), 4200.0) * sidechain(KICKS, 0.55, release=0.1)
-    bass = st(0.5 * sub + 0.2 * mid)
+    bass = st(0.24 * sub + 0.4 * mid)
 
     # ---------------- pad: 4 voices x 5 detuned saws, voice-led, glides, Haas-widened --------
     prng = rng_for("pad")
@@ -675,10 +691,10 @@ def render_music(verbose=False):
         for d, p, hz in zip((-11, -5, 0, 5, 11), (-0.9, -0.45, 0.0, 0.45, 0.9), (13, 7, 0, 9, 15)):
             pad += haas_pan(saw(f * 2.0 ** (d / 1200.0), prng.uniform()), p, hz) * 0.2
     pad = lpf(pad, 6000.0)
-    pad = tv_filter(pad, curve([(0, 450), (1.95, 1600), (2.0, 3500), (3.99, 3500), (4.0, 2200), (11.99, 2200), (12.0, 2800),
-                                (19.99, 2800), (20.0, 2400), (22.0, 1300), (23.93, 8000), (24.0, 5000), (25.99, 5000),
+    pad = tv_filter(pad, curve([(0, 900), (1.95, 2200), (2.0, 3800), (3.99, 3800), (4.0, 3000), (11.99, 3000), (12.0, 3400),
+                                (19.99, 3400), (20.0, 3000), (22.0, 1300), (23.93, 8000), (24.0, 5000), (25.99, 5000),
                                 (26.0, 4000), (29.0, 4000), (30.0, 2200)]), "lp", order=2)
-    pad_amp = automation([(0, 0.0), (0.3, 0.45), (1.95, 0.8), (2.0, 1.0), (3.99, 1.0), (4.0, 0.72), (11.99, 0.72), (12.0, 0.8),
+    pad_amp = automation([(0, 0.0), (0.12, 0.6), (1.95, 0.9), (2.0, 1.0), (3.99, 1.0), (4.0, 0.72), (11.99, 0.72), (12.0, 0.8),
                           (22.0, 0.8), (23.93, 1.1), (24.0, 1.0), (25.99, 1.0), (26.0, 0.9), (DURATION, 0.9)])
     pad_amp[iF:] *= np.exp(-(t_all[iF:] - FINAL_T) / 0.3)
     pad *= (pad_amp * sidechain(KICKS, 0.45, release=0.16))[:, None]
@@ -688,12 +704,12 @@ def render_music(verbose=False):
     arp = np.zeros((N, 2))
     for s in range(int(FINAL_T / STEP)):
         t = s * STEP
-        if (t < BAR and s % 2) or in_gap(t):
-            continue   # hook: 8th-note teaser
+        if (t < BAR / 2 and s % 2) or in_gap(t):
+            continue   # hook: 8th-note teaser, 16ths from 1.0 s into the drop
         ch = chord_at(t)
         pat = ARP_B if (12.0 <= t < 20.0 or 24.0 <= t < 26.0) else ARP_A
         midi = ch["arp"] + arp_offset(pat[s % 16], ch["third"])
-        lvl = 0.55 if t < BAR else 1.0 if 24.0 <= t < 26.0 else 0.9 if t < 4.0 or t >= 22.0 else 0.85
+        lvl = 0.7 if t < BAR else 1.0 if 24.0 <= t < 26.0 else 0.9 if t < 4.0 or t >= 22.0 else 0.85
         vel = (1.0, 0.62, 0.78, 0.62)[s % 4] * lvl * (1.0 + 0.05 * arng.standard_normal())
         add_at(arp, pan(pluck(midi, 0.34 if pat is ARP_B else 0.42), 0.35 if s % 2 else -0.35), S(t), vel)
         if 24.0 <= t < 26.0:  # octave doubling for the biggest section
@@ -740,19 +756,23 @@ def render_music(verbose=False):
     hall = convolve_stereo(pad * MIX["pad"] * 0.25 + arp * MIX["arp"] * 0.3 + stabs * MIX["stabs"] * 0.45, get_ir("hall"))
     fin_verb = convolve_stereo(final, get_ir("final"))
 
-    dry = drums + tonal + stabs * MIX["stabs"] + fx * MIX["fx"] + arp_final * MIX["arp"] + final * MIX["final"]
+    # two layers: the "bed" (ducked / unmasked under the SFX) and the "hits" (stabs, crashes, final
+    # chord) that land together with the big SFX slams and therefore are never ducked
     gap_pts = [(0.0, 1.0)]
     for a, b in GAPS:
         gap_pts += [(a - 0.004, 1.0), (a, 0.0), (b, 0.0), (b + 0.004, 1.0)]
-    dry *= automation(gap_pts + [(DURATION, 1.0)])[:, None]
-    music = dry + hall * MIX["hall"] + fin_verb * MIX["final_verb"]
-    sect_db = automation([(0, -5.0), (1.99, -5.0), (2.0, 0.5), (3.99, 0.5), (4.0, -1.0), (11.99, -1.0), (12.0, -0.5),
-                          (21.99, -0.5), (22.0, -2.5), (23.93, 1.0), (24.0, 1.5), (25.99, 1.5), (26.0, 0.0), (26.94, 0.0),
+    gapc = automation(gap_pts + [(DURATION, 1.0)])[:, None]
+    bed = (drums + tonal + fx * MIX["fx"]) * gapc + hall * MIX["hall"]
+    hits = (cym_bus * MIX["cym"] + stabs * MIX["stabs"] + arp_final * MIX["arp"] + final * MIX["final"]) * gapc
+    hits = hits + fin_verb * MIX["final_verb"]
+    sect_db = automation([(0, -1.0), (1.99, -1.0), (2.0, 1.5), (3.99, 1.5), (4.0, -1.5), (11.99, -1.5), (12.0, -1.0),
+                          (21.99, -1.0), (22.0, -3.0), (23.93, -0.5), (24.0, 2.0), (25.99, 2.0), (26.0, -0.5), (26.94, -0.5),
                           (27.0, 0.5), (DURATION, 0.5)])
-    music *= db(sect_db)[:, None]
-    music = lpf(music, 17000.0)
-    g = db(MUSIC_REF_LUFS - integrated_lufs(music))
-    music *= g
+    sdb = db(sect_db)[:, None]
+    bed = hpf(lpf(bed * sdb, 17000.0), 28.0, order=4)
+    hits = hpf(lpf(hits * sdb, 17000.0), 28.0, order=4)
+    g = db(MUSIC_REF_LUFS - integrated_lufs(bed + hits))
+    bed, hits = bed * g, hits * g
     info = dict(norm_gain_db=float(lin2db(g)))
     if verbose:
         sd = (g * db(sect_db))[:, None]
@@ -764,7 +784,7 @@ def render_music(verbose=False):
             v = v * sd
             print(f"    {k:8s} {integrated_lufs(v[S(24):S(26)]):7.1f} {integrated_lufs(v[S(12):S(16)]):7.1f} "
                   f"{integrated_lufs(v):7.1f}   corr {correlation(v[S(24):S(26)]):5.2f}")
-    return music, info
+    return bed, hits, info
 
 
 # ----------------------------------------------------------------------------------------
@@ -776,14 +796,15 @@ def render_music(verbose=False):
 def g_impact(rng, p, dur, n_len):
     n = S(2.4)
     t = tv(n)
-    f = 34.0 + (120.0 * p - 34.0) * np.exp(-t / 0.08)
-    sub = np.sin(2 * np.pi * phase_of(f)) * np.clip(t / 0.0015, 0, 1) * np.exp(-t / 0.55)
+    f = 50.0 * p + (125.0 * p - 50.0 * p) * np.exp(-t / 0.08)
+    sub = np.sin(2 * np.pi * phase_of(f)) * np.clip(t / 0.0015, 0, 1) * np.exp(-t / 0.36)
     sub = lpf(np.tanh(2.0 * sub) / np.tanh(2.0), 700.0)
     body = norm(lpf(rng.standard_normal(n), 380.0) * np.exp(-t / 0.09))
     crack = stereo_noise(rng, n, 0.4)
     crack = norm(hpf(lpf(crack, 11000.0), 1200.0) * (np.clip(t / 0.0006, 0, 1) * np.exp(-t / 0.035))[:, None])
     rumble = norm(lpf(rng.standard_normal((n, 2)), 150.0) * np.exp(-t / 0.5)[:, None])
-    dry = st(sub) + st(body) * 0.5 + crack * 0.45 + rumble * 0.22
+    punch = np.sin(2 * np.pi * phase_of(np.full(n, 105.0 * p))) * np.clip(t / 0.001, 0, 1) * np.exp(-t / 0.06)
+    dry = st(sub) * 0.6 + st(punch) * 0.6 + st(body) * 0.7 + crack * 0.5 + rumble * 0.12
     wet = convolve_stereo(crack * 0.7 + st(body) * 0.5, get_ir("impact"))
     return fade_tail(dry + wet * 0.4, 0.4)
 
@@ -908,7 +929,7 @@ def g_ding(rng, p, dur, n_len):
     n = S(1.4)
     t = tv(n)
     out = np.zeros((n, 2))
-    partials = ((1.0, 1.0, 0.85), (2.0, 0.32, 0.45), (3.01, 0.12, 0.22), (4.21, 0.07, 0.12), (5.43, 0.04, 0.07))
+    partials = ((1.0, 1.0, 0.6), (2.0, 0.32, 0.35), (3.01, 0.12, 0.18), (4.21, 0.07, 0.1), (5.43, 0.04, 0.06))
     for (m, off, pn) in ((80, 0.0, -0.25), (84, 0.075, 0.25)):  # Ab5 + C6: major third
         f0 = float(mtof(m)) * p
         i = S(off)
@@ -927,8 +948,9 @@ def g_type(rng, p, dur, n_len):
     while t0 < d:
         m = S(0.03)
         tt = tv(m)
-        k = norm(bpf(rng.standard_normal(m), rng.uniform(1800, 3000) * p, rng.uniform(4500, 7000) * p)) * np.exp(-tt / 0.0025)
-        k += 0.35 * np.sin(2 * np.pi * rng.uniform(250, 450) * p * tt) * np.exp(-tt / 0.007)
+        k = norm(bpf(rng.standard_normal(m), rng.uniform(1800, 3000) * p, rng.uniform(4500, 7000) * p)) * np.exp(-tt / 0.003)
+        k += 0.5 * norm(bpf(rng.standard_normal(m), 450.0 * p, 1400.0 * p)) * np.exp(-tt / 0.009)
+        k += 0.35 * np.sin(2 * np.pi * rng.uniform(250, 450) * p * tt) * np.exp(-tt / 0.01)
         add_at(out, pan(k * np.clip(tt / 0.0002, 0, 1), rng.uniform(-0.25, 0.25)), S(t0), rng.uniform(0.55, 1.0))
         t0 += float(np.clip(rng.normal(0.075, 0.022), 0.04, 0.14))
     return fade_tail(out, 0.01)
@@ -1016,7 +1038,7 @@ def g_glitch(rng, p, dur, n_len):
 def g_sub(rng, p, dur, n_len):
     n = S(1.4)
     t = tv(n)
-    f = (41.0 + 57.0 * np.exp(-t / 0.22)) * p
+    f = (46.0 + 52.0 * np.exp(-t / 0.22)) * p
     f *= 1.0 + 0.9 * np.exp(-t / 0.012)
     y = np.sin(2 * np.pi * phase_of(f)) * np.clip(t / 0.002, 0, 1) * np.exp(-t / 0.5)
     y = lpf(np.tanh(2.2 * y) / np.tanh(2.2), 1200.0)
@@ -1049,24 +1071,24 @@ def g_shutter(rng, p, dur, n_len):
 
 # type: (generator, level dBFS at gain 1, plate send, music duck (dB, hold s, release s) or None, sustained?)
 SFX = {
-    "impact":  (g_impact,  -3.0, 0.00, (4.0, 0.15, 0.45), False),
-    "burst":   (g_burst,   -9.0, 0.25, (2.0, 0.10, 0.30), False),
+    "impact":  (g_impact,  -3.0, 0.00, (3.0, 0.15, 0.45), False),
+    "burst":   (g_burst,   -6.0, 0.25, (2.0, 0.10, 0.30), False),
     "thump":   (g_thump,   -8.0, 0.05, None, False),
     "pop":     (g_pop,    -10.0, 0.12, None, False),
     "tick":    (g_tick,   -14.0, 0.06, None, False),
-    "click":   (g_click,  -10.0, 0.05, None, False),
-    "swish":   (g_swish,  -11.0, 0.10, None, False),
-    "whoosh":  (g_whoosh, -10.0, 0.12, (3.0, 0.0, 0.20), True),
-    "riser":   (g_riser,   -9.0, 0.10, (1.5, 0.0, 0.10), True),
-    "ding":    (g_ding,   -11.0, 0.35, None, False),
-    "type":    (g_type,   -14.0, 0.04, None, True),
+    "click":   (g_click,  -8.0, 0.05, None, False),
+    "swish":   (g_swish,  -6.0, 0.10, None, False),
+    "whoosh":  (g_whoosh, -11.0, 0.12, (3.0, 0.0, 0.20), True),
+    "riser":   (g_riser,   -8.0, 0.10, (1.5, 0.0, 0.10), True),
+    "ding":    (g_ding,   -12.0, 0.35, None, False),
+    "type":    (g_type,    -8.0, 0.04, None, True),
     "stamp":   (g_stamp,   -5.0, 0.08, (2.5, 0.08, 0.25), False),
-    "lock":    (g_lock,   -11.0, 0.10, None, False),
-    "count":   (g_count,  -14.0, 0.05, None, True),
-    "glitch":  (g_glitch, -11.0, 0.12, None, True),
-    "sub":     (g_sub,     -5.0, 0.00, (2.5, 0.20, 0.40), False),
-    "reverse": (g_reverse, -11.0, 0.10, (1.5, 0.0, 0.10), True),
-    "shutter": (g_shutter, -11.0, 0.08, None, False),
+    "lock":    (g_lock,   -9.0, 0.10, None, False),
+    "count":   (g_count,   -8.0, 0.05, None, True),
+    "glitch":  (g_glitch,  -9.0, 0.12, None, True),
+    "sub":     (g_sub,     -7.0, 0.00, (2.5, 0.20, 0.40), False),
+    "reverse": (g_reverse, -8.0, 0.10, (1.5, 0.0, 0.10), True),
+    "shutter": (g_shutter, -8.0, 0.08, None, False),
 }
 DEFAULT_DUR = {"whoosh": 0.5, "riser": 1.0, "type": 0.6, "count": 0.8, "glitch": 0.26, "reverse": 1.0}
 
@@ -1125,6 +1147,7 @@ def render_sfx(cues):
         y = gen(rng, c["pitch"], c["dur"], n_len)
         y = norm(y) * db(lvl) * c["gain"]
         add_at(bus, y, i0)
+        c = dict(c, sig=y)
         if send:
             add_at(plate_send, y, i0, send)
         if duck and c["gain"] > 0:
@@ -1145,12 +1168,12 @@ def render_sfx(cues):
                 duck_db[s0:s1] = np.maximum(duck_db[s0:s1], amount * shape)
         placed.append(dict(c, start_sample=i0, len=int(y.shape[0])))
     bus += convolve_stereo(plate_send, get_ir("plate")) * 0.5
-    bus = lpf(bus, 16000.0)   # tame air/noise above ~16 kHz
+    bus = hpf(lpf(bus, 16000.0), 32.0, order=4) * db(SFX_TRIM_DB)   # tame air above ~16 kHz, no infrasonics
     return bus, db(-duck_db), placed
 
 
 # octave-ish bands for the unmasking dynamic EQ: (low edge, high edge, max music cut dB)
-UNMASK_BANDS = [(0, 90, 4.0), (90, 180, 4.0), (180, 355, 3.5), (355, 710, 3.0), (710, 1400, 3.0),
+UNMASK_BANDS = [(0, 90, 3.0), (90, 180, 3.0), (180, 355, 3.0), (355, 710, 3.0), (710, 1400, 3.0),
                 (1400, 2800, 3.0), (2800, 5600, 3.0), (5600, 11200, 2.5), (11200, 24000, 2.0)]
 
 
@@ -1173,7 +1196,7 @@ def unmask(music, sfx, nper=2048, release=0.15):
     for b, (lo, hi, mx) in enumerate(UNMASK_BANDS):
         m = (f >= lo) & (f < hi)
         snr = 10 * np.log10((px[m].sum(axis=0) + 1e-12) / (pm[m].sum(axis=0) + 1e-12))
-        a = mx * smoothstep(-14.0, -1.0, snr)
+        a = mx * smoothstep(-18.0, -2.0, snr)
         c = 1.0 / (release * frame_rate)   # release (log-domain max-plus), then light attack smoothing
         idx = np.arange(a.size) * c
         a = np.exp(np.maximum.accumulate(np.log(np.maximum(a, 1e-6)) + idx) - idx)
@@ -1261,7 +1284,7 @@ def mono_below(x, fc=120.0):
     return np.stack([mid + side, mid - side], axis=1)
 
 
-def glue(x, thr_db=-11.0, ratio=1.8, knee=8.0, attack=0.012, release=0.16):
+def glue(x, thr_db=-9.0, ratio=1.6, knee=8.0, attack=0.012, release=0.16):
     lvl = 10 * np.log10(one_pole(0.5 * (x[:, 0] ** 2 + x[:, 1] ** 2), 0.012) + 1e-12)
     over = lvl - thr_db
     s = 1.0 - 1.0 / ratio
@@ -1297,7 +1320,7 @@ def edge_fades(n=N):
 
 def master(mix, target_lufs, tp_ceiling):
     x = mono_below(mix, 120.0)
-    x = hpf(x, 22.0, order=2)
+    x = low_shelf(hpf(x, 22.0, order=2), 75.0, -1.5)
     x -= x.mean(axis=0)
     fades = edge_fades()[:, None]
     g = db(target_lufs - integrated_lufs(x))
@@ -1460,18 +1483,25 @@ def timeline_png(path, music, sfx, y, cues):
 # ----------------------------------------------------------------------------------------
 
 
-def band_snr(sfx_seg, mus_seg):
-    """SFX-to-music ratio (dB) in the octave band where the SFX segment is strongest."""
-    n = sfx_seg.shape[0]
-    w = np.hanning(n)[:, None]
-    fs_ = np.sum(np.abs(np.fft.rfft(sfx_seg * w, axis=0)) ** 2, axis=1)
-    fm_ = np.sum(np.abs(np.fft.rfft(mus_seg * w, axis=0)) ** 2, axis=1)
-    f = np.fft.rfftfreq(n, 1.0 / SR)
-    edges = [45, 90, 180, 355, 710, 1400, 2800, 5600, 11200, 20000]
-    es = np.array([fs_[(f >= lo) & (f < hi)].sum() for lo, hi in zip(edges[:-1], edges[1:])])
-    em = np.array([fm_[(f >= lo) & (f < hi)].sum() for lo, hi in zip(edges[:-1], edges[1:])])
-    b = int(np.argmax(es))
-    return float(10 * np.log10((es[b] + 1e-20) / (em[b] + 1e-20))), int(math.sqrt(edges[b] * edges[b + 1]))
+def band_snr(sfx_seg, mus_seg, win=0.03):
+    """Audibility proxy: SFX-to-music ratio (dB) in the SFX's dominant octave band, taken as the
+    best 30 ms window of the cue (so sparse transient trains like typing are not averaged away)."""
+    edges = np.array([45, 90, 180, 355, 710, 1400, 2800, 5600, 11200, 20000], float)
+
+    def band_energy(seg):
+        n = seg.shape[0]
+        w = signal.windows.tukey(n, 0.2)[:, None]
+        P = np.sum(np.abs(np.fft.rfft(seg * w, axis=0)) ** 2, axis=1)
+        f = np.fft.rfftfreq(n, 1.0 / SR)
+        return np.array([P[(f >= lo) & (f < hi)].sum() for lo, hi in zip(edges[:-1], edges[1:])])
+
+    b = int(np.argmax(band_energy(sfx_seg)))
+    L, H = S(win), S(win / 3)
+    best = -99.0
+    for s0 in range(0, max(1, sfx_seg.shape[0] - L + 1), H):
+        es, em = band_energy(sfx_seg[s0:s0 + L]), band_energy(mus_seg[s0:s0 + L])
+        best = max(best, float(10 * np.log10((es[b] + 1e-20) / (em[b] + 1e-20))))
+    return best, int(math.sqrt(edges[b] * edges[b + 1]))
 
 
 def kick_summary():
@@ -1503,11 +1533,12 @@ def main(argv=None):
         counts[c["type"]] = counts.get(c["type"], 0) + 1
     print(f"cues: {len(cues)} from {os.path.relpath(a.cues, ROOT) if a.cues.startswith(ROOT) else a.cues} {counts}")
 
-    music, minfo = render_music(verbose=a.verbose)
+    bed, hits, minfo = render_music(verbose=a.verbose)
     sfx, duck, placed = render_sfx(cues)
     sfx = sfx * db(a.sfx_gain)
-    music = music * duck[:, None] * db(a.music_gain)       # 2-4 dB broadband ducks at impacts / whooshes
-    music, unmask_avg = unmask(music, sfx)                 # band-selective room for every SFX
+    bed = bed * duck[:, None] * db(a.music_gain)           # 2-3 dB broadband ducks at impacts / whooshes
+    bed, unmask_avg = unmask(bed, sfx)                     # band-selective room for every SFX
+    music = bed + hits * db(a.music_gain)                  # stabs/crashes on the slams stay un-ducked
 
     # stems: pre-master buses (post trim), i.e. music + sfx == master input
     fades = edge_fades()[:, None]
@@ -1550,12 +1581,14 @@ def main(argv=None):
         i0 = c["start_sample"]
         if c["type"] in ("riser", "reverse"):
             s0, s1 = max(0, i0 + S(0.7 * c["dur"])), i0 + S(c["dur"])
-        elif SFX[c["type"]][4] and c["dur"]:
-            s0, s1 = i0, i0 + S(c["dur"])
+        elif (SFX[c["type"]][4] and c["dur"]) or c["type"] == "swish":
+            s0, s1 = max(0, i0 - S(0.005)), i0 + min(c["len"], S(c["dur"] or 0.25))
         else:
-            s0, s1 = i0, i0 + min(c["len"], S(0.08))
+            s0, s1 = max(0, i0 - S(0.005)), i0 + min(c["len"], S(0.08))
         s1 = min(N, max(s1, s0 + 256))
-        snr, band = band_snr(sfx[s0:s1], music[s0:s1])
+        own = np.zeros((s1 - s0, 2))
+        add_at(own, c["sig"] * db(SFX_TRIM_DB + a.sfx_gain), i0 - s0)
+        snr, band = band_snr(own, music[s0:s1])
         snrs.append(dict(t=c["t"], type=c["type"], gain=c["gain"], snr_db=snr, band_hz=band))
     by_type: dict = {}
     for r in snrs:
