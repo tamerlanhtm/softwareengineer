@@ -10,7 +10,7 @@ const browser = await chromium.launch({ args: ['--font-render-hinting=none'] });
 const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
 page.on('pageerror', (e) => console.error('PAGE ERROR', e.message));
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.error('console', m.text()); });
-await page.goto('file://' + path.resolve('src/index.html'));
+await page.goto('file://' + path.resolve('src/index.html') + '?lang=' + (process.env.REEL_LANG || 'en'));
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 30000 });
 const tiles = [];
 for (const t of ts) {

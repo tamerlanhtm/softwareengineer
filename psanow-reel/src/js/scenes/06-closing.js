@@ -3,22 +3,22 @@
   const { el, T, O, E, tw, kf, inv, lerp, clamp } = R;
   const C = R.C;
   const S = { name: 'closing', vs: 21.95, ve: 24.9, z: 27 };
-  const WORDS = [
-    { txt: 'Everything', t: 22.0, y: 598 },
-    { txt: 'your firm', t: 22.5, y: 760 },
-    { txt: 'needs.', t: 23.0, y: 922 },
-  ];
+  const TXT = R.t(['Everything', 'your firm', 'needs.'], ['Şirkətinizə', 'lazım olan', 'hər şey.']);
+  const WORDS = TXT.map((txt, i) => ({ txt, t: 22.0 + i * 0.5, y: 598 + i * 162 }));
   S.NOW_T = 24.0;
 
   S.build = (root) => {
     const cam = (S.cam = el(root, 'abs', { width: '1080px', height: '1920px', transformOrigin: '540px 900px' }));
+    const wcss = { fontFamily: "'Inter Tight Variable'", fontWeight: '900', letterSpacing: '-0.05em' };
+    const fs = R.fit(TXT, wcss, 156, 930);
     S.words = WORDS.map((w, wi) => {
-      const line = el(cam, 'abs f-head nowrap', { left: '80px', top: w.y + 'px', fontSize: '156px', fontWeight: '900', letterSpacing: '-0.05em', lineHeight: '1', color: C.text });
+      const line = el(cam, 'abs f-head nowrap', { left: '80px', top: w.y + (156 - fs) * (wi + 0.5) + 'px', fontSize: fs + 'px', fontWeight: '900', letterSpacing: '-0.05em', lineHeight: '1', color: C.text });
       const chars = R.chars(line, w.txt);
       const rr = R.rng(wi * 7 + 3);
       return { ...w, line, chars: chars.map((c) => ({ c, vx: (rr() - 0.35) * 2600, vy: (rr() - 0.5) * 2600, vr: (rr() - 0.5) * 900 })) };
     });
-    S.under = el(cam, 'abs', { left: '84px', top: '1098px', width: '520px', height: '16px', borderRadius: '8px', background: C.orange, transformOrigin: 'left center' });
+    const uw = Math.min(700, R.measure(TXT[2], Object.assign({}, wcss, { fontSize: fs + 'px' })) - 20);
+    S.under = el(cam, 'abs', { left: '84px', top: 1098 - (156 - fs) * 0.5 + 'px', width: uw + 'px', height: '16px', borderRadius: '8px', background: C.orange, transformOrigin: 'left center' });
     R.impact(22.0, 9, 12, 12);
     R.impact(22.5, 9, 12, 12);
     R.impact(23.0, 11, 12, 12);

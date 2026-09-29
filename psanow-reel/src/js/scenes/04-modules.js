@@ -4,7 +4,7 @@
   const C = R.C;
   const S = { name: 'modules', vs: 11.95, ve: 19.1, z: 25 };
 
-  const GROUPS = [
+  const GROUPS_EN = [
     ['Delivery', ['Cl', 'Ct', 'Rc', 'Pj', 'Tk', 'Ms', 'Pt', 'Ir', 'Nt']],
     ['People & Capacity', ['Pe', 'As', 'Rp', 'Ut', 'Lv', 'Dp']],
     ['Time & Expense', ['Ts', 'Ta', 'Ex']],
@@ -16,6 +16,9 @@
     ['Reporting & Analytics', ['Db', 'Re']],
     ['Management & Security', ['Ur', 'Dc', 'An', 'Ev', 'Ap', 'St']],
   ];
+  const AZ_NAMES = ['İcra', 'Kadrlar və resurslar', 'Vaxt və xərclər', 'Faktura və gəlir', 'Maliyyə nəzarəti',
+    'Satış və müqavilələr', 'Müştəri portalı', 'Mühasibatlıq', 'Hesabat və analitika', 'İdarəetmə və təhlükəsizlik'];
+  const GROUPS = GROUPS_EN.map(([n, m], i) => [R.t(n, AZ_NAMES[i]), m]);
   const TS = 52, TG = 7, ROW0 = 706, PITCH = 68, NAMEX = 92, TX = 450;
   const FLY0 = 12.07, FLYSTEP = 0.02, FLYDUR = 0.56;
   const HL0 = 14.25, HLSTEP = 0.25;
@@ -30,18 +33,19 @@
     S.num = el(S.numBox, 'abs', { left: '0', top: '0', width: '1080px', textShadow: '0 0 60px rgba(254,77,30,.35)' });
     S.zero = el(S.numBox, 'abs', { left: '0', top: '0', width: '1080px', textShadow: '0 0 60px rgba(254,77,30,.35)' }, '0');
     S.labBox = el(cam, 'abs f-head', { top: '498px', left: '0', width: '1080px', height: '110px', overflow: 'hidden', textAlign: 'center', fontSize: '84px', fontWeight: '800', letterSpacing: '-0.035em', lineHeight: '110px', color: C.text });
-    S.lab1 = el(S.labBox, 'abs', { left: '0', top: '0', width: '1080px' }, 'modules');
-    S.lab2 = el(S.labBox, 'abs', { left: '0', top: '0', width: '1080px' }, 'paid add-ons.');
+    S.lab1 = el(S.labBox, 'abs', { left: '0', top: '0', width: '1080px' }, R.t('modules', 'modul'));
+    S.lab2 = el(S.labBox, 'abs', { left: '0', top: '0', width: '1080px' }, R.t('paid add-ons.', 'ödənişli əlavə.'));
     S.sub = el(cam, 'abs f-mono nowrap', { top: '622px', left: '0', width: '1080px', textAlign: 'center', fontSize: '25px', fontWeight: '500', letterSpacing: '0.16em', color: '#B3A99F' });
 
     // rows + tiles
     S.rows = [];
     S.tiles = [];
     let idx = 0;
+    const nameFs = R.fit(GROUPS.map((g) => g[0]), { fontFamily: "'Inter Tight Variable'", fontWeight: '700', letterSpacing: '-0.015em' }, 27, 290);
     GROUPS.forEach(([name, mods], r) => {
       const y = ROW0 + r * PITCH;
       const bar = el(cam, 'abs', { left: NAMEX - 26 + 'px', top: y + 8 + 'px', width: '6px', height: TS - 16 + 'px', borderRadius: '3px', background: C.orange });
-      const nm = el(cam, 'abs f-head nowrap', { left: NAMEX + 'px', top: y + 'px', height: TS + 'px', lineHeight: TS + 'px', fontSize: '27px', fontWeight: '700', letterSpacing: '-0.015em', color: '#CFC6BF' }, name);
+      const nm = el(cam, 'abs f-head nowrap', { left: NAMEX + 'px', top: y + 'px', height: TS + 'px', lineHeight: TS + 'px', fontSize: nameFs + 'px', fontWeight: '700', letterSpacing: '-0.015em', color: '#CFC6BF' }, name);
       const cnt = el(cam, 'abs f-mono', { left: TX - 58 + 'px', top: y + 'px', width: '40px', height: TS + 'px', lineHeight: TS + 'px', textAlign: 'right', fontSize: '18px', color: '#6f655e' }, String(mods.length));
       S.rows.push({ nm, bar, cnt, r, first: idx, n: mods.length });
       mods.forEach((sym, c) => {
@@ -63,7 +67,7 @@
     // banner
     S.banner = el(cam, 'abs', { left: '120px', top: '972px', width: '840px', height: '150px', borderRadius: '36px', background: '#F7F3F0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '26px', boxShadow: '0 40px 90px rgba(0,0,0,.55)' });
     el(S.banner, '', { width: '84px', height: '84px', borderRadius: '24px', background: C.orange, display: 'grid', placeItems: 'center', color: '#fff' }, R.svgIcon('check', 52, 3.4));
-    el(S.banner, 'f-head nowrap', { fontSize: '62px', fontWeight: '800', letterSpacing: '-0.035em', color: C.ink }, 'Everything’s included.');
+    el(S.banner, 'f-head nowrap', { fontSize: '62px', fontWeight: '800', letterSpacing: '-0.035em', color: C.ink }, R.t('Everything’s included.', 'Hər şey daxildir.'));
 
     R.impact(12.06, 18, 9, 11);
     R.flash(12.06, '#FFD9CC', 0.2, 0.1);
@@ -139,8 +143,8 @@
     T(S.lab2, { y: (1 - lroll) * 110 });
     O(S.lab2, lroll > 0 ? 1 : 0);
     // sub line
-    const s1 = R.decode('10 GROUPS · ONE PLATFORM', inv(13.75, 14.15, t), 3, t);
-    const s2 = R.decode('ALL 45 MODULES · ONE PRICE', inv(FLIP0 + 0.1, FLIP0 + 0.5, t), 5, t);
+    const s1 = R.decode(R.t('10 GROUPS · ONE PLATFORM', '10 QRUP · VAHİD PLATFORMA'), inv(13.75, 14.15, t), 3, t);
+    const s2 = R.decode(R.t('ALL 45 MODULES · ONE PRICE', 'BÜTÜN 45 MODUL · BİR QİYMƏT'), inv(FLIP0 + 0.1, FLIP0 + 0.5, t), 5, t);
     const st = t < FLIP0 ? s1 : s2;
     if (S.sub._v !== st) { S.sub.textContent = st; S.sub._v = st; }
     S.sub.style.color = t < FLIP0 ? '#B3A99F' : '#FF9B78';

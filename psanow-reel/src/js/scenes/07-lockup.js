@@ -49,13 +49,18 @@
     S.now = el(cam, 'abs f-disp nowrap', { left: S.nowLeft + 'px', top: WORD_TOP + 'px', fontSize: WS + 'px', fontWeight: '700', letterSpacing: '-0.025em', lineHeight: '1', color: C.orange, transformOrigin: `${S.wNow / 2}px 60px` });
     S.nowCh = R.chars(S.now, 'Now');
     S.dot = el(S.now, '', { display: 'inline-block' }, '.', 'span');
+    if (R.AZ) {
+      // Azerbaijani cut slams "İndi." and morphs it into the wordmark's "Now".
+      const wIndi = R.measure('İndi.', wcss);
+      S.indi = el(S.now, 'abs', { left: (S.wNow + S.wDot) / 2 - wIndi / 2 + 'px', top: '0' }, 'İndi.');
+    }
 
     // tagline
     S.tag = el(cam, 'abs f-mono nowrap', { top: '1016px', left: '0', width: '1080px', textAlign: 'center', fontSize: '26px', fontWeight: '500', letterSpacing: '0.2em', color: '#7A7069' });
 
     // CTA button
     S.btn = el(cam, 'abs', { left: '250px', top: '1112px', width: '580px', height: '118px', borderRadius: '59px', background: C.orange, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '18px', boxShadow: '0 22px 50px rgba(254,77,30,.38), inset 0 2px 0 rgba(255,255,255,.3)', overflow: 'hidden' });
-    S.btnTxt = el(S.btn, 'f-head nowrap', { fontSize: '52px', fontWeight: '800', letterSpacing: '-0.03em', color: '#fff' }, 'Book a demo');
+    S.btnTxt = el(S.btn, 'f-head nowrap', { fontSize: '52px', fontWeight: '800', letterSpacing: '-0.03em', color: '#fff' }, R.t('Book a demo', 'Demo sifariş et'));
     S.btnArrow = el(S.btn, '', { color: '#fff' }, R.svgIcon('arrow-right', 50, 3));
     S.shine = el(S.btn, 'abs', { left: '0', top: '-40px', width: '120px', height: '200px', background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.45), rgba(255,255,255,0))' });
     S.ripple = el(cam, 'abs', { left: '0', top: '0', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,.55)' });
@@ -66,7 +71,7 @@
     const sm = el(S.site, 'mask', null, null, 'span');
     S.siteIn = el(sm, 'mask-in', null, 'www.<span style="color:#FE4D1E">ineed</span>.now', 'span');
     S.handle = el(cam, 'abs f-mono nowrap', { top: '1372px', left: '0', width: '1080px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '14px', fontSize: '32px', fontWeight: '500', color: '#6B625B', letterSpacing: '0.02em' },
-      R.svgIcon('instagram', 38, 2, '#6B625B') + '<span>@ineednow_</span><span style="color:#B7ACA4">·</span><span>DM us</span>');
+      R.svgIcon('instagram', 38, 2, '#6B625B') + '<span>@ineednow_</span><span style="color:#B7ACA4">·</span><span>' + R.t('DM us', 'Bizə yazın') + '</span>');
 
     // confetti from the click
     S.bits = [];
@@ -87,7 +92,7 @@
     R.impact(27.3, 6, 14, 14);
   };
 
-  const TAG = 'PROFESSIONAL SERVICES AUTOMATION';
+  const TAG = R.t('PROFESSIONAL SERVICES AUTOMATION', 'PEŞƏKAR XİDMƏTLƏRİN AVTOMATLAŞDIRILMASI');
 
   S.update = (t) => {
     // --- "Now." slam -> hold -> becomes the wordmark's "Now"
@@ -99,6 +104,12 @@
     T(S.now, { x: lerp(cxBig - (S.wDot * 2.6) / 2, 0, sh), y: lerp(cyBig, 0, sh), s: lerp(slam, 1, sh), r: sd < 0.14 ? lerp(-8, 0, sd / 0.14) : 0 });
     O(S.now, clamp(sd / 0.03));
     O(S.dot, 1 - inv(SHRINK, SHRINK + 0.14, t));
+    if (S.indi) {
+      const x = inv(SHRINK + 0.04, SHRINK + 0.24, t);
+      O(S.indi, 1 - x);
+      S.nowCh.forEach((c) => O(c, x));
+      O(S.dot, 0);
+    }
     S.now.style.textShadow = t < FLOOD + 0.3 ? `0 0 ${lerp(80, 0, inv(24.0, FLOOD + 0.3, t))}px rgba(254,77,30,.6)` : 'none';
 
     // --- flood

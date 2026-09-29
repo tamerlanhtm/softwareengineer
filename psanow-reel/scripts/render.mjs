@@ -15,6 +15,7 @@ const SHUTTER = +(args.shutter || 0.5);
 const SCALE = +(args.scale || 1);
 const Q = +(args.quality || 94);
 const FMT = args.format || 'png';
+const LANG = args.lang || 'en';
 const SUB_HI = +(args.subhi || 24);
 const THRESH = +(args.thresh || 2.5);
 const DURATION = 30;
@@ -27,7 +28,7 @@ async function worker() {
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
   page.on('pageerror', (e) => process.send({ err: e.message }));
   const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-  await page.goto('file://' + path.join(root, 'src/index.html'));
+  await page.goto('file://' + path.join(root, 'src/index.html') + '?lang=' + LANG);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
   const cdp = await page.context().newCDPSession(page);
   const acc = new Float32Array(W * H * 3);

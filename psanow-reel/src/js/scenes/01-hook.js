@@ -6,27 +6,29 @@
   const OX = 540, OY = 760; // implosion point = logo centre
 
   const COLS = [
-    { h: 'Project', w: 270 },
-    { h: 'Client', w: 220 },
-    { h: 'Hours', w: 140 },
-    { h: 'Rate', w: 130 },
-    { h: 'Billed', w: 200 },
-    { h: 'Status', w: 170 },
-    { h: 'Owner', w: 130 },
+    { h: R.t('Project', 'Layihə'), w: 270 },
+    { h: R.t('Client', 'Müştəri'), w: 220 },
+    { h: R.t('Hours', 'Saat'), w: 140 },
+    { h: R.t('Rate', 'Tarif'), w: 130 },
+    { h: R.t('Billed', 'Hesablanıb'), w: 200 },
+    { h: R.t('Status', 'Status'), w: 170 },
+    { h: R.t('Owner', 'Məsul'), w: 130 },
   ];
-  const PROJ = ['Website relaunch', 'Brand refresh', 'ERP rollout', 'Mobile app v2', 'Audit FY25', 'SEO retainer',
-    'Data migration', 'CRM setup', 'Cloud move', 'UX research', 'Q3 campaign', 'Payroll fix'];
+  const PROJ = R.t(['Website relaunch', 'Brand refresh', 'ERP rollout', 'Mobile app v2', 'Audit FY25', 'SEO retainer',
+    'Data migration', 'CRM setup', 'Cloud move', 'UX research', 'Q3 campaign', 'Payroll fix'],
+  ['Saytın yenilənməsi', 'Brend yeniləmə', 'ERP tətbiqi', 'Mobil tətbiq v2', 'Audit 2025', 'SEO xidməti',
+    'Data miqrasiyası', 'CRM qurulması', 'Buluda keçid', 'UX tədqiqatı', 'Q3 kampaniyası', 'Əmək haqqı']);
   const CLI = ['Nova Studio', 'Orbit Labs', 'Atlas Group', 'Kite Media', 'Lumen & Co', 'Delta Foods', 'Pixel Forge', 'Vertex Co'];
-  const STAT = ['Draft', 'Sent?', 'Overdue', '??', 'Pending', 'Unpaid', 'Late'];
+  const STAT = R.t(['Draft', 'Sent?', 'Overdue', '??', 'Pending', 'Unpaid', 'Late'], ['Qaralama', 'Göndərilib?', 'Gecikib', '??', 'Gözləyir', 'Ödənməyib', 'Gec']);
   const ERR = ['#REF!', '#N/A', '#VALUE!', '#DIV/0!', '#NAME?', 'ERR'];
   const OWN = ['AM', 'LK', 'RS', 'TN', 'MB', 'GH'];
   const ROWS = 40;
 
   const STAMPS = [
-    { t: 1.5, text: 'Lost hours.', icon: 'clock', x: 395, y: 935, r: -4 },
-    { t: 2.0, text: 'Late invoices.', icon: 'file-warning', x: 650, y: 1075, r: 3.2 },
-    { t: 2.5, text: 'Overbooked team.', icon: 'users', x: 440, y: 1215, r: -2.4 },
-    { t: 3.0, text: 'Leaking revenue.', icon: 'trending-down', x: 610, y: 1355, r: 4.2 },
+    { t: 1.5, text: R.t('Lost hours.', 'İtən saatlar.'), icon: 'clock', x: 395, y: 935, r: -4 },
+    { t: 2.0, text: R.t('Late invoices.', 'Gecikən fakturalar.'), icon: 'file-warning', x: 650, y: 1075, r: 3.2 },
+    { t: 2.5, text: R.t('Overbooked team.', 'Yüklənmiş komanda.'), icon: 'users', x: 440, y: 1215, r: -2.4 },
+    { t: 3.0, text: R.t('Leaking revenue.', 'Sızan gəlir.'), icon: 'trending-down', x: 610, y: 1355, r: 4.2 },
   ];
 
   S.build = (root) => {
@@ -78,21 +80,25 @@
     });
 
     // ---- headline ----
+    const lines = R.t(['Still running', 'your firm on', 'spreadsheets?'], ['Şirkətinizi hələ də', 'Excel cədvəllərində', 'idarə edirsiniz?']);
+    const selLine = R.t(2, 1);
+    const hcss = { fontFamily: "'Inter Tight Variable'", fontWeight: '800', letterSpacing: '-0.038em' };
+    const fs = R.fit(lines, hcss, 118, 900);
     const hl = (S.hl = el(cam, 'abs f-head', {
-      left: '84px', top: '395px', fontSize: '118px', fontWeight: '800', lineHeight: '1.03',
+      left: '84px', top: 395 + (118 - fs) * 1.5 + 'px', fontSize: fs + 'px', fontWeight: '800', lineHeight: '1.03',
       letterSpacing: '-0.038em', color: C.text,
     }));
-    const lines = ['Still running', 'your firm on', 'spreadsheets?'];
     S.lines = lines.map((txt) => {
       const ln = el(hl, 'nowrap', { position: 'relative' });
       return { ln, words: R.maskWords(ln, txt) };
     });
     // marching-ants selection around "spreadsheets?"
-    const w3 = R.measure('spreadsheets?', { fontFamily: "'Inter Tight Variable'", fontSize: '118px', fontWeight: '800', letterSpacing: '-0.038em' });
+    const w3 = R.measure(lines[selLine], Object.assign({}, hcss, { fontSize: fs + 'px' }));
     S.selW = w3 + 34;
-    const sel = (S.sel = el(S.lines[2].ln, 'abs', { left: '-16px', top: '8px', width: S.selW + 'px', height: '132px', overflow: 'visible' }));
-    sel.innerHTML = `<svg width="${S.selW + 20}" height="150" style="position:absolute;left:0;top:0;overflow:visible">
-      <rect x="0" y="0" width="${S.selW}" height="132" fill="rgba(247,243,240,0.06)" stroke="#F7F3F0" stroke-width="4" stroke-dasharray="16 11" rx="6"/></svg>`;
+    S.selH = Math.round(fs * 1.12);
+    const sel = (S.sel = el(S.lines[selLine].ln, 'abs', { left: '-16px', top: Math.round(fs * 0.068) + 'px', width: S.selW + 'px', height: S.selH + 'px', overflow: 'visible' }));
+    sel.innerHTML = `<svg width="${S.selW + 20}" height="${S.selH + 18}" style="position:absolute;left:0;top:0;overflow:visible">
+      <rect x="0" y="0" width="${S.selW}" height="${S.selH}" fill="rgba(247,243,240,0.06)" stroke="#F7F3F0" stroke-width="4" stroke-dasharray="16 11" rx="6"/></svg>`;
     S.selRect = sel.querySelector('rect');
     S.handle = el(sel, 'abs', { width: '22px', height: '22px', background: C.text, borderRadius: '4px', border: '3px solid #0B0908' });
 
@@ -106,6 +112,7 @@
       el(n, '', { width: '78px', height: '78px', borderRadius: '20px', background: '#0E0C0B', color: '#F4F0EC', display: 'grid', placeItems: 'center' }, R.svgIcon(d.icon, 44, 2.3));
       el(n, 'f-head', { fontSize: '58px', fontWeight: '800', letterSpacing: '-0.035em', lineHeight: '1' }, d.text);
       const w = n.getBoundingClientRect().width, h = n.getBoundingClientRect().height;
+      d.x = clamp(d.x, 60 + w / 2, 1020 - w / 2);
       Object.assign(n.style, { left: d.x - w / 2 + 'px', top: d.y - h / 2 + 'px' });
       // dust burst
       const dust = [];
@@ -184,7 +191,7 @@
     S.selRect.setAttribute('width', sw.toFixed(1));
     S.selRect.setAttribute('stroke-dashoffset', (-t * 60).toFixed(1));
     O(S.sel, sp > 0 ? 1 : 0);
-    T(S.handle, { x: sw - 11, y: 121, s: E.outBack(inv(1.3, 1.5, t)) });
+    T(S.handle, { x: sw - 11, y: S.selH - 11, s: E.outBack(inv(1.3, 1.5, t)) });
 
     // ---- stamps ----
     for (const s of S.stamps) {

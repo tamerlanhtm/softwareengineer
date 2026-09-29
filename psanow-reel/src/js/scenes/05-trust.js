@@ -6,8 +6,8 @@
   const Y0 = 330, CH = 300, GAP = 40;
   const TIN = [19.0, 20.0, 21.0];
   const EXIT = 21.88;
-  const GREET = ['Hello', 'Salam', 'Merhaba', 'Привет', 'Salom'];
-  const LANGS = ['EN', 'AZ', 'TR', 'RU', 'UZ'];
+  const GREET = R.t(['Hello', 'Salam', 'Merhaba', 'Привет', 'Salom'], ['Salam', 'Hello', 'Merhaba', 'Привет', 'Salom']);
+  const LANGS = R.t(['EN', 'AZ', 'TR', 'RU', 'UZ'], ['AZ', 'EN', 'TR', 'RU', 'UZ']);
   const CUR = ['₼', '$', '€', '₺', '₽'];
 
   S.build = (root) => {
@@ -24,9 +24,9 @@
       return c;
     };
     S.cards = [
-      card(0, 'shield-check', '2FA for every user', 'FORCED ENROLMENT · EVERY LOGIN'),
-      card(1, 'globe', '5 languages', 'EN · AZ · TR · RU · UZ'),
-      card(2, 'coins', 'Multi-currency', 'RATE CARDS · EXCHANGE RATES'),
+      card(0, 'shield-check', R.t('2FA for every user', 'Hər istifadəçiyə 2FA'), R.t('FORCED ENROLMENT · EVERY LOGIN', 'MƏCBURİ QOŞULMA · HƏR GİRİŞDƏ')),
+      card(1, 'globe', R.t('5 languages', '5 dil'), R.t('EN · AZ · TR · RU · UZ', 'AZ · EN · TR · RU · UZ')),
+      card(2, 'coins', R.t('Multi-currency', 'Çoxvalyutalı'), R.t('RATE CARDS · EXCHANGE RATES', 'TARİF KARTLARI · MƏZƏNNƏLƏR')),
     ];
 
     // 2FA code boxes
@@ -36,7 +36,7 @@
       return { b, dg };
     });
     S.verified = el(S.cards[0], 'abs f-head nowrap', { left: '560px', top: '198px', height: '68px', padding: '0 26px 0 18px', borderRadius: '34px', background: 'rgba(254,77,30,.14)', border: '2px solid ' + C.orange, display: 'flex', alignItems: 'center', gap: '10px', fontSize: '28px', fontWeight: '800', color: '#FFD2C2' },
-      R.svgIcon('check', 30, 3, '#FF7A4D') + '<span>Verified</span>');
+      R.svgIcon('check', 30, 3, '#FF7A4D') + '<span>' + R.t('Verified', 'Təsdiqləndi') + '</span>');
 
     // languages
     S.chips = LANGS.map((l, i) => el(S.cards[1], 'abs f-mono', { left: 44 + i * 94 + 'px', top: '200px', width: '82px', height: '64px', borderRadius: '16px', background: '#241E1A', border: '2px solid #3A322D', display: 'grid', placeItems: 'center', fontSize: '24px', fontWeight: '700', color: '#CFC6BF' }, l));
@@ -45,7 +45,7 @@
 
     // currencies
     S.cur = CUR.map((c, i) => el(S.cards[2], 'abs f-disp', { left: 44 + i * 86 + 'px', top: '196px', width: '74px', height: '74px', borderRadius: '20px', background: '#241E1A', border: '2px solid #3A322D', display: 'grid', placeItems: 'center', fontSize: '34px', fontWeight: '700', color: '#CFC6BF' }, c));
-    S.curTxt = el(S.cards[2], 'abs f-head nowrap', { left: '494px', top: '198px', fontSize: '30px', fontWeight: '700', lineHeight: '36px', color: '#D5CCC5', letterSpacing: '-0.01em' }, 'Any client.<br><span style="color:#FF9B78">Any currency.</span>');
+    S.curTxt = el(S.cards[2], 'abs f-head nowrap', { left: '494px', top: '198px', fontSize: '30px', fontWeight: '700', lineHeight: '36px', color: '#D5CCC5', letterSpacing: '-0.01em' }, R.t('Any client.<br><span style="color:#FF9B78">Any currency.</span>', 'İstənilən müştəri.<br><span style="color:#FF9B78">İstənilən valyuta.</span>'));
 
     TIN.forEach((t0, i) => { if (i) R.impact(t0 + 0.05, 8, 12, 12); });
   };

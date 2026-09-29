@@ -1,6 +1,15 @@
 // Tiny deterministic motion engine: every visual is a pure function of time t (seconds).
 (function () {
   const R = (window.R = {});
+  // Language: index.html?lang=az renders the Azerbaijani cut.
+  R.LANG = new URLSearchParams(location.search).get('lang') || 'en';
+  R.AZ = R.LANG === 'az';
+  R.t = (en, az) => (R.AZ ? az : en);
+  // Largest font size (px) at which every line fits maxW.
+  R.fit = (lines, css, size, maxW) => {
+    const w = Math.max(...lines.map((l) => R.measure(l, Object.assign({}, css, { fontSize: size + 'px' }))));
+    return w > maxW ? Math.floor((size * maxW) / w) : size;
+  };
   R.W = 1080;
   R.H = 1920;
 

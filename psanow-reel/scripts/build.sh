@@ -2,13 +2,15 @@
 # Full pipeline: frames (motion blurred) -> soundtrack -> loudness -> MP4 deliverables.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-FRAMES=${FRAMES:-build/frames}
+REEL_LANG=${REEL_LANG:-en}
+SFX=$([ "$REEL_LANG" = en ] && echo "" || echo "-$REEL_LANG")
+FRAMES=${FRAMES:-build/frames$SFX}
 OUT=${OUT:-out}
 mkdir -p "$OUT" build
 
 if [ "${SKIP_FRAMES:-0}" != "1" ]; then
   rm -rf "$FRAMES"
-  node scripts/render.mjs --out "$FRAMES" --sub 6 --subhi 24 --thresh 2.5 --workers "${WORKERS:-4}"
+  node scripts/render.mjs --out "$FRAMES" --sub 6 --subhi 24 --thresh 2.5 --workers "${WORKERS:-4}" --lang "$REEL_LANG"
 fi
 
 python3 scripts/audio.py build/soundtrack_raw.wav
@@ -34,14 +36,14 @@ COLOR="-colorspace bt709 -color_primaries bt709 -color_trc bt709 -color_range tv
 X264="-c:v libx264 -preset slow -crf 16 -profile:v high -level 4.2 -g 60 -bf 2 -maxrate 24M -bufsize 36M"
 
 ffmpeg -y -hide_banner -loglevel error -framerate 30 -i "$FRAMES/f_%05d.png" -i build/soundtrack.wav \
-  -vf "$VF" $X264 $COLOR -c:a aac -b:a 256k -ar 48000 -shortest -movflags +faststart "$OUT/psanow-reel.mp4"
+  -vf "$VF" $X264 $COLOR -c:a aac -b:a 256k -ar 48000 -shortest -movflags +faststart "$OUT/psanow-reel${SFX}.mp4"
 ffmpeg -y -hide_banner -loglevel error -framerate 30 -i "$FRAMES/f_%05d.png" \
-  -vf "$VF" $X264 $COLOR -an -movflags +faststart "$OUT/psanow-reel-no-music.mp4"
+  -vf "$VF" $X264 $COLOR -an -movflags +faststart "$OUT/psanow-reel-no-music${SFX}.mp4"
 cp build/soundtrack.wav "$OUT/psanow-soundtrack.wav"
 
 # reel cover options (1080x1920)
-cp "$FRAMES/f_00159.png" "$OUT/cover-logo.png"
-cp "$FRAMES/f_00470.png" "$OUT/cover-modules.png"
-cp "$FRAMES/f_00560.png" "$OUT/cover-addons.png"
-cp "$FRAMES/f_00897.png" "$OUT/cover-lockup.png"
+cp "$FRAMES/f_00159.png" "$OUT/cover-logo${SFX}.png"
+cp "$FRAMES/f_00470.png" "$OUT/cover-modules${SFX}.png"
+cp "$FRAMES/f_00560.png" "$OUT/cover-addons${SFX}.png"
+cp "$FRAMES/f_00897.png" "$OUT/cover-lockup${SFX}.png"
 ls -la "$OUT"

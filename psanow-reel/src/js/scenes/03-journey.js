@@ -5,17 +5,25 @@
   const C = R.C;
   const S = { name: 'journey', vs: 4.3, ve: 12.2, z: 20 };
 
-  const VERBS = ['Sell', 'Plan', 'Staff', 'Track', 'Bill', 'Grow'];
+  const VERBS = R.t(['Sell', 'Plan', 'Staff', 'Track', 'Bill', 'Grow'], ['Sat', 'Planla', 'Payla', 'İzlə', 'Qazan', 'Böyü']);
+  const IT = R.t('\u00A0it.', '.');
   const TK = [6, 7, 8, 9, 10, 11]; // stage start times
   const END = 11.9; // exit start
-  const CAPS = [
+  const CAPS = R.t([
     'OPPORTUNITIES · ESTIMATES · CONTRACTS',
     'PROJECTS · TASKS · MILESTONES',
     'RESOURCE PLANNER · UTILIZATION',
     'TIMESHEETS · APPROVALS · EXPENSES',
     'INVOICES · PAYMENTS · RETAINERS',
     'PROFITABILITY · FORECAST · LEAKAGE',
-  ];
+  ], [
+    'SATIŞ İMKANLARI · SMETALAR · MÜQAVİLƏLƏR',
+    'LAYİHƏLƏR · TAPŞIRIQLAR · MƏRHƏLƏLƏR',
+    'RESURS PLANLAYICISI · YÜKLƏNMƏ',
+    'VAXT CƏDVƏLLƏRİ · TƏSDİQLƏR · XƏRCLƏR',
+    'FAKTURALAR · ÖDƏNİŞLƏR · AVANSLAR',
+    'GƏLİRLİLİK · PROQNOZ · SIZMA',
+  ]);
   const CARD = { x: 90, y: 560, w: 900, h: 800 };
 
   // token rectangles (card-local): x, y, w, h, radius
@@ -57,11 +65,11 @@
     // ---- verb headline ----
     const vcss = { fontFamily: "'Unbounded Variable'", fontSize: '122px', fontWeight: '700', letterSpacing: '-0.03em' };
     S.vw = VERBS.map((v) => R.measure(v, vcss));
-    S.itW = R.measure(' it.', vcss);
+    S.itW = R.measure(IT, vcss);
     S.verbBox = el(cam, 'abs f-disp nowrap', { top: '286px', left: '0', height: '170px', width: '1080px', ...{ fontSize: '122px', fontWeight: '700', letterSpacing: '-0.03em', lineHeight: '170px' } });
     S.verbMask = el(S.verbBox, 'abs', { top: '0', height: '170px', overflow: 'hidden', width: '700px' });
     S.verbs = VERBS.map((v) => el(S.verbMask, 'abs', { left: '0', top: '0', color: C.text }, v));
-    S.it = el(S.verbBox, 'abs', { top: '0', color: C.orange }, ' it.');
+    S.it = el(S.verbBox, 'abs', { top: '0', color: C.orange }, IT);
 
     // ---- progress squares ----
     S.steps = VERBS.map((v, i) => el(cam, 'abs', { left: 433 + i * 38 + 'px', top: '478px', width: '24px', height: '24px', borderRadius: '5px', background: '#3A322D' }));
@@ -87,8 +95,8 @@
     const mono = { fontFamily: "'JetBrains Mono Variable'" };
 
     // ===== Stage 0: SELL (pipeline) =====
-    S.pipeMeta = head(0, 'Pipeline', '');
-    ['LEAD · 3', 'PROPOSAL · 2', 'WON'].forEach((h, i) =>
+    S.pipeMeta = head(0, R.t('Pipeline', 'Satış hunisi'), '');
+    R.t(['LEAD · 3', 'PROPOSAL · 2', 'WON'], ['LİD · 3', 'TƏKLİF · 2', 'QAZANILIB']).forEach((h, i) =>
       add(0, { left: 56 + i * 272 + 'px', top: '164px', fontSize: '20px', letterSpacing: '0.12em', color: '#8F857D', ...mono }, h));
     const deal = (k, x, y, name, val, pct, hot) => add(k, {
       left: x + 'px', top: y + 'px', width: '244px', height: '112px', borderRadius: '22px', background: '#241E1A',
@@ -102,13 +110,13 @@
     deal(0, 600, 212, 'Nova Studio', '₼ 64,000', '100%', true);
 
     // ===== Stage 1: PLAN (gantt) =====
-    head(1, 'Website relaunch', '320 H BUDGET');
+    head(1, R.t('Website relaunch', 'Saytın yenilənməsi'), R.t('320 H BUDGET', 'BÜDCƏ 320 SAAT'));
     const wk = 74.25, gx = 250;
     for (let i = 0; i < 8; i++) {
-      add(1, { left: gx + i * wk + 'px', top: '164px', width: wk + 'px', textAlign: 'center', fontSize: '19px', color: '#8F857D', ...mono }, 'W' + (i + 1));
+      add(1, { left: gx + i * wk + 'px', top: '164px', width: wk + 'px', textAlign: 'center', fontSize: '19px', color: '#8F857D', ...mono }, R.t('W', 'H') + (i + 1));
       add(1, { left: gx + i * wk + 'px', top: '200px', width: '1px', height: '420px', background: 'rgba(255,255,255,.05)' });
     }
-    const tasks = ['Discovery', 'UX design', 'Development', 'QA', 'Launch'];
+    const tasks = R.t(['Discovery', 'UX design', 'Development', 'QA', 'Launch'], ['Araşdırma', 'UX dizayn', 'Kodlaşdırma', 'Test', 'Buraxılış']);
     tasks.forEach((n, i) => add(1, { left: '56px', top: 214 + i * 86 + 10 + 'px', fontSize: '25px', fontWeight: '600', color: '#D5CCC5' }, n, null, 'nowrap'));
     const bar = (x, w, row) => add(1, { left: x + 'px', top: 214 + row * 86 + 'px', width: w + 'px', height: '50px', borderRadius: '14px', background: '#3B312B', transformOrigin: 'left center' }, null,
       (n, t, p) => T(n, { sx: E.outExpo(inv(7.02 + row * 0.07, 7.4 + row * 0.07, t)) }));
@@ -124,13 +132,13 @@
     add(1, { left: gx + wk * 8 - 36 + 'px', top: 214 + 4 * 86 + 8 + 'px', width: '34px', height: '34px', border: '5px solid ' + C.orange, borderRadius: '6px', background: '#141110' }, null,
       (n, t) => T(n, { r: 45, s: E.back(2.5)(inv(7.4, 7.65, t)) }));
     S.today = add(1, { left: '0', top: '196px', width: '3px', height: '440px', background: C.orange, boxShadow: '0 0 14px rgba(254,77,30,.8)' },
-      '<div class="f-mono" style="position:absolute;left:-40px;top:-30px;width:84px;text-align:center;font-size:15px;font-weight:700;color:#fff;background:#FE4D1E;border-radius:6px;padding:3px 0">TODAY</div>',
+      '<div class="f-mono" style="position:absolute;left:-40px;top:-30px;width:84px;text-align:center;font-size:15px;font-weight:700;color:#fff;background:#FE4D1E;border-radius:6px;padding:3px 0">' + R.t('TODAY', 'BU GÜN') + '</div>',
       (n, t) => T(n, { x: lerp(gx, gx + wk * 3.45, E.inOutCubic(inv(7.15, 7.7, t))) }));
 
     // ===== Stage 2: STAFF (resource planner) =====
-    head(2, 'Resource planner', 'W23 – W28');
+    head(2, R.t('Resource planner', 'Resurs planlayıcısı'), R.t('W23 – W28', 'H23 – H28'));
     const cw = 92.3, cx0 = 290;
-    for (let i = 0; i < 6; i++) add(2, { left: cx0 + i * cw + 'px', top: '164px', width: '84px', textAlign: 'center', fontSize: '19px', color: '#8F857D', ...mono }, 'W' + (23 + i));
+    for (let i = 0; i < 6; i++) add(2, { left: cx0 + i * cw + 'px', top: '164px', width: '84px', textAlign: 'center', fontSize: '19px', color: '#8F857D', ...mono }, R.t('W', 'H') + (23 + i));
     const people = [['Aysel', 'AY', [80, 100, 100, 80, 60, 40]], ['Murad', 'MR', [100, 100, 130, 100, 80, 60]], ['Leyla', 'LY', [60, 80, 80, 100, 100, 80]], ['Tural', 'TR', [40, 60, 60, 60, 40, 20]]];
     S.alloc = {};
     people.forEach(([name, ini, al], r) => {
@@ -145,10 +153,10 @@
     });
 
     // ===== Stage 3: TRACK (timesheet) =====
-    S.tsMeta = head(3, 'Timesheet · W24', '');
-    ['MON', 'TUE', 'WED', 'THU', 'FRI'].forEach((d, i) => add(3, { left: 300 + i * 90 + 'px', top: '164px', width: '80px', textAlign: 'center', fontSize: '19px', color: '#8F857D', ...mono }, d));
-    add(3, { left: '756px', top: '164px', width: '88px', textAlign: 'center', fontSize: '19px', color: '#8F857D', ...mono }, 'TOTAL');
-    const tsRows = [['Website relaunch', 'BILLABLE', [6, 7, 8, 6.5, 5]], ['Nova Studio', 'BILLABLE', [2, 1, 0, 1.5, 0.5]], ['Internal', 'NON-BILLABLE', [0, 0, 0, 0, 1]]];
+    S.tsMeta = head(3, R.t('Timesheet · W24', 'Vaxt cədvəli · H24'), '');
+    R.t(['MON', 'TUE', 'WED', 'THU', 'FRI'], ['B.E.', 'Ç.A.', 'ÇƏR', 'C.A.', 'CÜM']).forEach((d, i) => add(3, { left: 300 + i * 90 + 'px', top: '164px', width: '80px', textAlign: 'center', fontSize: '19px', color: '#8F857D', ...mono }, d));
+    add(3, { left: '756px', top: '164px', width: '88px', textAlign: 'center', fontSize: '19px', color: '#8F857D', ...mono }, R.t('TOTAL', 'CƏM'));
+    const tsRows = [[R.t('Website relaunch', 'Saytın yenilənməsi'), R.t('BILLABLE', 'ÖDƏNİŞLİ'), [6, 7, 8, 6.5, 5]], ['Nova Studio', R.t('BILLABLE', 'ÖDƏNİŞLİ'), [2, 1, 0, 1.5, 0.5]], [R.t('Internal', 'Daxili'), R.t('NON-BILLABLE', 'ÖDƏNİŞSİZ'), [0, 0, 0, 0, 1]]];
     S.tsCells = [];
     S.tsTotals = [];
     tsRows.forEach(([n, tag, vals], r) => {
@@ -162,27 +170,27 @@
       S.tsTotals.push({ n: add(3, { left: '756px', top: y + 'px', width: '88px', height: '76px', display: 'grid', placeItems: 'center', fontSize: '30px', fontWeight: '800', color: C.text }, '', null, 'f-head'), vals });
     });
     add(3, { left: '56px', top: '608px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '19px', color: '#8F857D', letterSpacing: '0.06em', ...mono },
-      R.svgIcon('lock', 26, 2.2, '#8F857D') + '<span>LOCKED AFTER INVOICING</span>', (n, t) => O(n, inv(9.6, 9.75, t) * (1 - inv(TK[4] - 0.15, TK[4], t))));
+      R.svgIcon('lock', 26, 2.2, '#8F857D') + '<span>' + R.t('LOCKED AFTER INVOICING', 'FAKTURADAN SONRA KİLİDLƏNİR') + '</span>', (n, t) => O(n, inv(9.6, 9.75, t) * (1 - inv(TK[4] - 0.15, TK[4], t))));
 
     // ===== Stage 4: BILL (invoice) =====
-    head(4, 'Invoice #1042', 'ORBIT LABS');
-    const lines = [['Development', '64h × ₼85', '₼ 5,440'], ['UX design', '22h × ₼70', '₼ 1,540'], ['Expenses', 'rebillable', '₼ 320']];
+    head(4, R.t('Invoice #1042', 'Faktura #1042'), 'ORBIT LABS');
+    const lines = R.t([['Development', '64h × ₼85', '₼ 5,440'], ['UX design', '22h × ₼70', '₼ 1,540'], ['Expenses', 'rebillable', '₼ 320']], [['Kodlaşdırma', '64 s × ₼85', '₼ 5,440'], ['UX dizayn', '22 s × ₼70', '₼ 1,540'], ['Xərclər', 'müştəriyə', '₼ 320']]);
     lines.forEach(([a, b, c], i) => {
       const y = 172 + i * 66;
       add(4, { left: '56px', top: y + 'px', width: '788px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
         `<span style="font-size:26px;font-weight:600;color:#E3DBD5">${a}<span class="f-mono" style="font-size:20px;color:#8F857D;margin-left:18px">${b}</span></span><span class="f-head" style="font-size:30px;font-weight:700;color:#F2EDE9">${c}</span>`, null);
     });
     add(4, { left: '56px', top: '382px', width: '788px', height: '2px', background: 'rgba(255,255,255,.08)' });
-    [['Subtotal', '₼ 7,300'], ['VAT 18%', '₼ 1,314']].forEach(([a, b], i) =>
+    [[R.t('Subtotal', 'Aralıq cəm'), '₼ 7,300'], [R.t('VAT 18%', 'ƏDV 18%'), '₼ 1,314']].forEach(([a, b], i) =>
       add(4, { left: '56px', top: 400 + i * 54 + 'px', width: '788px', display: 'flex', justifyContent: 'space-between', fontSize: '25px', color: '#A59B93' }, `<span>${a}</span><span class="f-head" style="font-weight:700">${b}</span>`));
-    S.paid = add(4, { left: '470px', top: '640px', padding: '6px 26px', border: '7px solid ' + C.orange, borderRadius: '18px', fontSize: '58px', fontWeight: '800', color: C.orange, letterSpacing: '0.04em' }, 'PAID', null, 'f-disp');
+    S.paid = add(4, { left: '470px', top: '640px', padding: '6px 26px', border: '7px solid ' + C.orange, borderRadius: '18px', fontSize: R.t('58px', '44px'), fontWeight: '800', color: C.orange, letterSpacing: '0.04em' }, R.t('PAID', 'ÖDƏNİLDİ'), null, 'f-disp');
     add(4, { left: '56px', top: '668px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '19px', color: '#8F857D', letterSpacing: '0.04em', ...mono },
-      R.svgIcon('circle-check', 26, 2.2, '#FF9B78') + '<span>PAYMENT RECEIVED</span>', (n, t) => O(n, inv(10.62, 10.75, t) * (1 - inv(TK[5] - 0.15, TK[5], t))));
+      R.svgIcon('circle-check', 26, 2.2, '#FF9B78') + '<span>' + R.t('PAYMENT RECEIVED', 'ÖDƏNİŞ ALINDI') + '</span>', (n, t) => O(n, inv(10.62, 10.75, t) * (1 - inv(TK[5] - 0.15, TK[5], t))));
 
     // ===== Stage 5: GROW (profitability) =====
-    S.mgMeta = head(5, 'Profitability · Q3', '');
+    S.mgMeta = head(5, R.t('Profitability · Q3', 'Gəlirlilik · 3-cü rüb'), '');
     const hs = [190, 250, 230, 320, 380, 470];
-    const months = ['APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP'];
+    const months = R.t(['APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP'], ['APR', 'MAY', 'İYN', 'İYL', 'AVQ', 'SEN']);
     S.barTops = [];
     hs.forEach((h, i) => {
       const x = 70 + i * 134;
@@ -203,7 +211,7 @@
         n.querySelectorAll('circle').forEach((c, i) => c.setAttribute('r', (9 * E.back(2)(inv(11.28 + i * 0.07, 11.42 + i * 0.07, t))).toFixed(2)));
       });
     add(5, { left: '56px', top: '168px', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 22px 12px 16px', borderRadius: '40px', border: '2px solid ' + C.orange, background: 'rgba(254,77,30,.12)', fontSize: '22px', fontWeight: '600', color: '#FFD2C2' },
-      R.svgIcon('triangle-alert', 26, 2.2, '#FF7A4D') + '<span>Leakage caught · <b style="color:#fff">₼ 4,280</b> unbilled</span>',
+      R.svgIcon('triangle-alert', 26, 2.2, '#FF7A4D') + R.t('<span>Leakage caught · <b style="color:#fff">₼ 4,280</b> unbilled</span>', '<span>Sızma aşkarlandı · <b style="color:#fff">₼ 4,280</b> faktura edilməyib</span>'),
       (n, t) => { const p = inv(11.5, 11.72, t); T(n, { s: lerp(0.6, 1, E.back(2.2)(p)) }); O(n, p); });
 
     // ---- the token ----
@@ -212,12 +220,12 @@
     S.labs = {
       deal: lab(`<div class="f-head" style="position:absolute;left:20px;top:18px;font-size:27px;font-weight:800;letter-spacing:-0.02em;white-space:nowrap">Orbit Labs</div>
         <div class="f-mono" style="position:absolute;left:20px;top:62px;font-size:21px;white-space:nowrap">₼ 48,000</div>
-        <div class="f-mono won" style="position:absolute;right:16px;top:60px;font-size:19px;font-weight:700;background:#fff;color:#FE4D1E;border-radius:10px;padding:2px 10px;white-space:nowrap">WON ✓</div>`),
-      dev: lab(`<div class="f-head" style="position:absolute;left:18px;top:0;line-height:50px;font-size:23px;font-weight:700;white-space:nowrap">Development · 160h</div>`),
+        <div class="f-mono won" style="position:absolute;right:16px;top:60px;font-size:${R.t(19, 15)}px;font-weight:700;background:#fff;color:#FE4D1E;border-radius:10px;padding:2px 10px;white-space:nowrap">${R.t('WON ✓', 'QAZANILIB ✓')}</div>`),
+      dev: lab(`<div class="f-head" style="position:absolute;left:18px;top:0;line-height:50px;font-size:23px;font-weight:700;white-space:nowrap">${R.t('Development · 160h', 'Kodlaşdırma · 160 s')}</div>`),
       chip: lab(`<div class="f-mono" style="position:absolute;left:0;right:0;top:0;line-height:36px;text-align:center;font-size:19px;font-weight:700">+30%</div>`),
-      pill: lab(`<div class="f-head sub" style="position:absolute;left:0;right:0;top:0;line-height:76px;text-align:center;font-size:30px;font-weight:800;white-space:nowrap">Submit</div>
-                 <div class="f-head ok" style="position:absolute;left:0;right:0;top:0;line-height:76px;text-align:center;font-size:30px;font-weight:800;white-space:nowrap">✓ Approved</div>`),
-      total: lab(`<div class="f-head" style="position:absolute;left:28px;top:0;line-height:88px;font-size:34px;font-weight:800;white-space:nowrap">Total</div>
+      pill: lab(`<div class="f-head sub" style="position:absolute;left:0;right:0;top:0;line-height:76px;text-align:center;font-size:30px;font-weight:800;white-space:nowrap">${R.t('Submit', 'Göndər')}</div>
+                 <div class="f-head ok" style="position:absolute;left:0;right:0;top:0;line-height:76px;text-align:center;font-size:30px;font-weight:800;white-space:nowrap">${R.t('✓ Approved', '✓ Təsdiqləndi')}</div>`),
+      total: lab(`<div class="f-head" style="position:absolute;left:28px;top:0;line-height:88px;font-size:34px;font-weight:800;white-space:nowrap">${R.t('Total', 'Cəmi')}</div>
         <div class="f-disp" style="position:absolute;right:28px;top:0;line-height:88px;font-size:40px;font-weight:700;white-space:nowrap">₼ 8,614</div>`),
       bar: lab(`<div class="f-disp" style="position:absolute;left:0;right:0;top:18px;text-align:center;font-size:24px;font-weight:700">38%</div>`),
     };
@@ -338,7 +346,7 @@
     // SELL: atlas card slides up, weighted value counts
     T(S.atlas, { y: -128 * E.inOutCubic(inv(6.55, 6.85, t)) });
     const wv = lerp(293200, 312400, E.outCubic(inv(6.55, 6.9, t)));
-    S.pipeMeta.innerHTML = 'WEIGHTED <span style="color:#FF9B78">₼ ' + R.fmt(Math.round(wv / 100) * 100) + '</span>';
+    S.pipeMeta.innerHTML = R.t('WEIGHTED', 'ÇƏKİLİ DƏYƏR') + ' <span style="color:#FF9B78">₼ ' + R.fmt(Math.round(wv / 100) * 100) + '</span>';
     // STAFF: rebalancing
     const moved = t >= 8.74;
     const m = S.alloc['1:2'], tu = S.alloc['3:2'];
@@ -365,7 +373,7 @@
       const txt = s ? String(s) : '';
       if (tt.n._v !== txt) { tt.n.textContent = txt; tt.n._v = txt; }
     });
-    S.tsMeta.innerHTML = '<span style="color:#FF9B78">' + sum.toFixed(1) + ' H</span> LOGGED';
+    S.tsMeta.innerHTML = '<span style="color:#FF9B78">' + sum.toFixed(1) + R.t(' H</span> LOGGED', ' SAAT</span> QEYDƏ ALINIB');
     // BILL: PAID stamp
     const ps = t - 10.52;
     if (ps > 0) {
@@ -375,7 +383,7 @@
     } else O(S.paid, 0);
     // GROW: margin counter
     const mg = Math.round(38 * E.outCubic(inv(11.1, 11.6, t)));
-    S.mgMeta.innerHTML = 'MARGIN <span style="color:#FF9B78">' + mg + '%</span>';
+    S.mgMeta.innerHTML = R.t('MARGIN', 'MARJA') + ' <span style="color:#FF9B78">' + mg + '%</span>';
 
     // ---- token ----
     const rk = rectAt(t);

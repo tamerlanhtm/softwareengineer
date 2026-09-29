@@ -73,7 +73,7 @@
     S.chars = R.chars(wm, 'PSANow');
     S.chars.forEach((c, i) => { c.style.color = i >= 3 ? C.orange : C.text; });
     // tagline
-    S.tag = el(cam, 'abs f-mono nowrap', { top: '1296px', left: '0', width: '1080px', textAlign: 'center', fontSize: '29px', fontWeight: '500', letterSpacing: '0.22em', color: '#C4BAB2' });
+    S.tag = el(cam, 'abs f-mono nowrap', { top: '1296px', left: '0', width: '1080px', textAlign: 'center', fontSize: R.t('29px', '25px'), fontWeight: '500', letterSpacing: R.t('0.22em', '0.16em'), color: '#C4BAB2' });
     S.tagText = el(S.tag, '', null, null, 'span');
     S.cursor = el(S.tag, '', { display: 'inline-block', width: '17px', height: '33px', background: C.orange, verticalAlign: '-5px', marginLeft: '4px', borderRadius: '3px' }, null, 'span');
 
@@ -82,7 +82,7 @@
     R.impact(4.34, 10, 12, 14);
   };
 
-  const TAG = 'PROFESSIONAL SERVICES AUTOMATION';
+  const TAG = R.t('PROFESSIONAL SERVICES AUTOMATION', 'PEŞƏKAR XİDMƏTLƏRİN AVTOMATLAŞDIRILMASI');
 
   S.update = (t) => {
     const dt = t - 4.0;
