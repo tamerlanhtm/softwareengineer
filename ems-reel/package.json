@@ -1,0 +1,31 @@
+{
+  "name": "emsnow-instagram-reel",
+  "version": "1.0.0",
+  "description": "30-second 9:16 motion-graphics reel for EMSNow by ineed.now (HTML/GSAP composition + frame renderer)",
+  "scripts": {
+    "render": "node tools/render.mjs --workers 4",
+    "encode": "bash tools/encode.sh",
+    "build": "node tools/render.mjs --workers 4 && bash tools/encode.sh",
+    "snap": "node tools/snap.mjs",
+    "check": "node tools/check.mjs"
+  },
+  "keywords": [
+    "instagram",
+    "reel",
+    "motion-graphics",
+    "gsap"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/unbounded": "^5.3.0",
+    "gsap": "^3.15.0",
+    "lucide-static": "^1.48.0",
+    "playwright-core": "^1.63.0",
+    "sharp": "^0.35.5"
+  },
+  "private": true,
+  "type": "module"
+}
