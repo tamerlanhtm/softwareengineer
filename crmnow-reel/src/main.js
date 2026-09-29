@@ -14,6 +14,7 @@ import automation from './scenes/automation.js';
 import modules from './scenes/modules.js';
 import endcard from './scenes/endcard.js';
 import { gridWipe } from './scenes/wipe.js';
+import { LANG } from './i18n.js';
 import { b } from './engine.js';
 
 const wipe = gridWipe({ id: 'wipe', t0: b(43) - 0.34 });
@@ -49,6 +50,8 @@ function buildBackground(cam) {
 }
 
 async function main() {
+  document.documentElement.lang = LANG;          // locale-aware text-transform (i -> İ in Azerbaijani)
+  document.body.classList.add(`lang-${LANG}`);
   await loadFonts();
   const stage = document.getElementById('stage');
   const cam = document.getElementById('cam');
@@ -106,7 +109,7 @@ async function main() {
 
   window.__render = render;
   window.__cues = cues.sort((a, b) => a.t - b.t);
-  window.__meta = { duration: DURATION, scenes: SCENES.map((s) => ({ id: s.id, a: s.a, b: s.b })) };
+  window.__meta = { duration: DURATION, lang: LANG, scenes: SCENES.map((s) => ({ id: s.id, a: s.a, b: s.b })) };
 
   const params = new URLSearchParams(location.search);
   if (params.has('t')) render(parseFloat(params.get('t')));

@@ -1,19 +1,21 @@
 // S3 — LEADS (5.625 → 9.375s). Leads stream in from every channel, the hot one is qualified
 // and converted in one click into a contact + a deal. The deal card then flies into the pipeline.
-import { b, el, set, css, E, ez, kf, prog, lerp, spring, icon, money, text } from '../engine.js';
+import { b, el, set, css, E, ez, kf, prog, lerp, spring, icon, text } from '../engine.js';
 import { buildHead } from '../components.js';
+import { T, money, kmoney } from '../i18n.js';
 
 const STAR = '<svg width="27" height="27" viewBox="0 0 24 24"><path d="M12 2.2l2.95 6.1 6.7.95-4.85 4.7 1.15 6.65L12 17.45 6.05 20.6 7.2 13.95 2.35 9.25l6.7-.95z" fill="currentColor"/></svg>';
 const stars = (n) => `<div class="stars">${[0, 1, 2, 3, 4].map((i) => `<span class="${i < n ? 'on' : 'off'}">${STAR}</span>`).join('')}</div>`;
 
 // arrival order: the last one lands on top and is our hero
+const L10N = T.leads;
 const LEADS = [
-  { ini: 'MH', name: 'Murad Hasanov', co: 'Atlas Dental', src: 'Referral', ic: 'users', rate: 3, bg: '#3A3A44', chip: 'New' },
-  { ini: 'ED', name: 'Elif Demir', co: 'Pixel Studio', src: 'Instagram', ic: 'instagram', rate: 4, bg: '#6B3F2C', chip: 'New' },
-  { ini: 'AP', name: 'Anna Petrova', co: 'Skyline Realty', src: 'Event', ic: 'calendar-days', rate: 3, bg: '#34404F', chip: 'New' },
-  { ini: 'JC', name: 'James Carter', co: 'Greenleaf Café', src: 'Cold call', ic: 'phone', rate: 2, bg: '#4A3B52', chip: 'New' },
-  { ini: 'LA', name: 'Leyla Aliyeva', co: 'Nova Logistics', src: 'Website', ic: 'globe', rate: 5, bg: 'linear-gradient(135deg,#FF7A4F,#E8380C)', chip: 'Hot', hero: true },
-];
+  { co: 'Atlas Dental', ic: 'users', rate: 3, bg: '#3A3A44' },
+  { co: 'Pixel Studio', ic: 'instagram', rate: 4, bg: '#6B3F2C' },
+  { co: 'Skyline Realty', ic: 'calendar-days', rate: 3, bg: '#34404F' },
+  { co: 'Greenleaf Café', ic: 'phone', rate: 2, bg: '#4A3B52' },
+  { co: 'Nova Logistics', ic: 'globe', rate: 5, bg: 'linear-gradient(135deg,#FF7A4F,#E8380C)', hero: true },
+].map((L, i) => ({ ...L, ini: L10N.initials[i], name: L10N.names[i], src: L10N.sources[i], chip: L.hero ? L10N.hot : L10N.fresh }));
 const ARRIVE = [0.234, 0.469, 0.703, 0.9375, 1.172];
 const TOP = 648;
 const PITCH = 148;
@@ -32,16 +34,16 @@ export default {
     this.root = el('div', 'layer', null, layer);
     const root = this.root;
     this.head = buildHead(root, {
-      num: '01', label: 'Leads & Contacts',
+      num: '01', label: L10N.label,
       titles: [
-        { html: 'Capture<br>every <b>lead.</b>', tin: -0.12, tout: 1.94 },
-        { html: 'Convert in<br><b>one click.</b>', tin: 2.2, tout: 3.26 },
+        { html: L10N.t1, tin: -0.12, tout: 1.94 },
+        { html: L10N.t2, tin: 2.2, tout: 3.26 },
       ],
     });
 
     // list header
-    this.lh = el('div', 'ld-head', `<div class="l">${icon('inbox', 32, 2)}<span>Lead inbox</span></div>
-      <div class="chip chip-o">${icon('trending-up', 26, 2.4)}<span class="cnt">+123</span>&nbsp;this week</div>`, root);
+    this.lh = el('div', 'ld-head', `<div class="l">${icon('inbox', 32, 2)}<span>${L10N.inbox}</span></div>
+      <div class="chip chip-o">${icon('trending-up', 26, 2.4)}<span class="cnt">+123</span>&nbsp;${L10N.week}</div>`, root);
     this.cnt = this.lh.querySelector('.cnt');
 
     // cards
@@ -54,8 +56,8 @@ export default {
           <div class="right">${stars(L.rate)}<span class="chip ${L.hero ? 'chip-solid' : 'chip-g'} sm">${L.hero ? icon('flame', 22, 2.4) : ''}${L.chip}</span></div>
         </div>
         ${L.hero ? `<div class="detail">
-          <div class="tags"><span class="chip chip-g">${icon('target', 24, 2.2)}Budget $25K</span><span class="chip chip-g">${icon('user-round', 24, 2.2)}Decision maker</span></div>
-          <div class="btns"><div class="btn ghost q">${icon('check', 28, 2.8)}Qualified</div><div class="btn solid cv">Convert${icon('arrow-right', 30, 2.6)}</div></div>
+          <div class="tags"><span class="chip chip-g">${icon('target', 24, 2.2)}${L10N.budget} ${kmoney(25, 0)}</span><span class="chip chip-g">${icon('user-round', 24, 2.2)}${L10N.decision}</span></div>
+          <div class="btns"><div class="btn ghost q">${icon('check', 28, 2.8)}${L10N.qualified}</div><div class="btn solid cv">${L10N.convert}${icon('arrow-right', 30, 2.6)}</div></div>
         </div>` : ''}`, root);
       return { n, L, i, t: ARRIVE[i] };
     });
@@ -70,19 +72,19 @@ export default {
 
     // converted cards
     this.contact = el('div', 'card cv-card', `
-      <div class="cv-top"><span class="cv-lbl">${icon('user-round', 26, 2.3)}Contact</span><span class="ok">${icon('check', 24, 3)}</span></div>
-      <div class="cv-person"><div class="av" style="width:78px;height:78px;background:${LEADS[4].bg}">LA</div>
-        <div><div class="nm">Leyla Aliyeva</div><div class="sub">Head of Operations</div></div></div>
-      <div class="cv-rows"><div>${icon('building-2', 26, 2)}Nova Logistics</div><div>${icon('globe', 26, 2)}Source: Website</div></div>`, root);
+      <div class="cv-top"><span class="cv-lbl">${icon('user-round', 26, 2.3)}${L10N.contact}</span><span class="ok">${icon('check', 24, 3)}</span></div>
+      <div class="cv-person"><div class="av" style="width:78px;height:78px;background:${LEADS[4].bg}">${LEADS[4].ini}</div>
+        <div><div class="nm">${LEADS[4].name}</div><div class="sub">${L10N.role}</div></div></div>
+      <div class="cv-rows"><div>${icon('building-2', 26, 2)}Nova Logistics</div><div>${icon('globe', 26, 2)}${L10N.source}</div></div>`, root);
     this.deal = el('div', 'card cv-card deal', `
-      <div class="cv-top"><span class="cv-lbl">${icon('handshake', 26, 2.3)}Deal</span><span class="ok">${icon('check', 24, 3)}</span></div>
+      <div class="cv-top"><span class="cv-lbl">${icon('handshake', 26, 2.3)}${L10N.deal}</span><span class="ok">${icon('check', 24, 3)}</span></div>
       <div class="cv-co">Nova Logistics</div>
-      <div class="cv-amt">$24,800</div>
-      <div class="cv-foot"><span class="chip chip-o sm">New · 10%</span><span class="own"><span class="av" style="width:44px;height:44px;font-size:18px;background:#3A3A44">YO</span>You</span></div>`, root);
+      <div class="cv-amt">${money(24800)}</div>
+      <div class="cv-foot"><span class="chip chip-o sm">${L10N.stage}</span><span class="own"><span class="av" style="width:44px;height:44px;font-size:18px;background:#3A3A44">${L10N.youIni}</span>${L10N.you}</span></div>`, root);
     this.amt = this.deal.querySelector('.cv-amt');
     this.badges = [
-      el('div', 'chip chip-o badge', `${icon('circle-check', 26, 2.4)}Contact created`, root),
-      el('div', 'chip chip-o badge', `${icon('circle-check', 26, 2.4)}Deal created`, root),
+      el('div', 'chip chip-o badge', `${icon('circle-check', 26, 2.4)}${L10N.created[0]}`, root),
+      el('div', 'chip chip-o badge', `${icon('circle-check', 26, 2.4)}${L10N.created[1]}`, root),
     ];
 
     // where the Convert button ends up (hero expanded at the top slot) -> cursor + ripple target
@@ -91,12 +93,12 @@ export default {
     const r = hero.cv.getBoundingClientRect();
     this.cvPos = { x: r.left + r.width * 0.6, y: r.top + r.height * 0.58 };
 
-    const T = (x) => this.a + x;
-    ARRIVE.forEach((x, i) => fx.cues.push({ t: T(x), type: 'card', i }));
-    fx.cues.push({ t: T(1.45), type: 'expand' }, { t: T(1.56), type: 'star', i: 0 }, { t: T(CLICK), type: 'click' },
-      { t: T(2.22), type: 'split' }, { t: T(2.5), type: 'confirm' }, { t: T(3.3), type: 'whoosh', v: 0.8 });
-    fx.clicks.push({ t: T(CLICK), x: this.cvPos.x, y: this.cvPos.y, color: 'rgba(255,255,255,.95)' });
-    fx.bursts.push({ t: T(2.2), x: 540, y: 790, n: 26, seed: 7, colors: ['#FE4D1E', '#FF8A5C', '#FFFFFF'], speed: 1500, gravity: 900, size: 20, life: 0.9 });
+    const at = (x) => this.a + x;
+    ARRIVE.forEach((x, i) => fx.cues.push({ t: at(x), type: 'card', i }));
+    fx.cues.push({ t: at(1.45), type: 'expand' }, { t: at(1.56), type: 'star', i: 0 }, { t: at(CLICK), type: 'click' },
+      { t: at(2.22), type: 'split' }, { t: at(2.5), type: 'confirm' }, { t: at(3.3), type: 'whoosh', v: 0.8 });
+    fx.clicks.push({ t: at(CLICK), x: this.cvPos.x, y: this.cvPos.y, color: 'rgba(255,255,255,.95)' });
+    fx.bursts.push({ t: at(2.2), x: 540, y: 790, n: 26, seed: 7, colors: ['#FE4D1E', '#FF8A5C', '#FFFFFF'], speed: 1500, gravity: 900, size: 20, life: 0.9 });
   },
 
   update(tau, t, ctx) {

@@ -4,9 +4,10 @@ Motion-graphics promo for **CRMNow**, the sales CRM by **ineed.now**. It's built
 
 | File | What it is |
 | --- | --- |
-| `out/crmnow-reel.mp4` | The Reel: 1080×1920, 30 fps, H.264 High + AAC 256 kbps, 30.0 s |
-| `out/cover.png` | Cover frame for the Reel (the end card, which reads well in the 3:4 profile-grid crop) |
-| `out/soundtrack.wav` | Original soundtrack, 48 kHz stereo, synthesized from scratch (no samples, no licensing) |
+| `out/crmnow-reel.mp4` | The Reel in **English**: 1080×1920, 30 fps, H.264 High + AAC 256 kbps, 30.0 s |
+| `out/crmnow-reel-az.mp4` | The same Reel in **Azerbaijani** |
+| `out/cover.png`, `out/cover-az.png` | Cover frames for the Reels (the end card, which reads well in the 3:4 profile-grid crop) |
+| `out/soundtrack.wav` | Original soundtrack, 48 kHz stereo, synthesized from scratch (no samples, no licensing). Both versions use the same music |
 
 ## Storyboard
 
@@ -26,6 +27,16 @@ Music: 128 BPM. 16 bars = exactly 30 s. Every cut, click, stamp and whoosh lands
 
 Key copy stays inside Instagram's safe zone: y ≈ 260–1480 px, clear of the right-hand action buttons and the caption area.
 
+## Languages
+
+All on-screen text lives in `src/i18n.js`, with one dictionary per language (`en`, `az`), plus number
+formatting (`$24,800` in English, `24 800 ₼` in Azerbaijani). Pick a language with `?lang=az` in the preview
+URL, `--lang=az` for `render.mjs` / `shots.mjs`, or `LANGS="en az"` for `build.sh`. The document language is set
+too, so uppercase labels use the Azerbaijani dotted **İ**.
+
+In English the hook rearranges the letters of "I need" + "Now" into **ineed.now**. That pun only works in English,
+so in Azerbaijani the words collapse into the orange dot and the wordmark bursts out of it.
+
 ## How it's made
 
 - `src/` is an HTML/CSS/JS composition on a 1080×1920 stage. A small deterministic engine (`src/engine.js`) renders every frame as a pure function of time, and each scene lives in its own file (`src/scenes/*.js`). Fonts are Inter / Inter Tight / JetBrains Mono, and icons are Lucide (all open-source). The logo is rebuilt as vectors from the supplied artwork (brand orange `#FE4D1E`).
@@ -38,8 +49,8 @@ Key copy stays inside Instagram's safe zone: y ≈ 260–1480 px, clear of the r
 npm install
 node scripts/serve.mjs 8080          # open http://127.0.0.1:8080/src/index.html  (▶ play / scrub, no audio)
 node scripts/shots.mjs out/stills 7.5 12.2 27.5   # PNG stills at given times
-bash scripts/build.sh                # full render -> out/crmnow-reel.mp4 + cover (needs ffmpeg with libx264,
-                                     # python3 + numpy + scipy; ~6 min on 4 cores)
+bash scripts/build.sh                # full render of both languages -> out/crmnow-reel(-az).mp4 + covers
+                                     # (needs ffmpeg with libx264, python3 + numpy + scipy; ~7 min per language on 4 cores)
 ```
 
-All on-screen copy is plain text in the scene files. For example, the offer, the URL, the handle and the headline are in `src/scenes/endcard.js`, and the hook phrases are in `src/scenes/hook.js`.
+All on-screen copy, including the offer, the URL, the handle, the headline and the hook phrases, is plain text in `src/i18n.js`.

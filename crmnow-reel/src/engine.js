@@ -196,14 +196,6 @@ export function splitText(node, { chars = false, mask = true } = {}) {
   return { words, chars: allChars };
 }
 
-// ---------------------------------------------------------------- formatting
-export function money(v, dec = 0) {
-  return '$' + v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
-}
-export function int(v) {
-  return Math.round(v).toLocaleString('en-US');
-}
-
 // ---------------------------------------------------------------- canvas text metrics
 const _cv = document.createElement('canvas').getContext('2d');
 /** Advance positions of each char of `str` (includes kerning), plus total width. */

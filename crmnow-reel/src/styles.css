@@ -336,3 +336,11 @@ body { overflow: hidden; }
 .ec-chip { display: inline-flex; align-items: center; gap: 12px; height: 66px; padding: 0 26px 0 20px; border-radius: 33px; white-space: nowrap;
   border: 2px solid rgba(255, 255, 255, .6); background: rgba(255, 255, 255, .1); color: #fff; font: 650 31px/1 var(--f-ui); letter-spacing: -.01em; }
 .dash-plus { position: absolute; left: 0; top: 0; height: 44px; font-size: 22px; box-shadow: 0 10px 24px -8px rgba(254, 77, 30, .8); }
+
+/* ------------------------------------------------------------------ per-language fitting (longer words) */
+.lang-az .acc-stamp { left: 236px; font-size: 54px; }
+.lang-az .paid-stamp { left: 322px; font-size: 82px; }
+.lang-az .k-v { font-size: 45px; }
+.lang-az .fn-l { font-size: 18px; }
+.lang-az .md-l { font-size: 23px; }
+.lang-az .rv-tip { width: 290px; }

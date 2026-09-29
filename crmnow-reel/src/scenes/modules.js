@@ -3,17 +3,15 @@
 import { b, el, set, css, E, ez, prog, lerp, icon, textWidth } from '../engine.js';
 import { buildHead, LOGO } from '../components.js';
 import { END_LOGO } from './endcard.js';
+import { T } from '../i18n.js';
 
+const L10N = T.modules;
 const MODS = [
-  ['Leads', 'user-plus'], ['Contacts', 'user-round'], ['Companies', 'building-2'],
-  ['Pipelines', 'kanban'], ['Activities', 'list-checks'], ['Products', 'package'],
-  ['Quotes', 'file-text'], ['Invoices', 'receipt'], ['Payments', 'credit-card'],
-  ['Tickets', 'life-buoy'], ['Campaigns', 'megaphone'], ['Messages', 'message-square'],
-  ['Calendar', 'calendar-days'], ['Dashboard', 'layout-dashboard'], ['Reports', 'chart-column'],
-  ['Users & Roles', 'shield-check'], ['Documents', 'folder-open'], ['Integrations', 'plug'],
-  ['Automation', 'workflow'], ['Custom Fields', 'sliders-horizontal'], ['Settings', 'settings'],
-];
-const HELLO = [['Hello', 'EN'], ['Salam', 'AZ'], ['Merhaba', 'TR'], ['Привет', 'RU']];
+  'user-plus', 'user-round', 'building-2', 'kanban', 'list-checks', 'package', 'file-text', 'receipt', 'credit-card',
+  'life-buoy', 'megaphone', 'message-square', 'calendar-days', 'layout-dashboard', 'chart-column', 'shield-check',
+  'folder-open', 'plug', 'workflow', 'sliders-horizontal', 'settings',
+].map((ic, i) => [L10N.tiles[i], ic]);
+const HELLO = L10N.hello;
 const GX = 90;
 const GY = 640;
 const TW = 288;
@@ -33,11 +31,11 @@ export default {
   build(layer, ctx, fx) {
     const root = el('div', 'layer', null, layer);
     this.root = root;
-    this.titles = [{ html: '<b>21</b> modules.<br><b>4</b> languages.<br><b>1</b> workspace.', tin: -0.02, tout: 1.5, stagger: 0.117 }];
-    this.head = buildHead(root, { num: '06', label: 'All-in-one CRM', titles: this.titles, size: 100 });
+    this.titles = [{ html: L10N.title, tin: -0.02, tout: 1.5, stagger: 0.117 }];
+    this.head = buildHead(root, { num: '06', label: L10N.label, titles: this.titles, size: 100 });
 
     // greeting pill next to "4 languages."
-    const w2 = textWidth('4 languages.', '800 100px "Inter Tight Variable"', -4.5);
+    const w2 = textWidth(L10N.line2, '800 100px "Inter Tight Variable"', -4.5);
     this.hello = el('div', 'md-hello', `${icon('languages', 30, 2.2)}<div class="md-hw">${HELLO.map(([w, c]) => `<span><b>${w}</b><i>${c}</i></span>`).join('')}</div>`, root);
     this.hello.style.left = `${Math.min(760, 90 + w2 + 34)}px`;
     this.hw = [...this.hello.querySelectorAll('.md-hw span')];
@@ -57,9 +55,9 @@ export default {
       return { n, i, r, c, hollow, tx, ty, inner: n.querySelector('.md-in'), ring: n.querySelector('.md-ring') };
     });
 
-    const T = (x) => this.a + x;
-    fx.cues.push({ t: T(0.02), type: 'cascade' }, { t: T(0.25), type: 'tick', i: 9 }, { t: T(0.5), type: 'tick', i: 10 },
-      { t: T(0.85), type: 'shimmer' }, { t: T(COLLAPSE), type: 'collapse' }, { t: this.b, type: 'logo' });
+    const at = (x) => this.a + x;
+    fx.cues.push({ t: at(0.02), type: 'cascade' }, { t: at(0.25), type: 'tick', i: 9 }, { t: at(0.5), type: 'tick', i: 10 },
+      { t: at(0.85), type: 'shimmer' }, { t: at(COLLAPSE), type: 'collapse' }, { t: this.b, type: 'logo' });
   },
 
   update(tau) {

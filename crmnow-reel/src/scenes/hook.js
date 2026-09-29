@@ -1,9 +1,12 @@
 // S1 — HOOK (0 → 3.75s). "I need … everything. Now." collapses into the ineed.now wordmark,
 // the scattered chaos of spreadsheets & missed calls gets sucked into its dot, and the dot floods the screen.
-import { b, el, set, css, E, ez, kf, lerp, wobble, charLayout, textWidth, icon, noise1, ORANGE } from '../engine.js';
+// English rearranges the letters of "I need" + "Now" into the wordmark; other languages collapse their
+// words into the dot and the wordmark bursts out of it.
+import { b, el, set, css, E, ez, kf, prog, lerp, spring, wobble, charLayout, textWidth, icon, noise1, ORANGE } from '../engine.js';
+import { T } from '../i18n.js';
 
-const REEL = ['more leads.', 'closed deals.', 'paid invoices.', 'real numbers.', 'less busywork.',
-  'happy clients.', 'more time.', 'zero chaos.', 'growth.', 'control.', 'everything.'];
+const REEL = T.hook.reel;
+const MORPH = T.hook.morph;
 
 // Which reel word sits in the slot over time (fractional = rolling between words).
 const REEL_POS = [
@@ -17,17 +20,17 @@ const REEL_POS = [
 ];
 
 const CHAOS = [
-  { ic: 'file-spreadsheet', t: 'leads_FINAL_v7.xlsx', x: 70, y: 318, r: -7, d: 1.0 },
-  { ic: 'phone-missed', t: '5 missed calls', x: 628, y: 262, r: 6, d: 0.86, warn: true },
-  { ic: 'chart-column', t: 'Q3 numbers???', x: 96, y: 500, r: 4, d: 0.8 },
-  { ic: 'triangle-alert', t: 'Invoice #0931 overdue', x: 520, y: 470, r: -4, d: 0.95, warn: true },
-  { ic: 'circle-help', t: 'Who owns this deal?', x: 60, y: 1235, r: 5, d: 1.0 },
-  { ic: 'mail', t: '47 unread', x: 664, y: 1180, r: -6, d: 0.82 },
-  { sticky: true, t: 'call Murad back!!', x: 520, y: 1400, r: 7, d: 1.05 },
-  { ic: 'file-text', t: 'quote sent… or not?', x: 80, y: 1440, r: -5, d: 0.9 },
-  { ic: 'calendar-clock', t: 'follow up… when?', x: 600, y: 1640, r: -3, d: 0.72 },
-  { ic: 'file-spreadsheet', t: 'copy of pipeline (3).xlsx', x: 40, y: 1690, r: 3, d: 0.7 },
-];
+  { ic: 'file-spreadsheet', x: 70, y: 318, r: -7, d: 1.0 },
+  { ic: 'phone-missed', x: 628, y: 262, r: 6, d: 0.86, warn: true },
+  { ic: 'chart-column', x: 96, y: 500, r: 4, d: 0.8 },
+  { ic: 'triangle-alert', x: 520, y: 470, r: -4, d: 0.95, warn: true },
+  { ic: 'circle-help', x: 60, y: 1235, r: 5, d: 1.0 },
+  { ic: 'mail', x: 664, y: 1180, r: -6, d: 0.82 },
+  { sticky: true, x: 520, y: 1400, r: 7, d: 1.05 },
+  { ic: 'file-text', x: 80, y: 1440, r: -5, d: 0.9 },
+  { ic: 'calendar-clock', x: 600, y: 1640, r: -3, d: 0.72 },
+  { ic: 'file-spreadsheet', x: 40, y: 1690, r: 3, d: 0.7 },
+].map((c, i) => ({ ...c, t: T.hook.chaos[i] }));
 
 export default {
   id: 'hook',
@@ -41,7 +44,7 @@ export default {
     const X0 = 90;
     // Fit the widest phrase into 900px.
     const probe = (s) => textWidth(s, '800 100px "Inter Tight Variable"', -4.5);
-    const widest = Math.max(...REEL.map(probe), probe('I need'));
+    const widest = Math.max(...REEL.map(probe), probe(T.hook.lineA));
     const F = Math.min(150, Math.floor((900 / widest) * 100));
     const TR = -0.045 * F;
     const font = `800 ${F}px "Inter Tight Variable"`;
@@ -71,8 +74,8 @@ export default {
 
     // ---- line A: "I need" (free glyphs so they can morph)
     const lineA = el('div', 'layer', null, layer);
-    const la = charLayout('I need', font, TR, 0.1 * F);
-    this.A = [...'I need'].map((ch, i) => ({ ch, n: ch === ' ' ? null : glyph(lineA, ch), x: X0 + la.xs[i], y: yA - baseOff }));
+    const la = charLayout(T.hook.lineA, font, TR, 0.1 * F);
+    this.A = [...T.hook.lineA].map((ch, i) => ({ ch, n: ch === ' ' ? null : glyph(lineA, ch), x: X0 + la.xs[i], y: yA - baseOff }));
     this.lineA = lineA;
     this.maskA = { top: yA - 0.98 * F, bottom: yA + 0.3 * F };
 
@@ -88,9 +91,10 @@ export default {
     this.LH = LH;
 
     // ---- "Now." (free glyphs, slams in, then morphs)
-    const lnow = charLayout('Now.', font, TR);
+    const lnow = charLayout(T.hook.now, font, TR);
     const nowLayer = el('div', 'layer', null, layer);
-    this.NOW = [...'Now.'].map((ch, i) => ({ ch, n: glyph(nowLayer, ch, ORANGE), x: X0 + lnow.xs[i], y: yB - baseOff }));
+    this.NOW = [...T.hook.now].map((ch, i) => ({ ch, n: glyph(nowLayer, ch, ORANGE), x: X0 + lnow.xs[i], y: yB - baseOff }));
+    this.period = this.NOW[this.NOW.length - 1];
 
     // ---- wordmark target layout: "ineed" + ■ + "now"
     const Wf = 176;
@@ -105,7 +109,7 @@ export default {
     const wx = 540 - total / 2;
     const yW = 1010;
     const baseOffW = baseOff * k;
-    const tgt = (x) => ({ x, y: yW - baseOffW, s: k });
+    const tgt = (x) => ({ x, y: MORPH ? yW - baseOffW : yW - baseOff, s: k });
     this.targetsA = { I: tgt(wx + l1.xs[0]), n: tgt(wx + l1.xs[1]), e1: tgt(wx + l1.xs[2]), e2: tgt(wx + l1.xs[3]), d: tgt(wx + l1.xs[4]) };
     const nx = wx + l1.width + gap + dot + gap;
     this.targetsN = [tgt(nx + l2.xs[0]), tgt(nx + l2.xs[1]), tgt(nx + l2.xs[2])];
@@ -113,9 +117,17 @@ export default {
     ctx.shared.dot = { x: this.dotT.x + dot / 2, y: this.dotT.y + dot / 2 };
     this.wordmarkCenter = { x: 540, y: yW - 0.36 * Wf };
 
-    // lowercase stand-ins that cross-fade in during the morph
-    this.iG = glyph(nowLayer, 'i', 'var(--tx)');
-    this.nG = glyph(nowLayer, 'n', ORANGE);
+    if (MORPH) {
+      // lowercase stand-ins that cross-fade in during the morph
+      this.iG = glyph(nowLayer, 'i', 'var(--tx)');
+      this.nG = glyph(nowLayer, 'n', ORANGE);
+    } else {
+      // the wordmark letters that burst out of the dot (nearest to the dot first)
+      const dcx = this.dotT.x + dot / 2;
+      this.WM = [...[...'ineed'].map((ch, i) => ({ ch, tg: tgt(wx + l1.xs[i]) })), ...[...'now'].map((ch, i) => ({ ch, tg: this.targetsN[i] }))]
+        .map((g) => ({ ...g, n: glyph(nowLayer, g.ch, 'var(--tx)'), dist: Math.abs(g.tg.x - dcx) }));
+      [...this.WM].sort((p, q) => p.dist - q.dist).forEach((g, i) => { g.order = i; });
+    }
 
     // the brand dot (also the flood)
     this.dot = el('div', 'hk-dot', null, layer);
@@ -168,6 +180,14 @@ export default {
     this.A.forEach((g, i) => {
       if (!g.n) return;
       const a = ez(t, -0.4 + i * 0.04, 0.2 + i * 0.04, E.outExpo);
+      if (!MORPH) {
+        // collapse into the dot
+        const c = ez(t, mStart + order * 0.008, mStart + 0.18 + order * 0.008, E.inQuart);
+        const fade = ez(t, mStart + 0.1 + order * 0.008, mStart + 0.19 + order * 0.008);
+        order++;
+        set(g.n, { x: lerp(g.x, dc.x, c), y: lerp(g.y + (1 - a) * F * 1.1, dc.y - this.baseOff, c), s: lerp(1, 0.12, c), o: 1 - fade });
+        return;
+      }
       const tg = this.targetsA[idx[i]];
       const m = ez(t, mStart + order * 0.018, mStart + 0.33 + order * 0.018, E.inOutQuart);
       order++;
@@ -198,9 +218,15 @@ export default {
         set(g.n, { x: g.x, y: g.y, s: 2.2 - 1.2 * a, o: op * (1 - ez(t, mStart, mStart + 0.1)), origin: '50% 70%' });
         return;
       }
+      const s0 = 2.2 - 1.2 * a;
+      if (!MORPH) {
+        const c = ez(t, mStart + 0.02 + i * 0.015, mStart + 0.2 + i * 0.015, E.inQuart);
+        const fade = ez(t, mStart + 0.12 + i * 0.015, mStart + 0.21 + i * 0.015);
+        set(g.n, { x: lerp(g.x, dc.x, c), y: lerp(g.y, dc.y - this.baseOff, c), s: lerp(s0, 0.12, c), o: op * (1 - fade) });
+        return;
+      }
       const tg = this.targetsN[i];
       const m = ez(t, mStart + (i + 2) * 0.02, mStart + 0.33 + (i + 2) * 0.02, E.inOutQuart);
-      const s0 = 2.2 - 1.2 * a;
       const x = lerp(g.x, tg.x, m);
       const y = lerp(g.y, tg.y, m) + Math.sin(m * Math.PI) * 30;
       const s = lerp(s0, tg.s, m);
@@ -214,8 +240,18 @@ export default {
       }
     });
 
+    // ---- wordmark bursts out of the dot (non-morph languages)
+    if (!MORPH) {
+      for (const g of this.WM) {
+        const t0 = mStart + 0.07 + g.order * 0.018;
+        const p = ez(t, t0, t0 + 0.3, E.outQuart);
+        const pop = t > t0 ? Math.min(1.08, spring(t - t0, 3.2, 0.45)) : 0;
+        set(g.n, { x: lerp(dc.x, g.tg.x, p), y: lerp(dc.y - this.baseOff, g.tg.y, p), s: (0.15 + 0.85 * pop) * g.tg.s, o: prog(t, t0, t0 + 0.06) });
+      }
+    }
+
     // ---- brand dot: period -> dot -> anticipation -> flood
-    const per = this.NOW[3];
+    const per = this.period;
     const pStart = { x: per.x + 0.02 * F, y: per.y + 0.66 * F, size: this.periodSize };
     const m = ez(t, mStart + 0.02, mStart + 0.36, E.inOutQuart);
     const ds = this.dotSize;

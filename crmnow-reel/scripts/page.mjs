@@ -1,14 +1,14 @@
 // Opens the composition in headless Chromium, ready for frame capture.
 import { chromium } from 'playwright';
 
-export async function openComposition(url, { capture = true } = {}) {
+export async function openComposition(url, { capture = true, lang = 'en' } = {}) {
   const browser = await chromium.launch({ args: ['--force-device-scale-factor=1', '--font-render-hinting=none', '--disable-lcd-text'] });
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   if (capture) await page.addInitScript(() => { window.__capture = true; });
-  await page.goto(`${url}/src/index.html`);
+  await page.goto(`${url}/src/index.html${lang && lang !== 'en' ? `?lang=${lang}` : ''}`);
   await page.waitForFunction(() => window.__ready || window.__error, null, { timeout: 60000 });
   const err = await page.evaluate(() => window.__error);
   if (err) throw new Error(err);

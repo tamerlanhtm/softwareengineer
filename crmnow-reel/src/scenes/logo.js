@@ -2,6 +2,7 @@
 // CRMNow wordmark rises, then the camera dives through the hollow square into the product.
 import { b, el, set, E, ez, prog, spring } from '../engine.js';
 import { buildLogo } from '../components.js';
+import { T } from '../i18n.js';
 
 const S = 150;
 
@@ -43,7 +44,7 @@ export default {
       [...'CRMNow'].map((c, i) => `<span class="ch${i >= 3 ? ' accent' : ''}">${c}</span>`).join('') + '</span></span>';
     this.word = word;
     this.wchars = [...word.querySelectorAll('.ch')];
-    this.sub = el('div', 'lg-sub', 'The sales CRM by <b>ineed.now</b>', zoom);
+    this.sub = el('div', 'lg-sub', T.logo.sub, zoom);
 
     // order squares by distance from the centre cell
     this.order = logo.cells.map((c) => Math.max(Math.abs(c.r - 1), Math.abs(c.c - 1)) + (c.r === 1 && c.c === 1 ? 0 : 0));

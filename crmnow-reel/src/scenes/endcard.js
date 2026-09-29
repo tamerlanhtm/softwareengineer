@@ -1,7 +1,8 @@
 // S9 — END CARD (24.84 → 30s). White mark on brand orange, "Everything you need. Now.", then the offer:
 // 14-day free trial, the URL pill (tapped) and the demo account / Instagram chips. Holds until the loop.
-import { b, el, set, css, E, ez, kf, prog, lerp, spring, rng, icon } from '../engine.js';
+import { b, el, set, css, E, ez, kf, prog, lerp, spring, rng, icon, textWidth } from '../engine.js';
 import { buildLogo, LOGO } from '../components.js';
+import { T } from '../i18n.js';
 
 const S = 80;
 const SIZE = 3 * S + 2 * S * LOGO.gap;
@@ -40,13 +41,17 @@ export default {
     });
 
     this.logo = buildLogo(root, { S, x: END_LOGO.x, y: END_LOGO.y, color: '#FFFFFF' });
-    this.lines = ['Everything', 'you need.', 'Now.'].map((w, i) => {
+    // headline: 122px unless a translation needs to shrink to stay within 900px
+    const widest = Math.max(...T.end.lines.map((w) => textWidth(w, '800 100px "Inter Tight Variable"', -5)));
+    const size = Math.min(122, Math.floor((900 / widest) * 100));
+    this.lines = T.end.lines.map((w, i) => {
       const n = el('div', 'ec-line' + (i === 2 ? ' now' : ''), `<span class="wm"><span class="wi">${w}</span></span>`, root);
-      n.style.top = `${LINE_TOP + i * 114}px`;
+      n.style.top = `${LINE_TOP + i * 114 + (122 - size) * 0.5}px`;
+      n.style.fontSize = `${size}px`;
       return { n, inner: n.querySelector('.wi') };
     });
 
-    this.offer = el('div', 'ec-offer', `${icon('gift', 46, 2.2)}<span>14-day <b>free</b> trial</span><span class="ec-offer-shine"></span>`, root);
+    this.offer = el('div', 'ec-offer', `${icon('gift', 46, 2.2)}<span>${T.end.offer}</span><span class="ec-offer-shine"></span>`, root);
     this.offerShine = this.offer.querySelector('.ec-offer-shine');
     this._ow = this.offer.offsetWidth;
 
@@ -61,22 +66,22 @@ export default {
     this.shine = this.pill.querySelector('.ec-shine');
 
     const chips = el('div', 'ec-chips', `
-      <span class="ec-chip">${icon('monitor-play', 32, 2.2)}Try the demo account</span>
-      <span class="ec-chip">${IG}DM @ineednow_</span>`, root);
+      <span class="ec-chip">${icon('monitor-play', 32, 2.2)}${T.end.demo}</span>
+      <span class="ec-chip">${IG}${T.end.dm}</span>`, root);
     chips.style.top = `${CHIPS_Y}px`;
     this.chips = [...chips.querySelectorAll('.ec-chip')];
 
-    const T = (x) => this.a + x;
-    fx.cues.push({ t: T(0.1), type: 'rise' }, { t: T(NOW), type: 'slam', v: 1 }, { t: T(OFFER), type: 'offer' },
-      { t: T(PILL), type: 'pill' }, { t: T(PILL + 0.12), type: 'type' }, { t: T(CHIPS), type: 'rise', v: 0.5 },
-      { t: T(TAP), type: 'click' }, { t: T(TAP + 0.05), type: 'chime' });
-    fx.hits.push({ t: T(NOW), amp: 16, punch: 0.035, freq: 12, decay: 9 }, { t: T(OFFER), amp: 6, punch: 0.015, freq: 13, decay: 11 },
-      { t: T(TAP), amp: 4, punch: 0.008, freq: 14, decay: 12 });
-    fx.flashes.push({ t: T(NOW), peak: 0.28, dur: 0.3, color: '#FFFFFF' });
+    const at = (x) => this.a + x;
+    fx.cues.push({ t: at(0.1), type: 'rise' }, { t: at(NOW), type: 'slam', v: 1 }, { t: at(OFFER), type: 'offer' },
+      { t: at(PILL), type: 'pill' }, { t: at(PILL + 0.12), type: 'type' }, { t: at(CHIPS), type: 'rise', v: 0.5 },
+      { t: at(TAP), type: 'click' }, { t: at(TAP + 0.05), type: 'chime' });
+    fx.hits.push({ t: at(NOW), amp: 16, punch: 0.035, freq: 12, decay: 9 }, { t: at(OFFER), amp: 6, punch: 0.015, freq: 13, decay: 11 },
+      { t: at(TAP), amp: 4, punch: 0.008, freq: 14, decay: 12 });
+    fx.flashes.push({ t: at(NOW), peak: 0.28, dur: 0.3, color: '#FFFFFF' });
     fx.bursts.push(
-      { t: T(NOW), x: 540, y: LINE_TOP + 2 * 114 + 60, n: 36, seed: 55, colors: ['#FFFFFF', '#FFE3D8', '#FFC2A8'], speed: 1700, gravity: 1100, size: 22, life: 1.1 },
-      { t: T(OFFER), x: 540, y: OFFER_Y + 50, n: 22, seed: 61, colors: ['#FFFFFF', '#FFE3D8'], speed: 1300, gravity: 900, size: 16, life: 0.9 });
-    fx.clicks.push({ t: T(TAP), x: 842, y: PILL_Y + 60, color: 'rgba(255,255,255,.95)', scale: 1.3 });
+      { t: at(NOW), x: 540, y: LINE_TOP + 2 * 114 + 60, n: 36, seed: 55, colors: ['#FFFFFF', '#FFE3D8', '#FFC2A8'], speed: 1700, gravity: 1100, size: 22, life: 1.1 },
+      { t: at(OFFER), x: 540, y: OFFER_Y + 50, n: 22, seed: 61, colors: ['#FFFFFF', '#FFE3D8'], speed: 1300, gravity: 900, size: 16, life: 0.9 });
+    fx.clicks.push({ t: at(TAP), x: 842, y: PILL_Y + 60, color: 'rgba(255,255,255,.95)', scale: 1.3 });
   },
 
   update(tau, t, ctx) {

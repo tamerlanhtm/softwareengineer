@@ -1,15 +1,17 @@
 // S5 — BILLING (13.125 → 16.875s). A quote builds itself, gets accepted, flips (3D) into an invoice,
 // two payments land and it's stamped PAID. Enters with the whip-pan, exits by shrinking into the dashboard.
-import { b, el, set, css, E, ez, kf, prog, lerp, spring, icon, money, text } from '../engine.js';
+import { b, el, set, css, E, ez, kf, prog, lerp, spring, icon, text } from '../engine.js';
 import { buildHead, logoMarkHTML } from '../components.js';
+import { T, money } from '../i18n.js';
 
 export const WHIP = { a: b(20) + 3.3, d: 0.75 };      // shared whip-pan window (global seconds)
 export const whipX = (t) => -1350 * E.inOutExpo(prog(t, WHIP.a, WHIP.a + WHIP.d));
 
+const L10N = T.billing;
 const ITEMS = [
-  ['CRM setup & onboarding', '1', 2400],
-  ['Sales seats · annual', '12', 4320],
-  ['Automation package', '1', 1200],
+  [L10N.items[0], '1', 2400],
+  [L10N.items[1], '12', 4320],
+  [L10N.items[2], '1', 1200],
 ];
 const SUB = 7920;
 const DISC = 792;
@@ -31,8 +33,8 @@ export default {
   build(layer, ctx, fx) {
     const root = el('div', 'layer', null, layer);
     this.root = root;
-    this.titles = [{ html: 'Quote. Invoice.<br><b>Paid.</b>', tin: 0.02, tout: 3.3 }];
-    this.head = buildHead(root, { num: '03', label: 'Quotes · Invoices · Payments', titles: this.titles });
+    this.titles = [{ html: L10N.title, tin: 0.02, tout: 3.3 }];
+    this.head = buildHead(root, { num: '03', label: L10N.label, titles: this.titles });
     this.words = this.titles[0].words.map((w) => w.inner);
 
     const persp = el('div', 'layer doc-persp', null, root);
@@ -40,29 +42,29 @@ export default {
     this.doc = doc;
     const mark = logoMarkHTML(12.5);
     const front = el('div', 'face front', `
-      <div class="d-head"><div class="d-brand">${mark}<span class="d-kind">Quote</span></div><div class="d-id"><b>Q-1042</b><span>Valid until Oct 29</span></div></div>
-      <div class="d-bill"><div class="d-lbl">Bill to</div><div class="d-co">Nova Logistics</div><div class="d-pp">Leyla Aliyeva · Head of Operations</div></div>
-      <div class="d-th"><span>Item</span><span>Qty</span><span>Amount</span></div>
+      <div class="d-head"><div class="d-brand">${mark}<span class="d-kind">${L10N.quote}</span></div><div class="d-id"><b>Q-1042</b><span>${L10N.valid}</span></div></div>
+      <div class="d-bill"><div class="d-lbl">${L10N.billTo}</div><div class="d-co">Nova Logistics</div><div class="d-pp">${L10N.person}</div></div>
+      <div class="d-th"><span>${L10N.th[0]}</span><span>${L10N.th[1]}</span><span>${L10N.th[2]}</span></div>
       ${ITEMS.map(([n, q, a]) => `<div class="d-row"><span>${n}</span><span class="q">${q}</span><span class="a">${money(a, 2)}</span></div>`).join('')}
       <div class="d-sum">
-        <div class="d-s"><span>Subtotal</span><span>${money(SUB, 2)}</span></div>
-        <div class="d-s"><span>Discount (10%)</span><span>−${money(DISC, 2)}</span></div>
-        <div class="d-s"><span>Tax (18%)</span><span>${money(TAX, 2)}</span></div>
+        <div class="d-s"><span>${L10N.subtotal}</span><span>${money(SUB, 2)}</span></div>
+        <div class="d-s"><span>${L10N.discount}</span><span>−${money(DISC, 2)}</span></div>
+        <div class="d-s"><span>${L10N.tax}</span><span>${money(TAX, 2)}</span></div>
       </div>
-      <div class="d-total"><span>Total</span><span class="tv">$0.00</span></div>
-      <div class="d-btns"><div class="btn d-ghost">Decline</div><div class="btn solid acc">${icon('check', 30, 3)}Accept quote</div></div>
-      <div class="stamp acc-stamp">${icon('check', 44, 3.4)}Accepted</div>`, doc);
+      <div class="d-total"><span>${L10N.total}</span><span class="tv">${money(0, 2)}</span></div>
+      <div class="d-btns"><div class="btn d-ghost">${L10N.decline}</div><div class="btn solid acc">${icon('check', 30, 3)}${L10N.accept}</div></div>
+      <div class="stamp acc-stamp">${icon('check', 44, 3.4)}${L10N.accepted}</div>`, doc);
     const back = el('div', 'face back', `
-      <div class="d-head"><div class="d-brand">${mark}<span class="d-kind">Invoice</span></div><div class="d-id"><b>INV-0142</b><span>Due Oct 15</span></div></div>
-      <div class="d-bill"><div class="d-lbl">Bill to</div><div class="d-co">Nova Logistics</div><div class="d-pp">${icon('file-check', 24, 2.2)}Converted from quote Q-1042</div></div>
-      <div class="d-lbl mt">Amount due</div>
+      <div class="d-head"><div class="d-brand">${mark}<span class="d-kind">${L10N.invoice}</span></div><div class="d-id"><b>INV-0142</b><span>${L10N.due}</span></div></div>
+      <div class="d-bill"><div class="d-lbl">${L10N.billTo}</div><div class="d-co">Nova Logistics</div><div class="d-pp">${icon('file-check', 24, 2.2)}${L10N.converted}</div></div>
+      <div class="d-lbl mt">${L10N.amountDue}</div>
       <div class="d-due">${money(TOTAL, 2)}</div>
       <div class="d-prog"><div class="fill"></div></div>
-      <div class="d-pl"><span class="pct">0% paid</span><span>${money(TOTAL, 2)}</span></div>
-      <div class="d-lbl mt2">Payments</div>
-      <div class="d-pay p1"><span class="pi">${icon('landmark', 28, 2.2)}</span><span class="pn">Bank transfer<small>Oct 2 · partial</small></span><span class="pa">${money(PAY1, 2)}</span><span class="pk">${icon('check', 22, 3.2)}</span></div>
-      <div class="d-pay p2"><span class="pi">${icon('credit-card', 28, 2.2)}</span><span class="pn">Card •••• 4242<small>Oct 9 · balance</small></span><span class="pa">${money(TOTAL - PAY1, 2)}</span><span class="pk">${icon('check', 22, 3.2)}</span></div>
-      <div class="stamp paid-stamp">Paid</div>`, doc);
+      <div class="d-pl"><span class="pct">${L10N.paidPct(0)}</span><span>${money(TOTAL, 2)}</span></div>
+      <div class="d-lbl mt2">${L10N.payments}</div>
+      <div class="d-pay p1"><span class="pi">${icon('landmark', 28, 2.2)}</span><span class="pn">${L10N.pay1[0]}<small>${L10N.pay1[1]}</small></span><span class="pa">${money(PAY1, 2)}</span><span class="pk">${icon('check', 22, 3.2)}</span></div>
+      <div class="d-pay p2"><span class="pi">${icon('credit-card', 28, 2.2)}</span><span class="pn">${L10N.pay2[0]}<small>${L10N.pay2[1]}</small></span><span class="pa">${money(TOTAL - PAY1, 2)}</span><span class="pk">${icon('check', 22, 3.2)}</span></div>
+      <div class="stamp paid-stamp">${L10N.paid}</div>`, doc);
     this.front = front;
     this.back = back;
     this.rows = [...front.querySelectorAll('.d-row')];
@@ -82,15 +84,15 @@ export default {
     const r = this.accBtn.getBoundingClientRect();
     this.accPos = { x: r.left + r.width * 0.55, y: r.top + r.height * 0.55 };
     const rs = this.paidStamp.getBoundingClientRect();
-    const T = (x) => this.a + x;
-    fx.clicks.push({ t: T(ACCEPT), x: this.accPos.x, y: this.accPos.y });
-    fx.cues.push({ t: T(0.25), type: 'row', i: 0 }, { t: T(0.37), type: 'row', i: 1 }, { t: T(0.49), type: 'row', i: 2 },
-      { t: T(0.75), type: 'count' }, { t: T(ACCEPT), type: 'click' }, { t: T(ACCEPT + 0.05), type: 'stamp', v: 0.7 },
-      { t: T(FLIP[0]), type: 'flip' }, { t: T(2.11), type: 'coin', i: 0 }, { t: T(2.58), type: 'coin', i: 1 },
-      { t: T(PAID), type: 'paid' }, { t: T(3.3), type: 'shrink' });
-    fx.hits.push({ t: T(ACCEPT + 0.05), amp: 6, punch: 0.012, freq: 14, decay: 12 }, { t: T(PAID), amp: 14, punch: 0.03, freq: 12, decay: 9 });
-    fx.flashes.push({ t: T(PAID), peak: 0.25, dur: 0.35, color: '#FE4D1E' });
-    fx.bursts.push({ t: T(PAID), x: 1080 - (rs.left + rs.width / 2), y: rs.top + rs.height / 2, n: 40, seed: 33,
+    const at = (x) => this.a + x;
+    fx.clicks.push({ t: at(ACCEPT), x: this.accPos.x, y: this.accPos.y });
+    fx.cues.push({ t: at(0.25), type: 'row', i: 0 }, { t: at(0.37), type: 'row', i: 1 }, { t: at(0.49), type: 'row', i: 2 },
+      { t: at(0.75), type: 'count' }, { t: at(ACCEPT), type: 'click' }, { t: at(ACCEPT + 0.05), type: 'stamp', v: 0.7 },
+      { t: at(FLIP[0]), type: 'flip' }, { t: at(2.11), type: 'coin', i: 0 }, { t: at(2.58), type: 'coin', i: 1 },
+      { t: at(PAID), type: 'paid' }, { t: at(3.3), type: 'shrink' });
+    fx.hits.push({ t: at(ACCEPT + 0.05), amp: 6, punch: 0.012, freq: 14, decay: 12 }, { t: at(PAID), amp: 14, punch: 0.03, freq: 12, decay: 9 });
+    fx.flashes.push({ t: at(PAID), peak: 0.25, dur: 0.35, color: '#FE4D1E' });
+    fx.bursts.push({ t: at(PAID), x: 1080 - (rs.left + rs.width / 2), y: rs.top + rs.height / 2, n: 40, seed: 33,
       colors: ['#FE4D1E', '#FF8A5C', '#FFFFFF', '#FFC2A8'], speed: 1800, gravity: 1300, size: 24, life: 0.95 });
   },
 
@@ -140,7 +142,7 @@ export default {
     text(this.due, money(Math.max(0, TOTAL - paid), 2));
     css(this.due, 'color', tau > PAID ? '#FE4D1E' : 'var(--paper-ink)');
     css(this.fill, 'width', `${(paid / TOTAL) * 100}%`);
-    text(this.pct, `${Math.round((paid / TOTAL) * 100)}% paid`);
+    text(this.pct, L10N.paidPct(Math.round((paid / TOTAL) * 100)));
     this.pays.forEach((n, i) => { const a = ez(tau, (i ? 2.58 : 2.11) - 0.05, (i ? 2.58 : 2.11) + 0.3, E.outBack); set(n, { x: (1 - a) * 60, o: prog(tau, (i ? 2.58 : 2.11) - 0.05, (i ? 2.58 : 2.11) + 0.08) }); });
     stamp(this.paidStamp, tau - PAID, -12);
   },

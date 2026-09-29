@@ -1,13 +1,13 @@
 // Frame-accurate capture of the composition with real motion blur (temporal super-sampling).
 //
-//   node scripts/render.mjs [--fps=30] [--blur=4] [--shutter=0.5] [--workers=4] [--dsf=1]
+//   node scripts/render.mjs [--lang=en|az] [--fps=30] [--blur=4] [--shutter=0.5] [--workers=4] [--dsf=1]
 //                           [--from=0] [--to=30] [--out=out/video.mkv]
 //
 // For every output frame the page is rendered at several instants spread over a 180° shutter; the captures
 // are averaged in linear light and dithered back to 8-bit. Fast moves (whip-pan, zoom-through, floods...)
 // get many more samples so their blur is smooth rather than stepped. Work is split into 1-second chunks
 // pulled by parallel browser workers; each chunk becomes a lossless segment, concatenated at the end.
-// Also writes out/cues.json (sound cue list) for scripts/soundtrack.py.
+// Also writes out/cues.json (out/cues-<lang>.json for other languages), the sound cue list for scripts/soundtrack.py.
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -21,7 +21,9 @@ const SUB = Number(args.blur || 4);
 const SHUTTER = Number(args.shutter || 0.5);
 const WORKERS = Number(args.workers || 4);
 const DSF = Number(args.dsf || 1);
-const OUT = args.out || 'out/video.mkv';
+const LANG = args.lang || 'en';
+const SUFFIX = LANG === 'en' ? '' : `-${LANG}`;
+const OUT = args.out || `out/video${SUFFIX}.mkv`;
 const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const W = Math.round(1080 * DSF);
 const H = Math.round(1920 * DSF);
@@ -65,11 +67,11 @@ rmSync(tmp, { recursive: true, force: true });
 mkdirSync(tmp, { recursive: true });
 
 const srv = await startServer();
-const probe = await openComposition(srv.url);
+const probe = await openComposition(srv.url, { lang: LANG });
 const meta = await probe.page.evaluate(() => ({ ...window.__meta, cues: window.__cues }));
 await probe.browser.close();
 mkdirSync('out', { recursive: true });
-writeFileSync('out/cues.json', JSON.stringify(meta.cues, null, 1));
+writeFileSync(`out/cues${SUFFIX}.json`, JSON.stringify(meta.cues, null, 1));
 
 const FROM = Number(args.from || 0);
 const TO = Number(args.to || meta.duration);
@@ -78,14 +80,14 @@ const CHUNK = FPS;                                   // 1 second per chunk
 const chunks = [];
 for (let f = 0; f < total; f += CHUNK) chunks.push([f, Math.min(total, f + CHUNK)]);
 const captures = Array.from({ length: total }, (_, f) => samplesAt(FROM + f / FPS)).reduce((a, c) => a + c, 0);
-console.log(`rendering ${total} frames @${FPS}fps (${captures} captures, shutter ${SHUTTER}) with ${WORKERS} workers at ${W}x${H}`);
+console.log(`rendering [${LANG}] ${total} frames @${FPS}fps (${captures} captures, shutter ${SHUTTER}) with ${WORKERS} workers at ${W}x${H}`);
 
 let next = 0;
 let doneFrames = 0;
 const t0 = Date.now();
 
 async function worker(w) {
-  const { browser, page, errors } = await openComposition(srv.url);
+  const { browser, page, errors } = await openComposition(srv.url, { lang: LANG });
   const cdp = await page.context().newCDPSession(page);
   if (DSF !== 1) await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1080, height: 1920, deviceScaleFactor: DSF, mobile: false });
   const acc = new Float32Array(W * H * 3);

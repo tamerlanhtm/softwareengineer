@@ -78,7 +78,7 @@ export function logoMarkHTML(S, color = ORANGE, ringColor = color) {
  * Overline + one or more titles that swap in/out.
  * titles: [{ html, tin, tout }], times in scene-local seconds. Words wrapped in <b> render orange.
  */
-export function buildHead(parent, { num, label, titles, top = 262, size = 112 }) {
+export function buildHead(parent, { num, label, titles, top = 262, size = 112, maxWidth = 900 }) {
   const head = el('div', 'head', null, parent);
   head.style.top = `${top}px`;
   const over = el('div', 'over', null, head);
@@ -90,6 +90,8 @@ export function buildHead(parent, { num, label, titles, top = 262, size = 112 })
   for (const ti of titles) {
     ti.node = el('div', 't', ti.html, tbox);
     ti.words = splitText(ti.node).words;
+    const w = ti.node.offsetWidth;                // widest line (titles never wrap)
+    if (w > maxWidth) ti.node.style.fontSize = `${(size * maxWidth) / w}px`;
   }
   const tin = titles[0].tin;
   const tout = titles[titles.length - 1].tout;

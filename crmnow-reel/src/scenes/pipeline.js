@@ -1,17 +1,20 @@
 // S4 — PIPELINE (9.375 → 13.125s). The new deal is dragged through the six-stage board while the
 // camera pans with it; the weighted forecast climbs; it lands in WON with a burst. Exits with a whip-pan.
-import { b, el, set, css, E, ez, kf, lerp, spring, icon, money, text } from '../engine.js';
+import { b, el, set, css, E, ez, kf, lerp, spring, icon, text } from '../engine.js';
 import { buildHead } from '../components.js';
+import { T, money } from '../i18n.js';
 import { whipX } from './billing.js';
 
+const L10N = T.pipeline;
+const days = L10N.days;
 const COLS = [
-  { name: 'New', p: 10, col: '#77737A', cards: [['Atlas Dental', 6200, 'MH', '#3A3A44', '3d'], ['Pixel Studio', 3900, 'ED', '#6B3F2C', '1d']] },
-  { name: 'Qualified', p: 25, col: '#A07B6C', cards: [['Skyline Realty', 12500, 'AP', '#34404F', '4d'], ['Greenleaf Café', 2300, 'JC', '#4A3B52', '2d']] },
-  { name: 'Proposal', p: 50, col: '#CC6E4C', cards: [['Orion Build', 18000, 'KB', '#3A3A44', '6d'], ['Blue Wave', 7400, 'SR', '#34404F', '2d']] },
-  { name: 'Negotiation', p: 75, col: '#EE5A30', cards: [['Metro Clinic', 31000, 'NA', '#6B3F2C', '5d']] },
-  { name: 'Won', p: 100, col: '#FE4D1E', cards: [['Kappa Foods', 9800, 'TY', '#4A3B52', '✓'], ['Vertex Lab', 15200, 'MH', '#3A3A44', '✓']] },
-  { name: 'Lost', p: 0, col: '#45434A', cards: [['Delta Auto', 5100, 'JC', '#34404F', '—']] },
-];
+  { p: 10, col: '#77737A', cards: [['Atlas Dental', 6200, 'MH', '#3A3A44', days(3)], ['Pixel Studio', 3900, 'ED', '#6B3F2C', days(1)]] },
+  { p: 25, col: '#A07B6C', cards: [['Skyline Realty', 12500, 'AP', '#34404F', days(4)], ['Greenleaf Café', 2300, 'JC', '#4A3B52', days(2)]] },
+  { p: 50, col: '#CC6E4C', cards: [['Orion Build', 18000, 'KB', '#3A3A44', days(6)], ['Blue Wave', 7400, 'SR', '#34404F', days(2)]] },
+  { p: 75, col: '#EE5A30', cards: [['Metro Clinic', 31000, 'NA', '#6B3F2C', days(5)]] },
+  { p: 100, col: '#FE4D1E', won: true, cards: [['Kappa Foods', 9800, 'TY', '#4A3B52', '✓'], ['Vertex Lab', 15200, 'MH', '#3A3A44', '✓']] },
+  { p: 0, col: '#45434A', lost: true, cards: [['Delta Auto', 5100, 'JC', '#34404F', '—']] },
+].map((c, i) => ({ ...c, name: L10N.stages[i] }));
 const X0 = 90;
 const PITCH_X = 318;
 const CARD_Y = 744;
@@ -40,8 +43,8 @@ export default {
     const root = el('div', 'layer', null, layer);
     this.root = root;
     this.head = buildHead(root, {
-      num: '02', label: 'Deals & Pipelines',
-      titles: [{ html: 'Close deals<br><b>faster.</b>', tin: -0.1, tout: 99 }],
+      num: '02', label: L10N.label,
+      titles: [{ html: L10N.title, tin: -0.1, tout: 99 }],
     });
 
     this.board = el('div', 'layer', null, root);
@@ -49,37 +52,37 @@ export default {
       const n = el('div', 'pcol', `
         <div class="pcol-bar" style="background:${c.col}"></div>
         <div class="pcol-h"><span class="pcol-dot" style="background:${c.col}"></span><span class="pcol-name">${c.name}</span><span class="pcol-n">${c.cards.length}</span></div>
-        <div class="pcol-sum"><span class="sum">${money(c.cards.reduce((a, k) => a + k[1], 0))}</span><span class="pp">${c.name === 'Lost' ? '' : c.p + '%'}</span></div>
+        <div class="pcol-sum"><span class="sum">${money(c.cards.reduce((a, k) => a + k[1], 0))}</span><span class="pp">${c.lost ? '' : c.p + '%'}</span></div>
         <div class="pcol-drop"></div>`, this.board);
       n.style.left = `${X0 + i * PITCH_X}px`;
       const cards = c.cards.map((k, j) => {
-        const cn = el('div', 'pcard' + (c.name === 'Won' ? ' won' : ''), cardHTML(k[0], k[1], k[2], k[3], k[4], c.name === 'Won' ? 'Won' : c.p + '%'), this.board);
+        const cn = el('div', 'pcard' + (c.won ? ' won' : ''), cardHTML(k[0], k[1], k[2], k[3], k[4], c.won ? L10N.won : c.p + '%'), this.board);
         return { n: cn, j };
       });
       return { n, c, i, cards, cnt: n.querySelector('.pcol-n'), sum: n.querySelector('.sum'), drop: n.querySelector('.pcol-drop'), base: c.cards.reduce((a, k) => a + k[1], 0) };
     });
 
     // the hero deal (continues from the Leads scene)
-    this.hero = el('div', 'pcard hero', cardHTML('Nova Logistics', HERO_AMT, 'YO', '#3A3A44', 'now', '10%'), this.board);
+    this.hero = el('div', 'pcard hero', cardHTML('Nova Logistics', HERO_AMT, T.leads.youIni, '#3A3A44', L10N.now, '10%'), this.board);
     this.heroP = this.hero.querySelector('.pc-p');
     this.heroAge = this.hero.querySelector('.pc-age');
     this.heroWon = el('div', 'pc-won', `${icon('check', 26, 3.2)}`, this.hero);
 
     // forecast panel
     this.fc = el('div', 'card fc', `
-      <div class="fc-col"><div class="fc-l">Weighted forecast</div><div class="fc-v"><span class="wv">$0</span><span class="fc-up">${icon('trending-up', 28, 2.6)}</span></div></div>
-      <div class="fc-col r"><div class="fc-l">Won this month</div><div class="fc-v"><span class="wn">$0</span></div></div>
+      <div class="fc-col"><div class="fc-l">${L10N.weighted}</div><div class="fc-v"><span class="wv">${money(0)}</span><span class="fc-up">${icon('trending-up', 28, 2.6)}</span></div></div>
+      <div class="fc-col r"><div class="fc-l">${L10N.wonMonth}</div><div class="fc-v"><span class="wn">${money(0)}</span></div></div>
       <div class="fc-bar">${COLS.slice(0, 5).map((c) => `<span style="background:${c.col}"></span>`).join('')}</div>`, root);
     this.wv = this.fc.querySelector('.wv');
     this.wn = this.fc.querySelector('.wn');
     this.bars = [...this.fc.querySelectorAll('.fc-bar span')];
 
-    const T = (x) => this.a + x;
-    HOPS.forEach(([s], i) => fx.cues.push({ t: T(s - 0.06), type: 'grab', i }, { t: T(s + HOPS[i][1]), type: 'place', i }));
-    fx.cues.push({ t: T(WON_T), type: 'win' }, { t: T(3.3), type: 'whip' });
-    fx.hits.push({ t: T(WON_T), amp: 12, punch: 0.03, freq: 12, decay: 9 });
-    fx.flashes.push({ t: T(WON_T), peak: 0.22, dur: 0.35, color: '#FE4D1E' });
-    fx.bursts.push({ t: T(WON_T), x: 558, y: CARD_Y + 69, n: 44, seed: 21, colors: ['#FE4D1E', '#FF8A5C', '#FFFFFF', '#FFC2A8'], speed: 1900, gravity: 1300, size: 24, life: 1.2, dx: whipX });
+    const at = (x) => this.a + x;
+    HOPS.forEach(([s], i) => fx.cues.push({ t: at(s - 0.06), type: 'grab', i }, { t: at(s + HOPS[i][1]), type: 'place', i }));
+    fx.cues.push({ t: at(WON_T), type: 'win' }, { t: at(3.3), type: 'whip' });
+    fx.hits.push({ t: at(WON_T), amp: 12, punch: 0.03, freq: 12, decay: 9 });
+    fx.flashes.push({ t: at(WON_T), peak: 0.22, dur: 0.35, color: '#FE4D1E' });
+    fx.bursts.push({ t: at(WON_T), x: 558, y: CARD_Y + 69, n: 44, seed: 21, colors: ['#FE4D1E', '#FF8A5C', '#FFFFFF', '#FFC2A8'], speed: 1900, gravity: 1300, size: 24, life: 1.2, dx: whipX });
   },
 
   update(tau, t, ctx) {
@@ -139,8 +142,8 @@ export default {
     set(this.hero, { x: hx, y: hy, s: 1 + lift * 0.07 + land * 0.025, r: lift * 2.6 * (1 - won), o: heroIn });
     css(this.hero, '--lift', lift.toFixed(3));
     this.hero.classList.toggle('is-won', won > 0.5);
-    text(this.heroP, stage >= 4 ? 'Won' : `${COLS[stage].p}%`);
-    text(this.heroAge, stage >= 4 ? '✓' : 'now');
+    text(this.heroP, stage >= 4 ? L10N.won : `${COLS[stage].p}%`);
+    text(this.heroAge, stage >= 4 ? '✓' : L10N.now);
     set(this.heroWon, { s: spring(tau - WON_T, 3, 0.4), o: tau > WON_T ? 1 : 0 });
 
     // cursor rides the card during each drag

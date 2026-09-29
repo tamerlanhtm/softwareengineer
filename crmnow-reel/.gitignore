@@ -2,4 +2,6 @@ node_modules/
 out/*.mkv
 out/*.parts/
 out/.cover/
-out/render.log
+out/render*.log
+out/cues-*.json
+out/soundtrack-*.wav

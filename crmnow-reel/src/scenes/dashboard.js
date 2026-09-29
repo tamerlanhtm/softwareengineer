@@ -1,17 +1,19 @@
 // S6 — DASHBOARD (16.875 → 20.156s). KPI tiles count up, the revenue curve draws itself, funnel +
 // lead-source donut sweep in, a tooltip pops and a CSV export is clicked. Leaves under an orange grid wipe.
-import { b, el, set, css, E, ez, kf, prog, spring, icon, int, text } from '../engine.js';
+import { b, el, set, css, E, ez, kf, prog, spring, icon, text } from '../engine.js';
 import { buildHead } from '../components.js';
+import { T, kmoney, int } from '../i18n.js';
 
 const REV = [38, 42, 40, 51, 49, 58, 63, 71, 86.4];         // Jan–Sep actuals ($K)
 const FCST = [86.4, 92, 99, 108];                           // Sep–Dec forecast
-const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-const FUNNEL = [['Leads', 312], ['Qualified', 184], ['Proposal', 96], ['Won', 41]];
-const SOURCES = [['Website', 42, '#FE4D1E'], ['Instagram', 28, '#FF8A5C'], ['Referral', 18, '#C9C3BD'], ['Other', 12, '#55525A']];
+const L10N = T.dashboard;
+const MONTHS = L10N.months;
+const FUNNEL = [312, 184, 96, 41].map((v, i) => [L10N.funnelRows[i], v]);
+const SOURCES = [[42, '#FE4D1E'], [28, '#FF8A5C'], [18, '#C9C3BD'], [12, '#55525A']].map(([p, c], i) => [L10N.legend[i], p, c]);
 const KPIS = [
-  { l: 'Pipeline value', v: 482.9, f: (v) => `$${v.toFixed(1)}K`, d: '12%', spark: [4, 6, 5, 8, 7, 10, 12] },
-  { l: 'Won this month', v: 49.8, f: (v) => `$${v.toFixed(1)}K`, d: '24%', spark: [3, 4, 4, 6, 5, 8, 11] },
-  { l: 'New leads', v: 312, f: (v) => int(v), d: '18%', spark: [5, 4, 7, 6, 9, 8, 12] },
+  { l: L10N.kpis[0], v: 482.9, f: (v) => kmoney(v), d: '12%', spark: [4, 6, 5, 8, 7, 10, 12] },
+  { l: L10N.kpis[1], v: 49.8, f: (v) => kmoney(v), d: '24%', spark: [3, 4, 4, 6, 5, 8, 11] },
+  { l: L10N.kpis[2], v: 312, f: (v) => int(v), d: '18%', spark: [5, 4, 7, 6, 9, 8, 12] },
 ];
 // chart geometry (card-local)
 const CW = 900;
@@ -50,7 +52,7 @@ export default {
   build(layer, ctx, fx) {
     const root = el('div', 'layer', null, layer);
     this.root = root;
-    this.head = buildHead(root, { num: '04', label: 'Reporting & Analytics', titles: [{ html: 'Your numbers,<br><b>live.</b>', tin: 0.0, tout: 99 }] });
+    this.head = buildHead(root, { num: '04', label: L10N.label, titles: [{ html: L10N.title, tin: 0.0, tout: 99 }] });
 
     // KPI tiles
     this.kpis = KPIS.map((k, i) => {
@@ -73,8 +75,8 @@ export default {
     const grid = [0, 1, 2, 3].map((g) => `<line x1="${PX0}" x2="${PX1}" y1="${PY0 - g * (PH / 3.3)}" y2="${PY0 - g * (PH / 3.3)}" stroke="rgba(255,255,255,.06)" stroke-width="2" ${g ? 'stroke-dasharray="3 9"' : ''}/>`).join('');
     const labels = MONTHS.map((m, i) => `<text x="${xAt(i)}" y="${PY0 + 36}" text-anchor="middle">${m}</text>`).join('');
     this.chart = el('div', 'card rev', `
-      <div class="rv-h"><div><div class="rv-t">Revenue</div><div class="rv-s">2026 · monthly</div></div>
-        <div class="btn ghost rv-x">${icon('download', 26, 2.4)}Export CSV</div></div>
+      <div class="rv-h"><div><div class="rv-t">${L10N.revenue}</div><div class="rv-s">${L10N.revenueSub}</div></div>
+        <div class="btn ghost rv-x">${icon('download', 26, 2.4)}${L10N.export}</div></div>
       <svg class="rv-svg" width="${CW}" height="382" viewBox="0 0 ${CW} 382">
         <defs>
           <linearGradient id="rvFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#FE4D1E" stop-opacity=".45"/><stop offset="1" stop-color="#FE4D1E" stop-opacity="0"/></linearGradient>
@@ -88,8 +90,8 @@ export default {
         <circle class="rv-halo" r="26" fill="#FE4D1E" fill-opacity=".22"/>
         <circle class="rv-dot" r="11" fill="#fff" stroke="#FE4D1E" stroke-width="6"/>
       </svg>
-      <div class="rv-tip"><b>$86.4K</b><span>${icon('trending-up', 22, 2.6)}21% vs Aug</span></div>
-      <div class="chip chip-o rv-toast">${icon('circle-check', 24, 2.4)}revenue_2026.csv</div>`, root);
+      <div class="rv-tip"><b>${kmoney(86.4)}</b><span>${icon('trending-up', 22, 2.6)}${L10N.tip}</span></div>
+      <div class="chip chip-o rv-toast">${icon('circle-check', 24, 2.4)}${L10N.file}</div>`, root);
     this.line = this.chart.querySelector('.rv-line');
     this.lineLen = this.line.getTotalLength();
     this.fc = this.chart.querySelector('.rv-fc');
@@ -97,12 +99,13 @@ export default {
     this.dot = this.chart.querySelector('.rv-dot');
     this.halo = this.chart.querySelector('.rv-halo');
     this.tip = this.chart.querySelector('.rv-tip');
+    this.tipW = this.tip.offsetWidth;
     this.toast = this.chart.querySelector('.rv-toast');
     this.xbtn = this.chart.querySelector('.rv-x');
     this.sep = actual[actual.length - 1];
 
     // funnel
-    this.funnel = el('div', 'card fun', `<div class="c-t">Sales funnel</div>` + FUNNEL.map(([l, v]) =>
+    this.funnel = el('div', 'card fun', `<div class="c-t">${L10N.funnel}</div>` + FUNNEL.map(([l, v]) =>
       `<div class="fn-r"><span class="fn-l">${l}</span><div class="fn-b"></div><span class="fn-v">${v}</span></div>`).join(''), root);
     this.fbars = [...this.funnel.querySelectorAll('.fn-b')];
 
@@ -112,25 +115,25 @@ export default {
     this.donutC = C;
     let acc = 0;
     const segs = SOURCES.map(([, p, col]) => { const s = { start: acc, len: (p / 100) * C, col }; acc += s.len; return s; });
-    this.donut = el('div', 'card don', `<div class="c-t">Lead sources</div>
+    this.donut = el('div', 'card don', `<div class="c-t">${L10N.sources}</div>
       <div class="dn-w"><svg width="190" height="190" viewBox="-95 -95 190 190"><g transform="rotate(-90)">
         <circle r="${R}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="30"/>
         ${segs.map((s) => `<circle class="dn-s" r="${R}" fill="none" stroke="${s.col}" stroke-width="30"/>`).join('')}
-      </g></svg><div class="dn-c"><b>312</b><span>leads</span></div>
+      </g></svg><div class="dn-c"><b>312</b><span>${L10N.leadsWord}</span></div>
       <div class="dn-lg">${SOURCES.map(([n, p, col]) => `<div><i style="background:${col}"></i>${n}<b>${p}%</b></div>`).join('')}</div></div>`, root);
     this.segs = segs.map((s, i) => ({ ...s, n: this.donut.querySelectorAll('.dn-s')[i] }));
     this.donutN = this.donut.querySelector('.dn-c b');
     this.funLead = this.funnel.querySelector('.fn-v');
-    this.plus = el('div', 'chip chip-solid dash-plus', '+1 lead', root);
+    this.plus = el('div', 'chip chip-solid dash-plus', L10N.plusLead, root);
 
     // the chart card is placed by transform at (90, 798); measure the button relative to it
     const xr = this.xbtn.getBoundingClientRect();
     const cr = this.chart.getBoundingClientRect();
     this.xPos = { x: 90 + xr.left - cr.left + xr.width * 0.5, y: 798 + xr.top - cr.top + xr.height * 0.55 };
-    const T = (x) => this.a + x;
-    fx.clicks.push({ t: T(CLICK), x: this.xPos.x, y: this.xPos.y });
-    fx.cues.push({ t: T(-0.1), type: 'tiles' }, { t: T(0.3), type: 'draw', v: 1.2 }, { t: T(1.45), type: 'pop', i: 3 },
-      { t: T(CLICK), type: 'click' }, { t: T(2.42), type: 'confirm' }, { t: T(LIVE_LEAD), type: 'blip', i: 11 }, { t: T(LIVE_PIPE), type: 'count', v: 0.5 });
+    const at = (x) => this.a + x;
+    fx.clicks.push({ t: at(CLICK), x: this.xPos.x, y: this.xPos.y });
+    fx.cues.push({ t: at(-0.1), type: 'tiles' }, { t: at(0.3), type: 'draw', v: 1.2 }, { t: at(1.45), type: 'pop', i: 3 },
+      { t: at(CLICK), type: 'click' }, { t: at(2.42), type: 'confirm' }, { t: at(LIVE_LEAD), type: 'blip', i: 11 }, { t: at(LIVE_PIPE), type: 'count', v: 0.5 });
   },
 
   update(tau, t, ctx) {
@@ -179,7 +182,7 @@ export default {
     set(this.dot, { o: d > 0.02 ? 1 : 0 });
     set(this.fc, { o: ez(tau, 1.2, 1.5) });
     const tp = spring(tau - 1.45, 3, 0.45);
-    set(this.tip, { x: this.sep[0] - 110, y: this.sep[1] + 10 - 112 + (1 - Math.min(tp, 1)) * 20, s: tau > 1.45 ? 0.7 + 0.3 * tp : 0, o: tau > 1.45 ? 1 : 0, origin: '50% 100%' });
+    set(this.tip, { x: this.sep[0] - this.tipW / 2, y: this.sep[1] + 10 - 112 + (1 - Math.min(tp, 1)) * 20, s: tau > 1.45 ? 0.7 + 0.3 * tp : 0, o: tau > 1.45 ? 1 : 0, origin: '50% 100%' });
 
     // funnel + donut
     this.fbars.forEach((n, i) => css(n, 'width', `${Math.max(6, (FUNNEL[i][1] / 312) * 196 * ez(tau, 0.4 + i * 0.08, 1.1 + i * 0.08, E.outExpo))}px`));

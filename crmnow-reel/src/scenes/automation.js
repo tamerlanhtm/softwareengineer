@@ -2,13 +2,18 @@
 // light pulses race down the connectors, every node checks off and the run history ticks up.
 import { b, el, set, css, E, ez, prog, spring, icon, text } from '../engine.js';
 import { buildHead } from '../components.js';
+import { T, money, int } from '../i18n.js';
 
+const L10N = T.automation;
 const NODES = [
-  { k: 'When', t: 'Deal moves to Won', ic: 'zap', x: 160, y: 618, w: 760, solid: true },
-  { k: 'If', t: 'Amount is over $5,000', ic: 'filter', x: 160, y: 820, w: 760 },
-  { k: 'Then', t: 'Create invoice', ic: 'receipt', x: 90, y: 1030, w: 430 },
-  { k: 'Then', t: 'Notify the team', ic: 'bell', x: 560, y: 1030, w: 430 },
-];
+  { ic: 'zap', x: 160, y: 618, w: 760, solid: true },
+  { ic: 'filter', x: 160, y: 820, w: 760 },
+  { ic: 'receipt', x: 90, y: 1030, w: 430 },
+  { ic: 'bell', x: 560, y: 1030, w: 430 },
+].map((N, i) => {
+  const [k, t] = L10N.nodes[i];
+  return { ...N, k, t: typeof t === 'function' ? t(money) : t };
+});
 const NH = 132;
 const PATHS = [
   'M540 750V820',
@@ -33,7 +38,7 @@ export default {
   build(layer, ctx, fx) {
     const root = el('div', 'layer', null, layer);
     this.root = root;
-    this.head = buildHead(root, { num: '05', label: 'Workflow Automation', titles: [{ html: 'Busywork?<br><b>Automated.</b>', tin: 0.1, tout: 99 }] });
+    this.head = buildHead(root, { num: '05', label: L10N.label, titles: [{ html: L10N.title, tin: 0.1, tout: 99 }] });
 
     const svg = el('div', 'layer', `<svg width="1080" height="1920" viewBox="0 0 1080 1920" style="display:block">
       ${PATHS.map((d) => `<path class="au-p" d="${d}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="4" stroke-linecap="round"/>`).join('')}
@@ -53,16 +58,16 @@ export default {
     });
 
     this.hist = el('div', 'card au-h', `
-      <div class="au-hh"><span class="au-ht">${icon('clock', 26, 2.3)}Run history</span><span class="au-hs"><b class="runs">1,283</b> runs · 100% success</span></div>
+      <div class="au-hh"><span class="au-ht">${icon('clock', 26, 2.3)}${L10N.history}</span><span class="au-hs">${L10N.runs(int(1283))}</span></div>
       <div class="au-bars">${Array.from({ length: 28 }, (_, i) => `<span style="height:${18 + Math.round(40 * Math.abs(Math.sin(i * 1.7) * Math.cos(i * 0.6)))}px"></span>`).join('')}</div>
-      <div class="au-row">${icon('circle-check', 26, 2.4)}<span>INV-0142 created · team notified</span><em>just now</em></div>`, root);
+      <div class="au-row">${icon('circle-check', 26, 2.4)}<span>${L10N.row}</span><em>${L10N.justNow}</em></div>`, root);
     this.runs = this.hist.querySelector('.runs');
     this.bars = [...this.hist.querySelectorAll('.au-bars span')];
     this.row = this.hist.querySelector('.au-row');
 
-    const T = (x) => this.a + x;
-    NODE_IN.forEach((x, i) => fx.cues.push({ t: T(x), type: 'node', i }));
-    fx.cues.push({ t: T(0.9), type: 'run' }, { t: T(1.07), type: 'tick', i: 7 }, { t: T(1.31), type: 'tick', i: 8 }, { t: T(1.5), type: 'confirm' });
+    const at = (x) => this.a + x;
+    NODE_IN.forEach((x, i) => fx.cues.push({ t: at(x), type: 'node', i }));
+    fx.cues.push({ t: at(0.9), type: 'run' }, { t: at(1.07), type: 'tick', i: 7 }, { t: at(1.31), type: 'tick', i: 8 }, { t: at(1.5), type: 'confirm' });
   },
 
   update(tau) {
@@ -95,7 +100,7 @@ export default {
 
     const ha = ez(tau, 0.76, 1.2, E.outExpo);
     set(this.hist, { y: 1220 + (1 - ha) * 50, x: 90, o: ha });
-    text(this.runs, tau > 1.48 ? '1,284' : '1,283');
+    text(this.runs, int(tau > 1.48 ? 1284 : 1283));
     this.bars.forEach((n, i) => {
       const last = i === this.bars.length - 1;
       const g = last ? ez(tau, 1.48, 1.7, E.outBack) : ez(tau, 0.8 + i * 0.012, 1.1 + i * 0.012, E.outCubic);
