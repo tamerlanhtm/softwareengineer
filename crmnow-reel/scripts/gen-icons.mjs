@@ -9,7 +9,7 @@ const NAMES = [
   'arrow-right', 'trophy', 'filter', 'git-branch', 'file-spreadsheet', 'triangle-alert', 'circle-help',
   'mail', 'calendar-clock', 'banknote', 'download', 'circle-check', 'sparkles', 'landmark',
   'arrow-up-right', 'trending-up', 'languages', 'badge-check', 'file-check', 'wallet', 'handshake',
-  'target', 'flame', 'mic', 'send', 'split', 'clock', 'rocket', 'inbox', 'at-sign', 'x',
+  'target', 'flame', 'mic', 'send', 'split', 'clock', 'rocket', 'inbox', 'at-sign', 'x', 'gift', 'monitor-play',
 ];
 
 const out = {};

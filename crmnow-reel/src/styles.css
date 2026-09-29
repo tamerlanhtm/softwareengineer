@@ -318,16 +318,21 @@ body { overflow: hidden; }
 .ec { background: radial-gradient(ellipse 95% 62% at 50% 32%, #FF6B3E 0%, #FE4D1E 55%, #E23C0C 100%); overflow: hidden; }
 .ec-fl { position: absolute; left: 0; top: 0; background: #fff; }
 .ec-fl.ring { background: transparent; border: 6px solid #fff; }
-.ec-line { position: absolute; left: 0; width: 1080px; text-align: center; font: 800 136px/1 var(--f-display); letter-spacing: -.05em; color: #fff; }
+.ec-line { position: absolute; left: 0; width: 1080px; text-align: center; font: 800 122px/1 var(--f-display); letter-spacing: -.05em; color: #fff; }
 .ec-line.now { color: #1B0A04; }
-.ec-pill { position: absolute; left: 0; top: 0; height: 124px; border-radius: 62px; background: #fff; overflow: hidden; box-shadow: 0 34px 60px -22px rgba(110, 18, 0, .6); }
-.ec-globe { position: absolute; left: 20px; top: 20px; width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: rgba(254, 77, 30, .12); color: var(--o); }
-.ec-url { position: absolute; left: 116px; right: 116px; top: 0; height: 124px; display: flex; align-items: center; justify-content: center; white-space: pre;
-  font: 800 58px/1 var(--f-display); letter-spacing: -.035em; color: #1B0A04; }
+.ec-offer { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 16px; height: 102px; padding: 0 44px 0 34px; border-radius: 51px; overflow: hidden;
+  background: #1B0A04; color: #fff; font: 700 50px/1 var(--f-display); letter-spacing: -.015em; white-space: nowrap; box-shadow: 0 24px 50px -20px rgba(80, 12, 0, .7); }
+.ec-offer .ic { color: #FF8A5C; }
+.ec-offer b { color: #FF7A4F; font-weight: 800; }
+.ec-offer-shine { position: absolute; left: 0; top: -12px; width: 100px; height: 126px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .28) 50%, transparent); }
+.ec-pill { position: absolute; left: 0; top: 0; height: 116px; border-radius: 58px; background: #fff; overflow: hidden; box-shadow: 0 34px 60px -22px rgba(110, 18, 0, .6); }
+.ec-globe { position: absolute; left: 20px; top: 20px; width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; background: rgba(254, 77, 30, .12); color: var(--o); }
+.ec-url { position: absolute; left: 106px; right: 106px; top: 0; height: 116px; display: flex; align-items: center; justify-content: center; white-space: pre;
+  font: 800 54px/1 var(--f-display); letter-spacing: -.035em; color: #1B0A04; }
 .ec-url span { display: inline-block; }
-.ec-go { position: absolute; right: 20px; top: 20px; width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: var(--o); color: #fff; }
-.ec-shine { position: absolute; left: 0; top: -20px; width: 130px; height: 164px; background: linear-gradient(90deg, transparent, rgba(255, 196, 172, .6) 50%, transparent); }
-.ec-handle { position: absolute; left: 0; top: 0; width: 1080px; display: flex; align-items: center; justify-content: center; gap: 14px; color: #fff; font: 600 44px/1 var(--f-ui); }
-.ec-handle .dm { color: rgba(255, 255, 255, .8); margin-right: 6px; }
-.ec-handle b { font-weight: 750; letter-spacing: -.01em; }
+.ec-go { position: absolute; right: 20px; top: 20px; width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; background: var(--o); color: #fff; }
+.ec-shine { position: absolute; left: 0; top: -20px; width: 130px; height: 156px; background: linear-gradient(90deg, transparent, rgba(255, 196, 172, .6) 50%, transparent); }
+.ec-chips { position: absolute; left: 0; top: 0; width: 1080px; display: flex; justify-content: center; gap: 16px; }
+.ec-chip { display: inline-flex; align-items: center; gap: 12px; height: 66px; padding: 0 26px 0 20px; border-radius: 33px; white-space: nowrap;
+  border: 2px solid rgba(255, 255, 255, .6); background: rgba(255, 255, 255, .1); color: #fff; font: 650 31px/1 var(--f-ui); letter-spacing: -.01em; }
 .dash-plus { position: absolute; left: 0; top: 0; height: 44px; font-size: 22px; box-shadow: 0 10px 24px -8px rgba(254, 77, 30, .8); }

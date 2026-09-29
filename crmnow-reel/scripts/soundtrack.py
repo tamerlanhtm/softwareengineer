@@ -645,6 +645,10 @@ def build_fx(fx, cues):
             fx.add(fx_reverse_swell(d, 0.8) + fx_riser(d, 400, 5000, 0.5, tonal=False), t)
         elif ty == 'logo':
             fx.add(fx_impact(1.2, True, 2.4), t)
+        elif ty == 'offer':
+            fx.add(fx_thump(0.6), t)
+            fx.add(fx_pop(880, 0.8), t)
+            fx.add(fx_chime(['F6', 'A6', 'C7'], 0.045, 0.5, 1.2), t + 0.02)
         elif ty == 'pill':
             fx.add(fx_pop(700, 0.8), t)
             fx.add(fx_whoosh(0.45, 500, 3000, 1500, 0.4, 0.35), t + 0.08)

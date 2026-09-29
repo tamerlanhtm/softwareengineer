@@ -22,7 +22,7 @@ Music: 128 BPM. 16 bars = exactly 30 s. Every cut, click, stamp and whoosh lands
 | 16.9–20.2 | Reporting & Analytics | KPI tiles, the revenue curve, the funnel and lead sources update live (+1 lead), then a CSV export |
 | 20.2–22.5 | Workflow Automation | When a deal is won → if it's over $5,000 → an invoice is created and the team is notified. The run history ticks up |
 | 22.5–24.8 | All-in-one | **21 modules · 4 languages (Hello / Salam / Merhaba / Привет) · 1 workspace**. The tiles fly into the logo |
-| 24.8–30.0 | End card | "Everything you need. **Now.**" → **www.ineed.now** (tapped) · "or DM us @ineednow_" |
+| 24.8–30.0 | End card | "Everything you need. **Now.**" → **14-day free trial** → **www.ineed.now** (tapped) → "Try the demo account" · "DM @ineednow_" |
 
 Key copy stays inside Instagram's safe zone: y ≈ 260–1480 px, clear of the right-hand action buttons and the caption area.
 
@@ -42,4 +42,4 @@ bash scripts/build.sh                # full render -> out/crmnow-reel.mp4 + cove
                                      # python3 + numpy + scipy; ~6 min on 4 cores)
 ```
 
-All on-screen copy is plain text in the scene files. For example, the URL, the handle and the headline are in `src/scenes/endcard.js`, and the hook phrases are in `src/scenes/hook.js`.
+All on-screen copy is plain text in the scene files. For example, the offer, the URL, the handle and the headline are in `src/scenes/endcard.js`, and the hook phrases are in `src/scenes/hook.js`.
