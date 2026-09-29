@@ -479,16 +479,21 @@
  },
  {
   "t": 26.25375,
-  "type": "pill",
-  "scene": "endcard"
- },
- {
-  "t": 26.44375,
-  "type": "type",
+  "type": "offer",
   "scene": "endcard"
  },
  {
   "t": 26.71875,
+  "type": "pill",
+  "scene": "endcard"
+ },
+ {
+  "t": 26.83875,
+  "type": "type",
+  "scene": "endcard"
+ },
+ {
+  "t": 27.18375,
   "type": "rise",
   "v": 0.5,
   "scene": "endcard"
