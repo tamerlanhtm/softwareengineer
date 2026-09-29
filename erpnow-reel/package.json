@@ -1,0 +1,14 @@
+{
+  "name": "erpnow-reel",
+  "private": true,
+  "type": "module",
+  "description": "ERPNow 30s 9:16 Instagram reel - HTML motion graphics rendered frame-by-frame",
+  "scripts": {
+    "render": "node tools/render.mjs",
+    "audio": "python3 tools/audio.py",
+    "build": "bash tools/build.sh"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}
