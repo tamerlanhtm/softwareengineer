@@ -19,7 +19,17 @@ ffmpeg -y -hide_banner -loglevel error -i build/soundtrack_raw.wav \
   -af "loudnorm=I=-12:TP=-1:LRA=11:measured_I=$(get input_i):measured_TP=$(get input_tp):measured_LRA=$(get input_lra):measured_thresh=$(get input_thresh):offset=$(get target_offset):linear=true,aresample=48000" \
   -c:a pcm_s24le build/soundtrack.wav
 
-VF="scale=out_color_matrix=bt709:out_range=tv:flags=accurate_rnd+full_chroma_int,format=yuv420p,noise=c0s=2:c0f=t"
+# decaying RGB split on the three big hits (frame numbers at 30 fps), then BT.709 conversion + light dither
+CA=""
+for hit in 120 362 720; do
+  for k in 0 1 2 3; do
+    px=$(( (hit == 362 ? 6 : 10) >> k ))
+    if [ "$px" -gt 0 ]; then
+      CA="${CA}rgbashift=rh=-${px}:bh=${px}:rv=$((px / 3)):bv=-$((px / 3)):enable='eq(n,$((hit + k)))',"
+    fi
+  done
+done
+VF="${CA}scale=out_color_matrix=bt709:out_range=tv:flags=accurate_rnd+full_chroma_int,format=yuv420p,noise=c0s=2:c0f=t"
 COLOR="-colorspace bt709 -color_primaries bt709 -color_trc bt709 -color_range tv"
 X264="-c:v libx264 -preset slow -crf 16 -profile:v high -level 4.2 -g 60 -bf 2 -maxrate 24M -bufsize 36M"
 
@@ -30,7 +40,8 @@ ffmpeg -y -hide_banner -loglevel error -framerate 30 -i "$FRAMES/f_%05d.png" \
 cp build/soundtrack.wav "$OUT/psanow-soundtrack.wav"
 
 # reel cover options (1080x1920)
-cp "$FRAMES/f_00897.png" "$OUT/cover-lockup.png"
 cp "$FRAMES/f_00159.png" "$OUT/cover-logo.png"
-cp "$FRAMES/f_00480.png" "$OUT/cover-modules.png"
+cp "$FRAMES/f_00470.png" "$OUT/cover-modules.png"
+cp "$FRAMES/f_00560.png" "$OUT/cover-addons.png"
+cp "$FRAMES/f_00897.png" "$OUT/cover-lockup.png"
 ls -la "$OUT"

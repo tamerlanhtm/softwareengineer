@@ -10,7 +10,7 @@ A 30-second motion-graphics promo for **PSANow** (Professional Services Automati
 | `psanow-reel.mp4` | Final reel: 1080×1920, 30 fps, H.264 High, AAC 48 kHz, with the original soundtrack |
 | `psanow-reel-no-music.mp4` | Same cut without audio, so you can add a trending track in Instagram |
 | `psanow-soundtrack.wav` | The soundtrack on its own (24-bit, −12 LUFS) |
-| `cover-*.png` | Three cover-frame options for the Reel/grid thumbnail |
+| `cover-*.png` | Four cover-frame options for the Reel/grid thumbnail (logo, 45 modules, 0 paid add-ons, CTA) |
 | `caption.txt` | Ready-to-paste caption |
 
 ## Storyboard
