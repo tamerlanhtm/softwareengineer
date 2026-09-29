@@ -1,5 +1,6 @@
 import { el, css, icon, headline, lineIn, lineOut, chips, chipsIn, countTo, COLOR, W } from '../lib.js';
 import { T } from '../timing.js';
+import { LANG, tr } from '../i18n.js';
 import { avatar, AV_BG, tap } from '../ui.js';
 
 // 0:12–0:14  Group 4 — Staff: weekly schedule with split shifts, time off and a
@@ -31,7 +32,7 @@ export default function staff({ layers, tl, bg, hud, cue }) {
     <span class="pill dark" style="height:42px">${icon('calendar', 20, 2.4)}Schedules</span>`;
   const NAMEW = 176, GX = 26, GY = 112, ROWH = 94;
   const dayW = (SWd - GX * 2 - NAMEW) / 7;
-  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const days = LANG === 'az' ? ['B.e', 'Ç.a', 'Ç', 'C.a', 'C', 'Ş', 'B'] : ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   days.forEach((d, i) => {
     const dl = el('div', 'abs', sch, d);
     css(dl, { left: GX + NAMEW + i * dayW + 'px', width: dayW + 'px', top: GY - 4 + 'px', textAlign: 'center', font: '700 19px/1 var(--ui)', color: i === 1 ? '#FE4D1E' : 'rgba(255,255,255,0.45)' });
@@ -96,7 +97,7 @@ export default function staff({ layers, tl, bg, hud, cue }) {
   leaves.forEach((c, i) => {
     tl.to(c, { background: '#FFC3AE', boxShadow: 'inset 0 0 0 0px rgba(0,0,0,0)', duration: 0.15 }, LA + 0.36 + i * 0.05);
     tl.to(c.querySelector('.lv'), { color: '#1C1512', duration: 0.15 }, LA + 0.36 + i * 0.05);
-    tl.set(c.querySelector('.lv'), { textContent: 'Leave ✓' }, LA + 0.36 + i * 0.05);
+    tl.set(c.querySelector('.lv'), { textContent: tr('Leave ✓') }, LA + 0.36 + i * 0.05);
     tl.fromTo(c, { scale: 1 }, { keyframes: [{ scale: 1.15, duration: 0.08 }, { scale: 1, duration: 0.3, ease: 'back.out(3)' }], immediateRender: false }, LA + 0.36 + i * 0.05);
   });
   cue(LA + 0.4, 'ding', { gain: 0.4, pitch: 1.0 });

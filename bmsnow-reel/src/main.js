@@ -2,6 +2,7 @@ import { el, cues, frameHooks, blurBoost, cuts, loadIcons, cue, onFrame } from '
 import { T, DURATION } from './timing.js';
 import { buildBackground } from './bg.js';
 import { buildHud } from './hud.js';
+import { LANG, translateTree, fitHeadlines } from './i18n.js';
 import hook from './scenes/s01_hook.js';
 import logo from './scenes/s02_logo.js';
 import bookings from './scenes/s03_bookings.js';
@@ -65,6 +66,9 @@ async function init() {
     scene(ctx);
   }
   tl.set({}, {}, DURATION);
+  document.documentElement.lang = LANG; // correct casing for uppercase labels (az: i -> İ)
+  translateTree(stage);
+  fitHeadlines(stage);
 
   window.__duration = DURATION;
   window.__cues = cues.sort((a, b) => a.t - b.t);

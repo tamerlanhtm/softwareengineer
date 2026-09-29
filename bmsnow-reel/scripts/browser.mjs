@@ -16,7 +16,7 @@ export async function openComposition({ server } = {}) {
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   page.on('pageerror', (e) => console.error('[pageerror]', e.message));
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.error('[console]', m.text()); });
-  await page.goto(srv.url + 'index.html?render=1');
+  await page.goto(srv.url + 'index.html?render=1' + (process.env.LANG_REEL ? '&lang=' + process.env.LANG_REEL : ''));
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
   const cdp = await page.context().newCDPSession(page);
   const capture = async (t) => {

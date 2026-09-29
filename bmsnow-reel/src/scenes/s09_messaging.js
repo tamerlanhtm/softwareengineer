@@ -1,5 +1,6 @@
 import { el, css, icon, headline, lineIn, lineOut, chips, chipsIn, scrambleTo, COLOR, W } from '../lib.js';
 import { T } from '../timing.js';
+import { tr } from '../i18n.js';
 import { tap, checkCircle } from '../ui.js';
 
 // 0:18–0:20  Group 7 — Messaging: an email reminder template resolves its merge
@@ -98,7 +99,7 @@ export default function messaging({ layers, tl, bg, hud, cue }) {
   const RT = L + 0.9;
   const fr = logRows[3];
   tap(fr, 490, 31, tl, RT);
-  tl.set(fr.querySelector('.bdg'), { textContent: 'Sent', backgroundColor: 'rgba(254,77,30,0.16)', color: '#FF9B78' }, RT + 0.12);
+  tl.set(fr.querySelector('.bdg'), { textContent: tr('Sent'), backgroundColor: 'rgba(254,77,30,0.16)', color: '#FF9B78' }, RT + 0.12);
   tl.fromTo(fr.querySelector('.bdg'), { scale: 1 }, { keyframes: [{ scale: 1.25, duration: 0.08 }, { scale: 1, duration: 0.3, ease: 'back.out(3)' }], immediateRender: false }, RT + 0.12);
   cue(RT, 'click', { gain: 0.55 });
   cue(RT + 0.14, 'ding', { gain: 0.45, pitch: 1.25 });

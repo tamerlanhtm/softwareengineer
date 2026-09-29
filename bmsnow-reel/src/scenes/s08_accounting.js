@@ -1,5 +1,6 @@
 import { el, css, icon, headline, lineIn, lineOut, chips, chipsIn, countTo, svgEl, COLOR, W } from '../lib.js';
 import { T } from '../timing.js';
+import { tr } from '../i18n.js';
 import { checkCircle } from '../ui.js';
 
 // 0:16–0:18  Group 6 — Accounting: the sale auto-posts a balanced journal entry,
@@ -96,7 +97,7 @@ export default function accounting({ layers, tl, bg, hud, cue }) {
   const L = t0 + 0.7;
   tl.fromTo(lk, { y: 500, rotation: -8, opacity: 0 }, { y: 0, rotation: -2, opacity: 1, duration: 0.6, ease: 'expo.out' }, L);
   tl.fromTo(shackle, { y: -4.5 }, { y: 0, duration: 0.18, ease: 'power4.in' }, L + 0.5);
-  tl.set(ltxt.querySelector('.lstate'), { textContent: 'Closed & locked' }, L + 0.68);
+  tl.set(ltxt.querySelector('.lstate'), { textContent: tr('Closed & locked') }, L + 0.68);
   tl.fromTo(lk, { scale: 1 }, { keyframes: [{ scale: 0.94, duration: 0.05 }, { scale: 1.04, duration: 0.12 }, { scale: 1, duration: 0.25, ease: 'back.out(3)' }], immediateRender: false }, L + 0.66);
   cue(L, 'pop', { gain: 0.5, pitch: 0.9 });
   cue(L + 0.66, 'lock', { gain: 0.9 });

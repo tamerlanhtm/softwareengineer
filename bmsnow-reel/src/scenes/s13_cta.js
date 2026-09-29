@@ -1,5 +1,6 @@
 import { el, css, icon, COLOR, W, H, LOGO, logoCell } from '../lib.js';
 import { T } from '../timing.js';
+import { tr, LANG } from '../i18n.js';
 import { tap } from '../ui.js';
 import { CTA_LOGO, RING } from './s12_numbers.js';
 
@@ -51,7 +52,8 @@ export default function cta({ layers, tl, bg, cue }) {
 
   const now = el('div', 'abs', sec);
   css(now, { left: 0, width: W + 'px', top: '906px', textAlign: 'center', font: '900 240px/1 var(--display)', letterSpacing: '-0.065em', color: COLOR.orange, textShadow: '0 20px 80px rgba(254,77,30,0.35)' });
-  now.textContent = 'Now.';
+  now.textContent = tr('Now.');
+  if (LANG === 'az') css(now, { top: '944px', fontSize: '212px' });
   const NW = t0 + 1.0;
   tl.fromTo(now, { scale: 2.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.22, ease: 'power4.in' }, NW - 0.22);
   tl.fromTo(now, { y: 0 }, { keyframes: [{ y: 16, duration: 0.05 }, { y: -6, duration: 0.07 }, { y: 0, duration: 0.12 }], immediateRender: false }, NW);

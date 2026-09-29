@@ -1,5 +1,6 @@
 import { el, css, svgEl, rrPath, ringPath, logoCell, LOGO, COLOR, W, H, boostBlur, hardCut } from '../lib.js';
 import { T } from '../timing.js';
+import { LANG } from '../i18n.js';
 import { HOOK_SQUARE } from './s01_hook.js';
 
 // 0:02–0:04  The square explodes into the 3x3 mark, the last square punches
@@ -73,7 +74,8 @@ export default function logo({ layers, tl, bg, cue }) {
 
   const by = el('div', 'abs', cam);
   css(by, { left: 0, width: W + 'px', top: '1170px', textAlign: 'center', font: '600 34px/1 var(--ui)', letterSpacing: '0.02em', color: '#6E625C' });
-  by.innerHTML = 'by <b style="color:#1C1512;font-weight:800">ineed</b><b style="color:#FE4D1E;font-weight:800">.now</b>';
+  const brand = '<b style="color:#1C1512;font-weight:800">ineed</b><b style="color:#FE4D1E;font-weight:800">.now</b>';
+  by.innerHTML = LANG === 'az' ? `${brand} məhsulu` : `by ${brand}`;
 
 
   // ---------- timeline ----------

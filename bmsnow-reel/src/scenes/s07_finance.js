@@ -1,5 +1,6 @@
 import { el, css, icon, headline, lineIn, lineOut, chips, chipsIn, countTo, COLOR, W } from '../lib.js';
 import { T } from '../timing.js';
+import { LANG, tr } from '../i18n.js';
 import { tap, checkCircle } from '../ui.js';
 
 // 0:14–0:16  Group 5 — Finance: invoice with deposit + tip, paid by card (PAID
@@ -49,7 +50,8 @@ export default function finance({ layers, tl, bg, hud, cue }) {
     </div>`;
   const stamp = el('div', 'abs', inv);
   css(stamp, { left: '205px', top: '232px', padding: '12px 28px', border: '7px solid #FE4D1E', borderRadius: '20px', color: '#FE4D1E', font: '900 76px/1 var(--display)', letterSpacing: '0.02em', transform: 'rotate(-14deg)', opacity: 0, mixBlendMode: 'multiply', background: 'rgba(254,77,30,0.06)' });
-  stamp.textContent = 'PAID';
+  stamp.textContent = tr('PAID');
+  if (LANG === 'az') css(stamp, { fontSize: '50px', left: '150px', top: '246px' });
 
   const I = t0;
   gsap.set(inv, { transformPerspective: 2400 });

@@ -8,6 +8,7 @@ The video ends on **www.ineed.now**.
 | --- | --- |
 | `out/bmsnow-reel.mp4` | Final video: 1080×1920, 30 fps, H.264 High, AAC 48 kHz, with the synced soundtrack |
 | `out/bmsnow-reel-silent.mp4` | Same picture with no audio, for adding a track from Instagram's music library |
+| `out/bmsnow-reel-az.mp4`, `out/bmsnow-reel-az-silent.mp4`, `out/cover-az.jpg` | Azerbaijani version: same animation, timing and soundtrack |
 | `out/cover.jpg` | Cover frame (end card). It stays readable in the 3:4 profile-grid crop |
 
 ## Storyboard (120 BPM, every cut on a bar downbeat)
@@ -59,3 +60,9 @@ scripts/encode.sh                # -> out/bmsnow-reel.mp4, out/bmsnow-reel-silen
 
 For a live preview, serve the folder (for example `npx http-server .`) and open
 `index.html?play`, or `index.html?t=12.5` for a single moment.
+
+## Languages
+
+All on-screen text goes through `src/i18n.js`. Render the Azerbaijani version with
+`LANG_REEL=az node scripts/render.mjs --out out/frames_az && LANG_REEL=az scripts/encode.sh`,
+or preview it at `index.html?lang=az`. Adding a language means adding a dictionary there.

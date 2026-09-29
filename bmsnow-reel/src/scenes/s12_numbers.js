@@ -1,5 +1,6 @@
 import { el, css, COLOR, W, H, LOGO, logoCell, boostBlur } from '../lib.js';
 import { T, GROUPS, MODULES } from '../timing.js';
+import { tr } from '../i18n.js';
 
 // 0:24–0:26  The payoff numbers.
 //  - the HUD mini grid (all 9 groups lit) flies out into a big 3x3 grid with module counts
@@ -74,7 +75,7 @@ export default function numbers({ layers, tl, bg, hud, cue }) {
   // module-name wall behind the number
   const wall = el('div', 'abs', sec);
   css(wall, { left: 0, top: '430px', width: W + 'px', height: '900px', overflow: 'hidden', opacity: 0 });
-  const all = MODULES.flat();
+  const all = MODULES.flat().map(tr);
   const rowsTxt = [0, 1, 2, 3, 4, 5].map((r) => all.filter((_, i) => i % 6 === r).join('  ·  '));
   const wallRows = rowsTxt.map((txt, r) => {
     const d = el('div', 'abs', wall, (txt + '  ·  ').repeat(3));

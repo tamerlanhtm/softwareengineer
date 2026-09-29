@@ -1,5 +1,6 @@
 import { el, css, measure, COLOR } from '../lib.js';
 import { T } from '../timing.js';
+import { LANG, tr } from '../i18n.js';
 
 // 0:00–0:02  "Run a [salon? / studio? / clinic?]" slot-machine hook.
 // The orange pill then collapses into one logo square, handing off to the logo build.
@@ -13,19 +14,24 @@ export default function hook({ layers, tl, bg, cue }) {
 
   Object.assign(bg.state, { glow: 0.5, particles: 0.85, dots: 0.35, vignette: 1, orbY: 0.4 });
 
-  const FONT = '800 150px Unbounded';
+  // en: "Run a" / [salon?]   az: [Salonunuz] / "var?" (pill on the first line)
+  const AZ = LANG === 'az';
   const LS = '-0.045em';
-  const words = ['salon?', 'studio?', 'clinic?'];
-  const widths = words.map((w) => measure(w, FONT, LS));
+  const words = AZ ? ['Salonunuz', 'Studiyanız', 'Klinikanız'] : ['salon?', 'studio?', 'clinic?'];
   const PAD = 46;
   const LEFT = 96;
-  const PILL_TOP = 902;
-  const PILL_H = 204;
+  let FS = 150;
+  const maxW = Math.max(...words.map((w) => measure(w, `800 ${FS}px Unbounded`, LS)));
+  if (maxW + PAD * 2 > 1080 - LEFT * 2) FS = Math.floor((FS * (1080 - LEFT * 2 - PAD * 2)) / maxW);
+  const widths = words.map((w) => measure(w, `800 ${FS}px Unbounded`, LS));
+  const PILL_H = Math.round(FS * 1.36);
+  const PILL_TOP = AZ ? 700 : 902;
+  const L1_TOP = AZ ? PILL_TOP + PILL_H + 4 : 690;
 
   // line 1
   const l1m = el('div', 'abs clip', sec);
-  css(l1m, { left: LEFT - 10 + 'px', top: '690px', padding: '10px 20px 24px 10px' });
-  const l1 = el('div', 'display', l1m, 'Run a');
+  css(l1m, { left: LEFT - 10 + 'px', top: L1_TOP + 'px', padding: '10px 20px 24px 10px' });
+  const l1 = el('div', 'display', l1m, AZ ? 'var?' : 'Run a');
   css(l1, { fontSize: '150px', letterSpacing: LS, color: '#fff', whiteSpace: 'nowrap' });
 
   // pill
@@ -37,7 +43,7 @@ export default function hook({ layers, tl, bg, cue }) {
   });
   const wordEls = words.map((w) => {
     const s = el('div', 'display abs', pill, w);
-    css(s, { left: PAD + 'px', top: '12px', fontSize: '150px', letterSpacing: LS, color: COLOR.ink, whiteSpace: 'nowrap', lineHeight: '180px' });
+    css(s, { left: PAD + 'px', top: Math.round(FS * 0.08) + 'px', fontSize: FS + 'px', letterSpacing: LS, color: COLOR.ink, whiteSpace: 'nowrap', lineHeight: Math.round(FS * 1.2) + 'px' });
     return s;
   });
   gsap.set(wordEls, { yPercent: 115 });
@@ -45,7 +51,7 @@ export default function hook({ layers, tl, bg, cue }) {
   // small kicker above
   const kick = el('div', 'abs', sec);
   css(kick, { left: LEFT + 4 + 'px', top: '622px', font: '600 30px/1 var(--ui)', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase' });
-  kick.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#FE4D1E;margin-right:16px;vertical-align:1px"></span>Quick question';
+  kick.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#FE4D1E;margin-right:16px;vertical-align:1px"></span>' + tr('Quick question');
 
   // --- in ---
   tl.fromTo(kick, { opacity: 0.45, x: -14 }, { opacity: 1, x: 0, duration: 0.5, ease: 'expo.out' }, 0.0);

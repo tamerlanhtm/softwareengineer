@@ -1,5 +1,6 @@
 import { el, css, icon, headline, lineIn, lineOut, chips, chipsIn, COLOR, W, rrPath, svgEl } from '../lib.js';
 import { T } from '../timing.js';
+import { LANG } from '../i18n.js';
 import { phone, tap, checkCircle, avatar, AV_BG, panel } from '../ui.js';
 
 // 0:04–0:08  Group 1 — Bookings & Calendar.
@@ -135,7 +136,7 @@ export default function bookings({ layers, tl, bg, hud, cue }) {
   // (lives in stage space so it can travel between the two)
   const fly = el('div', 'abs', sec);
   css(fly, { left: 0, top: 0, width: '194px', height: '84px', borderRadius: '16px', background: '#FE4D1E', color: '#fff', padding: '10px 14px', boxShadow: '0 20px 40px -10px rgba(254,77,30,0.6)', zIndex: 6, transformOrigin: '50% 50%' });
-  fly.innerHTML = `<div style="font:800 19px/1.15 var(--ui)">Haircut & Styling</div><div style="font:600 16px/1.3 var(--ui);opacity:0.9;margin-top:3px">15:30 · Leyla M.</div>`;
+  fly.innerHTML = `<div style="font:800 ${LANG === 'az' ? 16 : 19}px/1.15 var(--ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Haircut & Styling</div><div style="font:600 16px/1.3 var(--ui);opacity:0.9;margin-top:3px">15:30 · Leyla M.</div>`;
   gsap.set(fly, { opacity: 0 });
 
   // phone in (camera arriving through the logo) and out
