@@ -1,0 +1,5 @@
+node_modules/
+out/*.mkv
+out/*.parts/
+out/.cover/
+out/render.log
