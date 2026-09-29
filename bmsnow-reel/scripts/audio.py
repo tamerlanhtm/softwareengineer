@@ -461,32 +461,60 @@ def supersaw_chord(rng, midis, length, tau, voices=7, spread=18.0, attack=0.003)
 # ----------------------------------------------------------------------------------------
 # arrangement data
 # ----------------------------------------------------------------------------------------
-#             sub midi, mid-bass midi, pad voicing (4 voices), arp root, third (3=minor)
+#   sub/mid: bass MIDI notes; pad: 4 voice-led voices; arp: arp root; third: 3 = minor; stab voicing
 CHORDS = {
-    "Fm": dict(sub=29, mid=41, pad=(53, 60, 63, 68), arp=65, third=3),   # Fm7   F C Eb Ab
-    "Db": dict(sub=37, mid=49, pad=(49, 60, 65, 68), arp=61, third=4),   # Dbmaj7
-    "Ab": dict(sub=32, mid=44, pad=(56, 60, 63, 67), arp=68, third=4),   # Abmaj7
-    "Eb": dict(sub=39, mid=51, pad=(51, 58, 65, 67), arp=63, third=4),   # Eb add9
+    "Fm": dict(sub=29, mid=41, pad=(53, 60, 63, 68), arp=65, third=3, stab=(60, 65, 68, 72, 75)),       # Fm7
+    "Db": dict(sub=37, mid=49, pad=(49, 60, 65, 68), arp=61, third=4, stab=(61, 65, 68, 72, 77)),       # Dbmaj7
+    "Ab": dict(sub=32, mid=44, pad=(56, 60, 63, 67), arp=68, third=4, stab=(56, 63, 68, 70, 72, 75)),   # Abmaj7 / add9
+    "Eb": dict(sub=39, mid=51, pad=(51, 58, 65, 67), arp=63, third=4, stab=(58, 63, 65, 67, 70)),       # Eb add9
+    "AbX": dict(sub=32, mid=44, pad=(56, 60, 63, 70), arp=68, third=4, stab=(56, 63, 68, 70, 72, 75)),  # final Ab add9
 }
-FINAL = dict(sub=32, mid=44, pad=(56, 60, 63, 70), stab=(56, 63, 68, 70, 72, 75), arp=80)  # Ab add9
-PROG = ["Eb", "Fm", "Db", "Ab", "Eb", "Fm", "Db", "Ab", "Eb", "Fm", "Db", "Eb", "Fm", "Db", "Eb"]
-SECTION = ["intro", "drop1", "A1", "A1", "A2", "A2", "B1", "B1", "B2", "B2", "C", "build", "drop2", "cta", "end"]
+# one chord per bar (i-VI-III-VII loop from the drop), then the CTA cadence: Db | Ab ("Now.") | Db Eb | Ab
+CHORD_TL = [(0.0, "Eb"), (2.0, "Fm"), (4.0, "Db"), (6.0, "Ab"), (8.0, "Eb"), (10.0, "Fm"), (12.0, "Db"),
+            (14.0, "Ab"), (16.0, "Eb"), (18.0, "Fm"), (20.0, "Db"), (22.0, "Eb"), (24.0, "Fm"), (26.0, "Db"),
+            (27.0, "Ab"), (28.0, "Db"), (28.5, "Eb"), (FINAL_T, "AbX")]
+_TL_T = np.array([c[0] for c in CHORD_TL])
 SECTIONS_REPORT = [  # (name, t0, t1) for the printed report
     ("hook", 0, 2), ("drop 1", 2, 4), ("groove A", 4, 8), ("groove A2", 8, 12), ("groove B", 12, 16),
     ("groove B2", 16, 20), ("groove C", 20, 22), ("build", 22, 24), ("drop 2", 24, 26),
-    ("CTA", 26, 28), ("end", 28, 30),
+    ("CTA", 26, 27), ("end card", 27, 29), ("final", 29, 30),
 ]
 ARP_A = ["R", "5", "8", "R", "5", "8", "R", "5", "8", "R", "5", "8", "T", "8", "5", "8"]
 ARP_B = ["8", "T", "12", "8", "T", "12", "8", "T", "12", "8", "T", "12", "15", "12", "T", "12"]
-GAP = (23.935, 23.995)  # music breath right before drop 2
+GAPS = [(23.935, 23.995), (26.94, 26.995)]   # music "breaths" right before drop 2 and the "Now." slam
+
+# ---- drum schedule (seconds). Exposed in metrics.json so visuals can pulse with the kick. ----
+KICKS = ([0.0, 0.5, 1.0]                              # hook: low-passed kick, none on 1.5 (riser)
+         + [2.0 + 0.5 * i for i in range(40)]          # 2.0 .. 21.5 four-on-the-floor
+         + [22.0, 22.5, 23.0]                          # build: kick drops out 23.0-24.0 (roll + riser)
+         + [24.0, 24.5, 24.96, 25.5]                   # drop 2: third kick rides the 24.96 slam
+         + [26.0, 26.5, 27.0, 27.5, 28.0, 28.5, FINAL_T])  # CTA / end card / final hit, nothing after 29.0
+CLAPS = [b * BAR + o for b in range(1, 11) for o in (0.5, 1.5)] + [24.5, 25.5, 26.5, 27.5, 28.5]
+CRASHES = [(2.0, 1.0), (12.0, 0.35), (16.0, 0.35), (20.0, 0.35), (24.0, 1.0), (24.96, 0.8), (27.0, 1.0)]
+STABS = [(2.0, "Fm", 1.0, 0.22, 0.9), (24.0, "Fm", 1.0, 0.2, 0.5), (24.5, "Fm", 0.85, 0.2, 0.46),
+         (24.96, "Fm", 1.0, 0.24, 0.6), (25.75, "Fm", 0.5, 0.09, 0.25), (26.0, "Db", 0.75, 0.22, 0.9),
+         (27.0, "Ab", 1.0, 0.3, 1.0), (28.0, "Db", 0.45, 0.1, 0.3), (28.5, "Eb", 0.5, 0.1, 0.3)]
+MIX = dict(kick=0.82, intro=0.75, perc=2.2, hats=2.5, cym=1.3, room=0.3, bass=1.2, pad=0.26, arp=0.36,
+           stabs=0.63, hall=0.47, fx=0.5, final=0.6, final_verb=0.12)
 
 
 def arp_offset(tok, third):
     return {"R": 0, "5": 7, "8": 12, "T": 12 + third, "12": 19, "15": 24}[tok]
 
 
-def bar_of(t):
-    return min(int(t // BAR), N_BARS - 1)
+def chord_at(t):
+    return CHORDS[CHORD_TL[int(np.searchsorted(_TL_T, t + 1e-9, side="right")) - 1][1]]
+
+
+def chord_track(key, j=None):
+    """Per-sample MIDI note of chord field `key` (voice j for the pad) following CHORD_TL."""
+    idx = np.searchsorted(_TL_T, np.arange(N) / SR + 1e-9, side="right") - 1
+    vals = np.array([CHORDS[name][key] if j is None else CHORDS[name][key][j] for _, name in CHORD_TL], float)
+    return vals[idx]
+
+
+def in_gap(t):
+    return any(a - 0.001 <= t < b for a, b in GAPS)
 
 
 def sidechain(kick_times, depth, release=0.13, hold=0.012, length=0.42):
@@ -501,22 +529,31 @@ def sidechain(kick_times, depth, release=0.13, hold=0.012, length=0.42):
     return 1.0 - depth * np.minimum(g, 1.0)
 
 
+def haas_pan(x, p, delay_ms):
+    """Pan plus a small inter-channel delay on the far side (Haas widening)."""
+    y = pan(x, p)
+    d = S(delay_ms / 1000.0)
+    if d > 0 and p != 0:
+        ch = 1 if p < 0 else 0
+        y[:, ch] = np.concatenate([np.zeros(d), y[:-d, ch]])
+    return y
+
+
 def render_music(verbose=False):
     """Returns (music (N,2) normalised to MUSIC_REF_LUFS, info dict)."""
     t_all = np.arange(N) / SR
-    bar_idx = np.minimum((np.arange(N) // S(BAR)), N_BARS - 1)
     iF = S(FINAL_T)
 
     # ---------------- drums ----------------
     kick = kick_sample(rng_for("kick"))
-    kick_final = kick_sample(rng_for("kick-final"), f0=175.0, tau=0.32, length=1.0, drive=2.0)
+    kick_final = kick_sample(rng_for("kick-final"), f0=175.0, tau=0.2, length=0.8, drive=2.0)
     clap = clap_sample(rng_for("clap"))
     snare = snare_sample(rng_for("snare"))
     roll_snares = [snare_sample(rng_for("roll", i), tune=1.0 + 0.05 * i, ntau=0.09) for i in range(8)]
     hats = [hat_sample(rng_for("hat", i), tau=0.028 + 0.005 * i) for i in range(4)]
     ohats = [hat_sample(rng_for("ohat", i), tau=0.085, length=0.34) for i in range(2)]
     crash = crash_sample(rng_for("crash"))
-    crash_final = crash_sample(rng_for("crash-final"), tau=0.3, length=1.0)
+    crash_final = crash_sample(rng_for("crash-final"), tau=0.2, length=0.8)
     toms = {k: tom_sample(rng_for("tom", k), f) for k, f in (("hi", 196.0), ("mid", 147.0), ("lo", 110.0))}
     shakers = [shaker_sample(rng_for("shaker", i)) for i in range(3)]
     hrng = rng_for("humanize")
@@ -528,97 +565,78 @@ def render_music(verbose=False):
     cym_bus = np.zeros((N, 2))
     room_send = np.zeros(N)
 
-    kick_times = []
-    for bar in range(N_BARS):
-        sec = SECTION[bar]
-        beats = (0, 1, 2) if sec == "intro" else (0, 1) if sec == "end" else (0, 1, 2, 3)
-        for b in beats:
-            tk = bar * BAR + b * BEAT
-            kick_times.append(tk)
-            add_at(intro_bus if sec == "intro" else kick_bus, st(kick), S(tk), 1.0)
+    for tk in KICKS[:-1]:
+        add_at(intro_bus if tk < BAR else kick_bus, st(kick), S(tk), 1.0)
     add_at(kick_bus, st(kick_final), iF, 1.05)
-    kick_times.append(FINAL_T)
 
     def perc_hit(sample, t, g, p=0.0, send=0.9):
         add_at(perc, pan(sample, p), S(t), g)
         add_at(room_send, sample, S(t), g * send)
 
-    for bar in range(N_BARS):
-        sec = SECTION[bar]
-        if sec in ("intro", "build"):
-            continue
-        v = 1.0 if sec in ("drop1", "drop2") else 0.92
-        for b in ((1,) if sec == "end" else (1, 3)):
-            t = bar * BAR + b * BEAT
-            perc_hit(clap, t, 0.62 * v, 0.0)
-            perc_hit(snare, t, 0.3 * v, 0.0)
+    for t in CLAPS:
+        v = 1.0 if (BAR <= t < 2 * BAR or 24.0 <= t < 26.0) else 0.92
+        perc_hit(clap, t, 0.62 * v)
+        perc_hit(snare, t, 0.3 * v)
 
-    # 16th hats with a humanised velocity groove, slight swing; open hats on the "and" when busy
-    busy = {"A2", "B1", "B2", "C", "drop2", "cta", "end"}
-    for bar in range(N_BARS):
-        sec = SECTION[bar]
-        if sec == "intro":
+    # 16th hats, humanised velocity groove + light swing; open hats on the "and" when busy
+    for s in range(int(BAR / STEP), int(FINAL_T / STEP)):
+        t = s * STEP
+        if 23.0 <= t < 24.0 or in_gap(t):
             continue
-        for s in range(16):
-            if sec in ("build", "end") and s >= 8:
-                break
-            pos = s % 4
-            t = bar * BAR + s * STEP
-            if sec in busy and pos == 2:
-                add_at(hat_bus, pan(ohats[s // 4 % 2], -0.18), S(t + hrng.normal(0, 0.001)), 0.2 * (1 + 0.05 * hrng.standard_normal()))
-                continue
-            vel = (0.8, 0.42, 0.95, 0.55)[pos] * (1.0 + 0.08 * hrng.standard_normal()) * (1.0 + 0.06 * math.sin(2 * math.pi * s / 16))
-            if sec == "build":
-                vel *= 1.0 - s / 11.0
-            dt = (0.006 if pos in (1, 3) else 0.0) + hrng.normal(0, 0.0012)
-            add_at(hat_bus, pan(hats[(s + bar) % 4], 0.16), S(t + dt), 0.22 * vel)
-    for bar in range(N_BARS):
-        sec = SECTION[bar]
-        if sec not in ("B1", "B2", "C", "drop2", "cta", "end"):
+        pos = s % 4
+        busy = 8.0 <= t < 22.0 or 24.0 <= t < FINAL_T
+        if busy and pos == 2:
+            add_at(hat_bus, pan(ohats[(s // 4) % 2], -0.3), S(t + hrng.normal(0, 0.001)), 0.2 * (1 + 0.05 * hrng.standard_normal()))
             continue
-        for s in range(8 if sec == "end" else 16):
-            vel = (0.35, 0.62, 0.42, 0.72)[s % 4] * (1.0 + 0.1 * hrng.standard_normal())
-            add_at(hat_bus, pan(shakers[s % 3], 0.4), S(bar * BAR + s * STEP + 0.004 * (s % 2) + hrng.normal(0, 0.0015)), 0.13 * vel)
+        vel = (0.8, 0.42, 0.95, 0.55)[pos] * (1.0 + 0.08 * hrng.standard_normal()) * (1.0 + 0.06 * math.sin(2 * math.pi * s / 16))
+        if 22.0 <= t < 23.0:
+            vel *= 1.0 - (t - 22.0) * 0.8
+        dt = (0.006 if pos in (1, 3) else 0.0) + hrng.normal(0, 0.0012)
+        add_at(hat_bus, pan(hats[s % 4], 0.25 if s % 2 else 0.12), S(t + dt), 0.22 * vel)
+    for s in range(int(12.0 / STEP), int(FINAL_T / STEP)):
+        t = s * STEP
+        if 22.0 <= t < 24.0 or in_gap(t):
+            continue
+        vel = (0.35, 0.62, 0.42, 0.72)[s % 4] * (1.0 + 0.1 * hrng.standard_normal())
+        add_at(hat_bus, pan(shakers[s % 3], 0.45), S(t + 0.004 * (s % 2) + hrng.normal(0, 0.0015)), 0.13 * vel)
 
-    for t, g, smp in ((2.0, 1.0, crash), (24.0, 1.0, crash), (12.0, 0.4, crash), (16.0, 0.4, crash),
-                      (20.0, 0.4, crash), (26.0, 0.45, crash), (FINAL_T, 0.9, crash_final)):
-        add_at(cym_bus, smp, S(t), 0.3 * g)
+    for t, g in CRASHES:
+        add_at(cym_bus, crash, S(t), 0.3 * g)
+    add_at(cym_bus, crash_final, iF, 0.27)
 
-    # fills at phrase ends (12, 16, 20) and into the final hit
+    # fills at phrase ends (12, 16, 20), pickups into the "Now." slam and the final hit
     for k in range(1, 4):
         perc_hit(snare, 11.5 + k * STEP, 0.26 + 0.07 * k, 0.1 * (k - 2))
     for (t, tom, p) in ((15.5, "hi", 0.35), (15.625, "hi", 0.3), (15.75, "mid", 0.0), (15.875, "lo", -0.35)):
         perc_hit(toms[tom], t, 0.5, p, send=1.0)
     for k in range(6):
-        perc_hit(roll_snares[min(k, 7)], 19.625 + k * STEP / 2, 0.2 + 0.05 * k, 0.0)
-    for k in range(4):
-        perc_hit(roll_snares[k + 2], 28.5 + k * STEP, 0.3 + 0.08 * k, 0.0)
+        perc_hit(roll_snares[k], 19.625 + k * STEP / 2, 0.2 + 0.05 * k)
+    for k, t in enumerate((26.75, 26.875)):
+        perc_hit(roll_snares[3 + 2 * k], t, 0.32 + 0.12 * k)
+    for k, t in enumerate((28.625, 28.75, 28.875)):
+        perc_hit(roll_snares[k + 3], t, 0.3 + 0.08 * k)
     perc_hit(toms["lo"], 28.875, 0.35, -0.2, send=1.0)
 
     # build: 8ths -> 16ths -> 32nds snare roll, rising pitch and level
     roll_t = [22.0 + i * 0.25 for i in range(4)] + [23.0 + i * STEP for i in range(4)] + [23.5 + i * STEP / 2 for i in range(7)]
     for i, t in enumerate(roll_t):
         x = i / (len(roll_t) - 1)
-        smp = roll_snares[min(7, int(x * 7.99))]
-        perc_hit(smp, t, 0.2 + 0.32 * x ** 1.3, 0.0, send=1.1)
+        perc_hit(roll_snares[min(7, int(x * 7.99))], t, 0.28 + 0.6 * x ** 1.2, 0.0, send=1.1)
         if i >= 8:
-            perc_hit(clap, t, 0.12 + 0.15 * x, 0.0, send=0.5)
+            perc_hit(clap, t, 0.15 + 0.3 * x, 0.0, send=0.5)
 
     intro_bus = lpf(intro_bus, 320.0, order=2)
     room = convolve_stereo(room_send, get_ir("room"))
-    drums = kick_bus * 0.92 + intro_bus * 0.9 + perc + hat_bus + cym_bus + room * 0.22
+    drums = (kick_bus * MIX["kick"] + intro_bus * MIX["intro"] + perc * MIX["perc"] + hat_bus * MIX["hats"]
+             + cym_bus * MIX["cym"] + room * MIX["room"])
 
     # ---------------- bass: mono sub + saturated mid layer, both sidechained ----------------
-    sub_m = np.array([CHORDS[c]["sub"] for c in PROG], float)[bar_idx]
-    sub_m[iF:] = FINAL["sub"]
-    sub = np.sin(2 * np.pi * phase_of(glide(mtof(sub_m), 0.008)))
+    sub = np.sin(2 * np.pi * phase_of(glide(mtof(chord_track("sub")), 0.008)))
     sub_amp = automation([(0, 0), (BAR - 0.004, 0), (BAR, 1), (22.8, 1), (23.0, 0), (24.0 - 0.004, 0), (24.0, 1), (DURATION, 1)])
-    sub_amp[iF:] *= np.exp(-(t_all[iF:] - FINAL_T) / 0.4)
-    sub *= sub_amp * sidechain(kick_times, 0.82, release=0.12)
+    sub_amp[iF:] *= np.exp(-(t_all[iF:] - FINAL_T) / 0.25)
+    sub *= sub_amp * sidechain(KICKS, 0.82, release=0.12)
 
-    mid_m = np.array([CHORDS[c]["mid"] for c in PROG], float)[bar_idx]
-    mid_m[iF:] = FINAL["mid"]
-    fm = glide(mtof(mid_m), 0.004)
+    fm = glide(mtof(chord_track("mid")), 0.004)
     osc = 0.6 * saw(fm, 0.1) + 0.4 * saw(fm * 1.0045, 0.6)
     dark, bright = lpf(osc, 650.0), lpf(osc, 2600.0)
     gate, gate_fast = np.zeros(N), np.zeros(N)
@@ -631,84 +649,81 @@ def render_music(verbose=False):
         add_at(gate, e, S(t0), vel)
         add_at(gate_fast, e * np.exp(-t / 0.045), S(t0), vel)
 
-    for bar in range(N_BARS):
-        sec = SECTION[bar]
-        if sec == "intro":
-            continue
-        if sec in ("B1", "B2", "drop2", "cta"):
-            notes = [(s, 0.8, 1.0 if s % 4 == 2 else 0.72) for s in range(16) if s % 4]
-        elif sec in ("build", "end"):
-            notes = [(2, 1.5, 1.0), (6, 1.5, 1.0)]
-        else:
-            notes = [(s, 1.5, 1.0) for s in (2, 6, 10, 14)]
-        for s, ln, v in notes:
-            bass_note(bar * BAR + s * STEP, ln * STEP, v)
-    bass_note(FINAL_T, 0.9, 1.0, tau=0.3, floor=0.0)
+    def bass_steps(t0, t1, positions, length):
+        for s in range(int(round(t0 / STEP)), int(round(t1 / STEP))):
+            if s % 4 in positions and not in_gap(s * STEP):
+                bass_note(s * STEP, length * STEP, 1.0 if s % 4 == 2 else 0.72)
+
+    off8, roll = (2,), (1, 2, 3)
+    bass_steps(2.0, 12.0, off8, 1.5)
+    bass_steps(12.0, 20.0, roll, 0.8)
+    bass_steps(20.0, 23.0, off8, 1.5)
+    for t, ln in ((24.0, 0.42), (24.5, 0.42), (24.96, 0.1)):
+        bass_note(t, ln, 1.0)
+    bass_steps(25.0, FINAL_T, roll, 0.8)
+    bass_note(FINAL_T, 0.6, 1.0, tau=0.2, floor=0.0)
     mid = dark * gate + 0.55 * bright * gate_fast
     mid = np.tanh(1.8 * mid) / np.tanh(1.8)
-    mid = lpf(hpf(mid, 75.0), 4200.0) * sidechain(kick_times, 0.55, release=0.1)
+    mid = lpf(hpf(mid, 75.0), 4200.0) * sidechain(KICKS, 0.55, release=0.1)
     bass = st(0.5 * sub + 0.2 * mid)
 
-    # ---------------- pad: 4 voices x 5 detuned saws, voice-led, glides between chords -----
+    # ---------------- pad: 4 voices x 5 detuned saws, voice-led, glides, Haas-widened --------
     prng = rng_for("pad")
     pad = np.zeros((N, 2))
     for j in range(4):
-        vm = np.array([CHORDS[c]["pad"][j] for c in PROG], float)[bar_idx]
-        vm[iF:] = FINAL["pad"][j]
-        f = glide(mtof(vm), 0.02)
-        for d, p in zip((-11, -5, 0, 5, 11), (-0.75, -0.35, 0.0, 0.35, 0.75)):
-            pad += pan(saw(f * 2.0 ** (d / 1200.0), prng.uniform()), p) * 0.2
+        f = glide(mtof(chord_track("pad", j)), 0.02)
+        for d, p, hz in zip((-11, -5, 0, 5, 11), (-0.9, -0.45, 0.0, 0.45, 0.9), (13, 7, 0, 9, 15)):
+            pad += haas_pan(saw(f * 2.0 ** (d / 1200.0), prng.uniform()), p, hz) * 0.2
     pad = lpf(pad, 6000.0)
     pad = tv_filter(pad, curve([(0, 450), (1.95, 1600), (2.0, 3500), (3.99, 3500), (4.0, 2200), (11.99, 2200), (12.0, 2800),
                                 (19.99, 2800), (20.0, 2400), (22.0, 1300), (23.93, 8000), (24.0, 5000), (25.99, 5000),
                                 (26.0, 4000), (29.0, 4000), (30.0, 2200)]), "lp", order=2)
-    pad_amp = automation([(0, 0.0), (0.3, 0.45), (1.95, 0.75), (2.0, 1.0), (3.99, 1.0), (4.0, 0.72), (11.99, 0.72), (12.0, 0.8),
-                          (22.0, 0.8), (23.93, 1.05), (24.0, 1.0), (25.99, 1.0), (26.0, 0.9), (DURATION, 0.9)])
-    pad_amp[iF:] *= np.exp(-(t_all[iF:] - FINAL_T) / 0.35)
-    pad *= (pad_amp * sidechain(kick_times, 0.45, release=0.16))[:, None]
+    pad_amp = automation([(0, 0.0), (0.3, 0.45), (1.95, 0.8), (2.0, 1.0), (3.99, 1.0), (4.0, 0.72), (11.99, 0.72), (12.0, 0.8),
+                          (22.0, 0.8), (23.93, 1.1), (24.0, 1.0), (25.99, 1.0), (26.0, 0.9), (DURATION, 0.9)])
+    pad_amp[iF:] *= np.exp(-(t_all[iF:] - FINAL_T) / 0.3)
+    pad *= (pad_amp * sidechain(KICKS, 0.45, release=0.16))[:, None]
 
     # ---------------- pluck arp (16ths), ping-pong delay ----------------
     arng = rng_for("arp")
     arp = np.zeros((N, 2))
-    lvl = {"intro": 0.55, "drop1": 0.9, "A1": 0.8, "A2": 0.85, "B1": 0.85, "B2": 0.9, "C": 0.85,
-           "build": 0.9, "drop2": 1.0, "cta": 0.9, "end": 0.9}
-    for bar in range(N_BARS):
-        sec, ch = SECTION[bar], CHORDS[PROG[bar]]
-        pat = ARP_B if sec in ("B1", "B2", "drop2") else ARP_A
-        steps = range(0, 16, 2) if sec == "intro" else range(8) if sec == "end" else range(16)
-        for s in steps:
-            midi = ch["arp"] + arp_offset(pat[s], ch["third"])
-            note = pluck(midi, 0.34 if pat is ARP_B else 0.42)
-            vel = (1.0, 0.62, 0.78, 0.62)[s % 4] * lvl[sec] * (1.0 + 0.05 * arng.standard_normal())
-            add_at(arp, pan(note, 0.22 if s % 2 else -0.22), S(bar * BAR + s * STEP), vel)
-            if sec == "drop2":  # octave doubling for the biggest section
-                add_at(arp, pan(pluck(midi - 12, 0.3), -0.1), S(bar * BAR + s * STEP), 0.35 * vel)
-    add_at(arp, st(pluck(FINAL["arp"], 1.0, bright=0.8)), iF, 0.9)
-    add_at(arp, st(pluck(FINAL["arp"] - 5, 1.0, bright=0.8)), iF, 0.6)
+    for s in range(int(FINAL_T / STEP)):
+        t = s * STEP
+        if (t < BAR and s % 2) or in_gap(t):
+            continue   # hook: 8th-note teaser
+        ch = chord_at(t)
+        pat = ARP_B if (12.0 <= t < 20.0 or 24.0 <= t < 26.0) else ARP_A
+        midi = ch["arp"] + arp_offset(pat[s % 16], ch["third"])
+        lvl = 0.55 if t < BAR else 1.0 if 24.0 <= t < 26.0 else 0.9 if t < 4.0 or t >= 22.0 else 0.85
+        vel = (1.0, 0.62, 0.78, 0.62)[s % 4] * lvl * (1.0 + 0.05 * arng.standard_normal())
+        add_at(arp, pan(pluck(midi, 0.34 if pat is ARP_B else 0.42), 0.35 if s % 2 else -0.35), S(t), vel)
+        if 24.0 <= t < 26.0:  # octave doubling for the biggest section
+            add_at(arp, pan(pluck(midi - 12, 0.3), -0.1), S(t), 0.35 * vel)
     arp = tv_filter(arp, curve([(0, 900), (1.95, 4200), (2.0, 7000), (21.99, 7000), (22.0, 1800), (23.93, 11000),
                                 (24.0, 8000), (DURATION, 8000)]), "lp", order=2)
     delay_src = hpf(lpf(0.5 * (arp[:, 0] + arp[:, 1]), 4500.0), 350.0)
     delay = np.zeros((N, 2))
     for k in range(1, 5):  # dotted-8th ping-pong
-        add_at(delay[:, (k - 1) % 2], delay_src, S(0.375 * k), 0.36 ** k)
-    arp = (arp + delay) * sidechain(kick_times, 0.3, release=0.1)[:, None]
+        add_at(delay[:, (k - 1) % 2], delay_src, S(0.375 * k), 0.42 * 0.4 ** (k - 1))
+    delay[iF:] *= np.exp(-(t_all[iF:] - FINAL_T) / 0.15)[:, None]
+    arp = (arp + delay) * sidechain(KICKS, 0.3, release=0.1)[:, None]
+    arp_final = np.zeros((N, 2))  # the last pluck rings dry (no echoes after the final hit)
+    add_at(arp_final, pan(pluck(80, 0.9, bright=0.8), 0.15), iF, 0.9)
+    add_at(arp_final, pan(pluck(75, 0.9, bright=0.8), -0.15), iF, 0.6)
 
     # ---------------- supersaw stabs ----------------
     srng = rng_for("stabs")
     stabs = np.zeros((N, 2))
-    fm_st = (60, 65, 68, 72, 75)
-    db_st = (61, 65, 68, 72, 77)
-    for t, v, ch, tau, ln in ((2.0, 1.0, fm_st, 0.22, 0.9), (24.0, 1.0, fm_st, 0.2, 0.5), (24.5, 0.85, fm_st, 0.2, 0.5),
-                              (25.0, 1.0, fm_st, 0.2, 0.5), (25.75, 0.55, fm_st, 0.09, 0.25), (26.0, 0.8, db_st, 0.25, 0.9)):
-        add_at(stabs, supersaw_chord(srng, ch, ln, tau), S(t), v)
-    final_stab = supersaw_chord(srng, FINAL["stab"], DURATION - FINAL_T, 0.42, attack=0.004)
-    add_at(stabs, final_stab, iF, 1.0)
+    for t, name, v, tau, ln in STABS:
+        add_at(stabs, supersaw_chord(srng, CHORDS[name]["stab"], ln, tau), S(t), v)
     stabs = lpf(hpf(stabs, 180.0), 6000.0)
+    final = np.zeros((N, 2))
+    add_at(final, supersaw_chord(srng, CHORDS["AbX"]["stab"], DURATION - FINAL_T, 0.25, attack=0.004), iF)
+    final = lpf(hpf(final, 180.0), 6000.0)
 
     # ---------------- music FX: build riser + reverse cymbal into the final hit -------------
     frng = rng_for("musicfx")
     fx = np.zeros((N, 2))
-    r0, r1 = 22.0, GAP[0]
+    r0, r1 = 22.0, GAPS[0][0]
     n = S(r1) - S(r0)
     x = np.linspace(0.0, 1.0, n)
     nz = tv_filter(stereo_noise(frng, n, 0.4), 500.0 * (14.0 ** x), "bp", q=1.4, order=1, nper=1024)
@@ -719,31 +734,36 @@ def render_music(verbose=False):
     rv = crash_sample(frng, tau=0.2, length=0.5)[::-1].copy()
     add_at(fx, fade_tail(fade_head(rv, 0.05), 0.004), iF - rv.shape[0], 0.35)
 
-    # ---------------- build: tonal high-pass sweep, then mix ----------------
-    tonal = bass + pad * 0.15 + arp * 0.2
-    tonal = tv_filter(tonal, curve([(0, 18), (22.0, 18), (GAP[0], 650), (23.999, 650), (24.0, 18), (DURATION, 18)]), "hp", order=2)
-    hall_send = pad * 0.15 * 0.25 + arp * 0.2 * 0.3 + stabs * 0.45 + st(room_send) * 0.0
-    hall = convolve_stereo(hall_send, get_ir("hall"))
-    fin = np.zeros((N, 2))
-    add_at(fin, convolve_stereo(final_stab * 0.5, get_ir("final")), iF)
+    # ---------------- build: tonal high-pass sweep, reverbs, mix ----------------
+    tonal = bass * MIX["bass"] + pad * MIX["pad"] + arp * MIX["arp"]
+    tonal = tv_filter(tonal, curve([(0, 18), (22.0, 18), (GAPS[0][0], 650), (23.999, 650), (24.0, 18), (DURATION, 18)]), "hp", order=2)
+    hall = convolve_stereo(pad * MIX["pad"] * 0.25 + arp * MIX["arp"] * 0.3 + stabs * MIX["stabs"] * 0.45, get_ir("hall"))
+    fin_verb = convolve_stereo(final, get_ir("final"))
 
-    dry = drums + tonal + stabs * 0.3 + fx * 0.1
-    gap = automation([(0, 1), (GAP[0] - 0.004, 1), (GAP[0], 0), (GAP[1], 0), (GAP[1] + 0.004, 1), (DURATION, 1)])
-    dry *= gap[:, None]
-    music = dry + hall * 0.35 + fin * 0.1
-    sect_db = automation([(0, -3.0), (1.99, -3.0), (2.0, 0.5), (3.99, 0.5), (4.0, -1.0), (11.99, -1.0), (12.0, -0.5), (21.99, -0.5),
-                          (22.0, -2.0), (23.99, 0.0), (24.0, 1.0), (25.99, 1.0), (26.0, 0.0), (DURATION, 0.0)])
+    dry = drums + tonal + stabs * MIX["stabs"] + fx * MIX["fx"] + arp_final * MIX["arp"] + final * MIX["final"]
+    gap_pts = [(0.0, 1.0)]
+    for a, b in GAPS:
+        gap_pts += [(a - 0.004, 1.0), (a, 0.0), (b, 0.0), (b + 0.004, 1.0)]
+    dry *= automation(gap_pts + [(DURATION, 1.0)])[:, None]
+    music = dry + hall * MIX["hall"] + fin_verb * MIX["final_verb"]
+    sect_db = automation([(0, -5.0), (1.99, -5.0), (2.0, 0.5), (3.99, 0.5), (4.0, -1.0), (11.99, -1.0), (12.0, -0.5),
+                          (21.99, -0.5), (22.0, -2.5), (23.93, 1.0), (24.0, 1.5), (25.99, 1.5), (26.0, 0.0), (26.94, 0.0),
+                          (27.0, 0.5), (DURATION, 0.5)])
     music *= db(sect_db)[:, None]
+    music = lpf(music, 17000.0)
     g = db(MUSIC_REF_LUFS - integrated_lufs(music))
     music *= g
-    info = dict(kick_times=kick_times, norm_gain_db=float(lin2db(g)))
+    info = dict(norm_gain_db=float(lin2db(g)))
     if verbose:
-        parts = dict(kick=kick_bus * 0.92 + intro_bus * 0.9, perc=perc + room * 0.22, hats=hat_bus, cymbals=cym_bus,
-                     bass=bass, pad=pad * 0.15, arp=arp * 0.2, stabs=stabs * 0.3, hall=hall * 0.35, fx=fx * 0.1)
-        print("  music parts (LUFS, section 24-26 / whole, after normalisation):")
+        sd = (g * db(sect_db))[:, None]
+        parts = dict(kick=kick_bus * MIX["kick"] + intro_bus * MIX["intro"], perc=perc * MIX["perc"] + room * MIX["room"],
+                     hats=hat_bus * MIX["hats"], cymbals=cym_bus * MIX["cym"], bass=bass * MIX["bass"], pad=pad * MIX["pad"],
+                     arp=arp * MIX["arp"], stabs=stabs * MIX["stabs"], hall=hall * MIX["hall"], fx=fx * MIX["fx"])
+        print("  music parts, LUFS in drop 2 (24-26) / groove (12-16) / whole, after normalisation; corr in drop 2:")
         for k, v in parts.items():
-            v = v * g * db(sect_db)[:, None]
-            print(f"    {k:8s} {integrated_lufs(v[S(24):S(26)]):7.1f} / {integrated_lufs(v):7.1f}")
+            v = v * sd
+            print(f"    {k:8s} {integrated_lufs(v[S(24):S(26)]):7.1f} {integrated_lufs(v[S(12):S(16)]):7.1f} "
+                  f"{integrated_lufs(v):7.1f}   corr {correlation(v[S(24):S(26)]):5.2f}")
     return music, info
 
 
@@ -810,12 +830,14 @@ def g_pop(rng, p, dur, n_len):
 
 
 def g_tick(rng, p, dur, n_len):
-    n = S(0.035)
+    """<40 ms glassy sparkle: two inharmonic sine partials + a tiny noise click."""
+    n = S(0.032)
     t = tv(n)
-    y = 0.7 * np.sin(2 * np.pi * 3400.0 * p * t) * np.exp(-t / 0.0035)
-    y += 0.45 * norm(hpf(rng.standard_normal(n), 4500.0)) * np.exp(-t / 0.0012)
-    y *= np.clip(t / 0.0002, 0, 1)
-    return st(fade_tail(lpf(y, 15000.0), 0.006))
+    f = 3400.0 * p
+    y = 0.7 * np.sin(2 * np.pi * f * t) * np.exp(-t / 0.0035) + 0.25 * np.sin(2 * np.pi * f * 2.76 * t) * np.exp(-t / 0.0018)
+    y += 0.25 * norm(hpf(rng.standard_normal(n), 5000.0)) * np.exp(-t / 0.0008)
+    y *= np.clip(t / 0.0003, 0, 1)
+    return pan(fade_tail(lpf(y, 15000.0), 0.006), rng.uniform(-0.25, 0.25))
 
 
 def _click(rng, n, t0, p, g):
@@ -846,7 +868,7 @@ def _swoosh(rng, n, dur, p, f_lo, f_hi, peak_at, q, pan_w, rumble, corr=0.6):
     if rumble:
         y += st(norm(lpf(rng.standard_normal(n), 180.0)) * env) * rumble
     y += norm(hpf(stereo_noise(rng, n, 0.3), 6000.0)) * (env ** 2)[:, None] * 0.12
-    pp = np.clip(-pan_w + 2 * pan_w * x, -pan_w, pan_w)
+    pp = np.clip(-pan_w + 2 * pan_w * x, -abs(pan_w), abs(pan_w))   # pan_w < 0 sweeps right-to-left
     a = (pp + 1.0) * (np.pi / 4.0)
     y = y * np.stack([np.cos(a), np.sin(a)], axis=1) * math.sqrt(2.0)
     return fade_tail(fade_head(y, 0.003), 0.01)
@@ -855,13 +877,18 @@ def _swoosh(rng, n, dur, p, f_lo, f_hi, peak_at, q, pan_w, rumble, corr=0.6):
 def g_swish(rng, p, dur, n_len):
     d = dur or 0.22
     n = S(d + 0.03)
-    return _swoosh(rng, n, d, p, 900.0, 6000.0, 0.42, 1.3, 0.3, 0.0)
+    v = rng.uniform(0.88, 1.14)  # seeded per-cue variation
+    return _swoosh(rng, n, d, p * v, 900.0, 6000.0 * rng.uniform(0.85, 1.15), rng.uniform(0.36, 0.48),
+                   rng.uniform(1.1, 1.5), 0.3 * rng.choice([-1.0, 1.0]), 0.0)
 
 
 def g_whoosh(rng, p, dur, n_len):
     d = dur or 0.5
     n = (n_len or S(d)) + S(0.12)
-    return _swoosh(rng, n, d, p, 250.0, 3200.0, 0.72, 0.8, 0.55, 0.55)
+    # seeded per-cue variation so the ~20 scene whooshes never sound copy-pasted
+    v = rng.uniform(0.85, 1.18)
+    return _swoosh(rng, n, d, p * v, 250.0 * rng.uniform(0.8, 1.25), 3200.0 * rng.uniform(0.8, 1.25),
+                   rng.uniform(0.66, 0.78), rng.uniform(0.7, 1.0), 0.55 * rng.choice([-1.0, 1.0]), rng.uniform(0.4, 0.65))
 
 
 def g_riser(rng, p, dur, n_len):
@@ -1025,21 +1052,21 @@ SFX = {
     "impact":  (g_impact,  -3.0, 0.00, (4.0, 0.15, 0.45), False),
     "burst":   (g_burst,   -9.0, 0.25, (2.0, 0.10, 0.30), False),
     "thump":   (g_thump,   -8.0, 0.05, None, False),
-    "pop":     (g_pop,    -11.0, 0.12, None, False),
+    "pop":     (g_pop,    -10.0, 0.12, None, False),
     "tick":    (g_tick,   -14.0, 0.06, None, False),
-    "click":   (g_click,  -12.0, 0.05, None, False),
-    "swish":   (g_swish,  -13.0, 0.10, None, False),
+    "click":   (g_click,  -10.0, 0.05, None, False),
+    "swish":   (g_swish,  -11.0, 0.10, None, False),
     "whoosh":  (g_whoosh, -10.0, 0.12, (3.0, 0.0, 0.20), True),
     "riser":   (g_riser,   -9.0, 0.10, (1.5, 0.0, 0.10), True),
-    "ding":    (g_ding,   -13.0, 0.35, None, False),
-    "type":    (g_type,   -15.0, 0.04, None, True),
+    "ding":    (g_ding,   -11.0, 0.35, None, False),
+    "type":    (g_type,   -14.0, 0.04, None, True),
     "stamp":   (g_stamp,   -5.0, 0.08, (2.5, 0.08, 0.25), False),
-    "lock":    (g_lock,   -12.0, 0.10, None, False),
-    "count":   (g_count,  -15.0, 0.05, None, True),
-    "glitch":  (g_glitch, -12.0, 0.12, None, True),
+    "lock":    (g_lock,   -11.0, 0.10, None, False),
+    "count":   (g_count,  -14.0, 0.05, None, True),
+    "glitch":  (g_glitch, -11.0, 0.12, None, True),
     "sub":     (g_sub,     -5.0, 0.00, (2.5, 0.20, 0.40), False),
     "reverse": (g_reverse, -11.0, 0.10, (1.5, 0.0, 0.10), True),
-    "shutter": (g_shutter, -13.0, 0.08, None, False),
+    "shutter": (g_shutter, -11.0, 0.08, None, False),
 }
 DEFAULT_DUR = {"whoosh": 0.5, "riser": 1.0, "type": 0.6, "count": 0.8, "glitch": 0.26, "reverse": 1.0}
 
@@ -1118,7 +1145,50 @@ def render_sfx(cues):
                 duck_db[s0:s1] = np.maximum(duck_db[s0:s1], amount * shape)
         placed.append(dict(c, start_sample=i0, len=int(y.shape[0])))
     bus += convolve_stereo(plate_send, get_ir("plate")) * 0.5
+    bus = lpf(bus, 16000.0)   # tame air/noise above ~16 kHz
     return bus, db(-duck_db), placed
+
+
+# octave-ish bands for the unmasking dynamic EQ: (low edge, high edge, max music cut dB)
+UNMASK_BANDS = [(0, 90, 4.0), (90, 180, 4.0), (180, 355, 3.5), (355, 710, 3.0), (710, 1400, 3.0),
+                (1400, 2800, 3.0), (2800, 5600, 3.0), (5600, 11200, 2.5), (11200, 24000, 2.0)]
+
+
+def unmask(music, sfx, nper=2048, release=0.15):
+    """Dynamic EQ on the music keyed by the SFX bus (STFT domain, zero-phase).
+
+    In each band, when the SFX energy gets within ~14 dB of the music the music is cut there,
+    reaching the band's max cut (2-4 dB) once the SFX is at or above the music. Cuts release
+    over ~150 ms and are interpolated across frequency, so only the region the SFX occupies moves.
+    """
+    hop = nper // 4
+    kw = dict(fs=SR, window="hann", nperseg=nper, noverlap=nper - hop, boundary="zeros", padded=True)
+    f, tt, M = signal.stft(music.T, **kw)
+    _, _, X = signal.stft(sfx.T, **kw)
+    pm = np.sum(np.abs(M) ** 2, axis=0)
+    px = np.sum(np.abs(X) ** 2, axis=0)
+    att = np.zeros((len(UNMASK_BANDS), tt.size))
+    centers = []
+    frame_rate = SR / hop
+    for b, (lo, hi, mx) in enumerate(UNMASK_BANDS):
+        m = (f >= lo) & (f < hi)
+        snr = 10 * np.log10((px[m].sum(axis=0) + 1e-12) / (pm[m].sum(axis=0) + 1e-12))
+        a = mx * smoothstep(-14.0, -1.0, snr)
+        c = 1.0 / (release * frame_rate)   # release (log-domain max-plus), then light attack smoothing
+        idx = np.arange(a.size) * c
+        a = np.exp(np.maximum.accumulate(np.log(np.maximum(a, 1e-6)) + idx) - idx)
+        a = signal.lfilter([0.5], [1.0, -0.5], a)
+        att[b] = a
+        centers.append(math.log(math.sqrt(max(lo, 30.0) * hi)))
+    lf = np.log(np.maximum(f, 30.0))
+    pos = np.clip(np.interp(lf, centers, np.arange(len(centers))), 0, len(centers) - 1)
+    b0 = np.floor(pos).astype(int)
+    b1 = np.minimum(b0 + 1, len(centers) - 1)
+    w = (pos - b0)[:, None]
+    G = att[b0] * (1 - w) + att[b1] * w
+    _, y = signal.istft(M * db(-G)[None], fs=SR, window="hann", nperseg=nper, noverlap=nper - hop, boundary=True)
+    y = y[:, : music.shape[0]].T
+    return y, float(np.mean(G[(f > 200) & (f < 8000)]))
 
 
 # ----------------------------------------------------------------------------------------
@@ -1325,7 +1395,8 @@ def timeline_png(path, music, sfx, y, cues):
     d = ImageDraw.Draw(im)
     X = lambda t: L + (W - L - R) * t / DURATION
     d.text((L, 18), "BMSNow reel audio: timeline check (master, stems, cue sheet)", fill=ink, font=fb)
-    panels = [(70, 330, "Master waveform"), (380, 700, "Momentary loudness (LUFS, 400 ms)"), (750, 930, "Cues")]
+    panels = [(70, 330, "Master waveform"), (380, 700, "Momentary loudness (LUFS, 400 ms)"),
+              (750, 930, "Music kick schedule and cue sheet")]
     for y0, y1, title in panels:
         d.text((L, y0 - 24), title, fill=ink2, font=fnt)
         for tt in range(0, 31):
@@ -1367,14 +1438,17 @@ def timeline_png(path, music, sfx, y, cues):
     classes = [("hits", {"impact", "burst", "stamp", "sub", "thump"}),
                ("transitions", {"whoosh", "swish", "riser", "reverse"}),
                ("UI", {"pop", "tick", "click", "ding", "type", "lock", "count", "glitch", "shutter"})]
+    d.text((20, 762), "kick", fill=ink2, font=fnt)
+    for tk in KICKS:
+        d.line([(X(tk), 762), (X(tk), 780)], fill="#6b6a66" if tk < BAR else ink, width=2)
     for k, (lab, types) in enumerate(classes):
-        yc = 775 + 55 * k
+        yc = 812 + 42 * k
         d.text((20, yc - 8), lab, fill=ink2, font=fnt)
         d.line([(L, yc), (W - R, yc)], fill=grid)
         for c in cues:
             if c["type"] not in types:
                 continue
-            h = 8 + 14 * min(c["gain"], 1.2)
+            h = 6 + 11 * min(c["gain"], 1.2)
             if c["type"] in ("whoosh", "riser", "reverse", "type", "count") and c["dur"]:
                 d.rectangle([X(c["t"]), yc - 3, X(c["t"] + c["dur"]), yc + 3], fill="#b9b8b2")
             d.line([(X(c["t"]), yc - h), (X(c["t"]), yc + h)], fill=ink, width=2)
@@ -1384,6 +1458,28 @@ def timeline_png(path, music, sfx, y, cues):
 # ----------------------------------------------------------------------------------------
 # main
 # ----------------------------------------------------------------------------------------
+
+
+def band_snr(sfx_seg, mus_seg):
+    """SFX-to-music ratio (dB) in the octave band where the SFX segment is strongest."""
+    n = sfx_seg.shape[0]
+    w = np.hanning(n)[:, None]
+    fs_ = np.sum(np.abs(np.fft.rfft(sfx_seg * w, axis=0)) ** 2, axis=1)
+    fm_ = np.sum(np.abs(np.fft.rfft(mus_seg * w, axis=0)) ** 2, axis=1)
+    f = np.fft.rfftfreq(n, 1.0 / SR)
+    edges = [45, 90, 180, 355, 710, 1400, 2800, 5600, 11200, 20000]
+    es = np.array([fs_[(f >= lo) & (f < hi)].sum() for lo, hi in zip(edges[:-1], edges[1:])])
+    em = np.array([fm_[(f >= lo) & (f < hi)].sum() for lo, hi in zip(edges[:-1], edges[1:])])
+    b = int(np.argmax(es))
+    return float(10 * np.log10((es[b] + 1e-20) / (em[b] + 1e-20))), int(math.sqrt(edges[b] * edges[b + 1]))
+
+
+def kick_summary():
+    """Human-readable description of where the kick plays (for syncing visuals)."""
+    return ("0.0, 0.5, 1.0 (hook, low-passed; none at 1.5); every 0.5 s from 2.0 to 23.0 (2.0, 2.5, ... 22.5, 23.0); "
+            "drops out 23.0-24.0 (build roll + riser, 60 ms silent gap 23.935-23.995); 24.0, 24.5, 24.96 (slam), 25.5, "
+            "26.0, 26.5 (60 ms music gap 26.94-26.995), 27.0 (Now. slam), 27.5, 28.0, 28.5, final hit 29.0; "
+            "nothing after 29.0")
 
 
 def main(argv=None):
@@ -1397,7 +1493,7 @@ def main(argv=None):
     ap.add_argument("--target-lufs", type=float, default=-14.0, help="integrated loudness target (default -14)")
     ap.add_argument("--true-peak", type=float, default=-1.0, help="true-peak ceiling in dBTP (default -1.0)")
     ap.add_argument("--report", action="store_true", help="write spectrograms, waveform, timeline and metrics.json")
-    ap.add_argument("--verbose", action="store_true", help="print per-part music loudness and per-cue SFX levels")
+    ap.add_argument("--verbose", action="store_true", help="print per-part music loudness and per-cue SFX audibility")
     a = ap.parse_args(argv)
 
     t_start = time.time()
@@ -1409,8 +1505,9 @@ def main(argv=None):
 
     music, minfo = render_music(verbose=a.verbose)
     sfx, duck, placed = render_sfx(cues)
-    music = music * duck[:, None] * db(a.music_gain)
     sfx = sfx * db(a.sfx_gain)
+    music = music * duck[:, None] * db(a.music_gain)       # 2-4 dB broadband ducks at impacts / whooshes
+    music, unmask_avg = unmask(music, sfx)                 # band-selective room for every SFX
 
     # stems: pre-master buses (post trim), i.e. music + sfx == master input
     fades = edge_fades()[:, None]
@@ -1432,34 +1529,50 @@ def main(argv=None):
     print(f"master: {lufs:.2f} LUFS integrated, true peak {tp:.2f} dBTP (4x), sample peak {lin2db(peak(yq)):.2f} dBFS, "
           f"DC L/R {np.mean(yq[:, 0]):.1e}/{np.mean(yq[:, 1]):.1e}, corr {correlation(yq):.2f}")
     print(f"chain: master gain {mstats['master_gain_db']:+.1f} dB, glue max GR {mstats['glue_max_gr_db']:.1f} dB, "
-          f"limiter max GR {mstats['limiter_max_gr_db']:.1f} dB (ceiling {mstats['limiter_ceiling_db']:.2f})")
+          f"limiter max GR {mstats['limiter_max_gr_db']:.1f} dB (ceiling {mstats['limiter_ceiling_db']:.2f}); "
+          f"unmask avg cut 200-8k {unmask_avg:.2f} dB")
     print(f"stems: music {integrated_lufs(music):.1f} LUFS, sfx {integrated_lufs(sfx):.1f} LUFS (pre-master)")
     rows = section_table(yq)
-    print(f"  {'section':10s} {'time':>7s} {'RMS dBFS':>9s} {'LUFS':>7s} {'peak':>7s} {'corr':>5s} {'corr<150':>8s}")
+    print(f"  {'section':10s} {'time':>9s} {'RMS dBFS':>9s} {'LUFS':>7s} {'peak':>7s} {'corr':>5s} {'corr<150':>8s}")
     for r in rows:
-        print(f"  {r['section']:10s} {r['t0']:>3.0f}-{r['t1']:<3.0f} {r['rms_dbfs']:9.1f} {r['lufs']:7.1f} "
+        print(f"  {r['section']:10s} {r['t0']:>4g}-{r['t1']:<4g} {r['rms_dbfs']:9.1f} {r['lufs']:7.1f} "
               f"{r['peak_dbfs']:7.1f} {r['corr']:5.2f} {r['corr_low']:8.2f}")
     tt, lk = momentary(yq)
     build = [(t0, float(np.interp(t0, tt, lk))) for t0 in (22.2, 22.6, 23.0, 23.4, 23.8)]
+    tail = [(t0, float(np.interp(t0, tt, lk))) for t0 in (29.2, 29.5, 29.8)]
     print("  build momentary LUFS: " + ", ".join(f"{t0:.1f}s {v:.1f}" for t0, v in build))
+    print("  tail momentary LUFS:  " + ", ".join(f"{t0:.1f}s {v:.1f}" for t0, v in tail)
+          + f"; last 10 ms peak {lin2db(peak(yq[-S(0.01):])):.1f} dBFS")
+    print("  kick: " + kick_summary())
 
+    snrs = []
+    for c in placed:
+        i0 = c["start_sample"]
+        if c["type"] in ("riser", "reverse"):
+            s0, s1 = max(0, i0 + S(0.7 * c["dur"])), i0 + S(c["dur"])
+        elif SFX[c["type"]][4] and c["dur"]:
+            s0, s1 = i0, i0 + S(c["dur"])
+        else:
+            s0, s1 = i0, i0 + min(c["len"], S(0.08))
+        s1 = min(N, max(s1, s0 + 256))
+        snr, band = band_snr(sfx[s0:s1], music[s0:s1])
+        snrs.append(dict(t=c["t"], type=c["type"], gain=c["gain"], snr_db=snr, band_hz=band))
+    by_type: dict = {}
+    for r in snrs:
+        by_type.setdefault(r["type"], []).append(r["snr_db"])
+    print("  SFX over music in the cue's dominant octave band (dB): "
+          + ", ".join(f"{k} {np.median(v):+.0f} (min {min(v):+.0f})" for k, v in sorted(by_type.items())))
     if a.verbose:
-        print("  per-cue SFX vs music (K-weighted energy over the cue's first 60 ms or its duration):")
-        for c in placed:
-            i0 = c["start_sample"]
-            span = S(c["dur"]) if c["dur"] and SFX[c["type"]][4] else S(0.06)
-            s0, s1 = i0 if c["type"] not in ("riser", "reverse") else max(0, i0 + span - S(0.1)), min(N, i0 + span)
-            if c["type"] in ("riser", "reverse"):
-                s1 = min(N, i0 + span)
-            e_s = integrated_energy(sfx[s0:s1])
-            e_m = integrated_energy(music[s0:s1])
-            print(f"    {c['t']:6.3f} {c['type']:8s} g={c['gain']:.2f}  sfx-music {10 * np.log10((e_s + 1e-20) / (e_m + 1e-20)):+6.1f} dB")
+        for r in snrs:
+            print(f"    {r['t']:6.3f} {r['type']:8s} g={r['gain']:.2f}  {r['snr_db']:+6.1f} dB @ {r['band_hz']} Hz")
 
     metrics = dict(samples=int(q.shape[0]), sample_rate=SR, integrated_lufs=lufs, true_peak_dbtp=tp,
                    sample_peak_dbfs=float(lin2db(peak(yq))), correlation=correlation(yq),
                    music_stem_lufs=integrated_lufs(music), sfx_stem_lufs=integrated_lufs(sfx),
                    stem_scale_db=float(lin2db(stem_scale)), music_gain_db=a.music_gain, sfx_gain_db=a.sfx_gain,
-                   cues=len(cues), cue_counts=counts, sections=rows, build_momentary=build, **mstats)
+                   unmask_avg_cut_db=unmask_avg, cues=len(cues), cue_counts=counts, sections=rows,
+                   build_momentary=build, tail_momentary=tail, kick_times=KICKS, kick_summary=kick_summary(),
+                   clap_times=CLAPS, music_gaps=GAPS, chord_timeline=CHORD_TL, cue_audibility=snrs, **mstats)
     if a.report:
         os.makedirs(a.report_dir, exist_ok=True)
         eb = ffmpeg_ebur128(a.out)
@@ -1472,11 +1585,6 @@ def main(argv=None):
         print(f"report -> {a.report_dir}")
     print(f"done in {time.time() - t_start:.1f} s")
     return 0
-
-
-def integrated_energy(x):
-    ms, _ = _block_ms(x, block=min(0.4, max(0.01, x.shape[0] / SR)), hop=0.01)
-    return float(np.mean(ms)) if ms.size else 0.0
 
 
 if __name__ == "__main__":

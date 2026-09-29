@@ -1,5 +1,5 @@
 node_modules/
-out/frames/
+out/frames*/
 out/stems/
 out/audio_report/
 out/render.log
