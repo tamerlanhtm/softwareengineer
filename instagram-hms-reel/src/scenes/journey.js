@@ -2,7 +2,8 @@
 // eight live product panels (book → check-in → treat → dental → diagnose →
 // dispense → bill → grow), whip-panning between them, then pulls back to
 // reveal the whole connected system.
-import { h, svg, rng, onFrame, cue, impact, prog, lerp, clamp, noise1, ICONS } from '../lib/core.js';
+import { h, svg, rng, onFrame, cue, impact, prog, lerp, clamp, noise1, ICONS, fitWidth } from '../lib/core.js';
+import { L } from '../i18n.js';
 
 const T = [9.0, 10.0, 11.0, 12.5, 14.0, 15.0, 16.0, 17.0];
 const OVERVIEW = 18.0;
@@ -10,17 +11,7 @@ const GX = 1180, GY = 1160;
 const C = [[0, 0], [GX, 0], [GX, GY], [0, GY], [0, 2 * GY], [GX, 2 * GY], [GX, 3 * GY], [0, 3 * GY]];
 const FOCUS_Y = 990;
 
-const STEPS = [
-  ['BOOK', 'Appointments · reminders'],
-  ['CHECK-IN', 'Reception · live queue'],
-  ['TREAT', 'SOAP notes · vitals · ICD-10'],
-  ['DENTAL', 'Odontogram · FDI · perio'],
-  ['DIAGNOSE', 'Lab & imaging results'],
-  ['DISPENSE', 'Rx → pharmacy · FEFO stock'],
-  ['BILL', 'Invoices · payments · claims'],
-  ['GROW', 'Accounting · live dashboard'],
-  ['ALL IN ONE.', '37 modules · one login'],
-];
+const STEPS = L.journey.steps;
 
 const E = {
   expoOut: gsap.parseEase('expo.out'),
@@ -111,27 +102,30 @@ export default function journey({ root, tl }) {
   const mkCard = (i, icon, title, meta) => {
     const [x, y] = C[i];
     const el = h('div.card', { style: { left: `${x}px`, top: `${y}px` } });
+    const ttl = h('div.card-ttl', {}, title);
     const head = h('div.card-head', {},
       h('div.card-ico', { html: ICONS[icon] }),
-      h('div.card-ttl', {}, title),
+      ttl,
       h('div.card-meta', {}, meta));
     const body = h('div.card-body');
     const sheen = h('div.sheen');
     el.append(head, body, sheen);
     world.append(el);
+    fitWidth(ttl, 470);
     tl.fromTo(sheen, { x: 0 }, { x: 1500, duration: 0.8, ease: 'power2.inOut', immediateRender: false }, T[i] + 0.05);
     cards.push({ el, body });
     return body;
   };
 
-  buildAppointments(mkCard(0, 'calendar', 'Appointments', 'Tue · 14 Oct'), tl);
-  buildQueue(mkCard(1, 'queue', 'Reception', 'Live board'), tl);
-  buildSoap(mkCard(2, 'notes', 'Visit notes', 'Leyla M. · MRN-10234'), tl);
-  buildDental(mkCard(3, 'tooth', 'Dental chart', 'FDI · adult'), tl);
-  buildLab(mkCard(4, 'flask', 'Lab & imaging', 'Order L-2291'), tl);
-  buildPharmacy(mkCard(5, 'pill', 'Prescription', '→ Pharmacy'), tl);
-  buildBilling(mkCard(6, 'receipt', 'Invoice & claim', 'INV-1043'), tl);
-  buildDashboard(mkCard(7, 'chart', 'Dashboard', 'September'), tl);
+  const K = L.cards;
+  buildAppointments(mkCard(0, 'calendar', K.appt.title, K.appt.meta), tl);
+  buildQueue(mkCard(1, 'queue', K.queue.title, K.queue.meta), tl);
+  buildSoap(mkCard(2, 'notes', K.soap.title, K.soap.meta), tl);
+  buildDental(mkCard(3, 'tooth', K.dental.title, K.dental.meta), tl);
+  buildLab(mkCard(4, 'flask', K.lab.title, K.lab.meta), tl);
+  buildPharmacy(mkCard(5, 'pill', K.rx.title, K.rx.meta), tl);
+  buildBilling(mkCard(6, 'receipt', K.bill.title, K.bill.meta), tl);
+  buildDashboard(mkCard(7, 'chart', K.dash.title, K.dash.meta), tl);
 
   /* ---------- camera ---------- */
   function camAt(t) {
@@ -229,7 +223,7 @@ export default function journey({ root, tl }) {
   const numMask = h('div.mask', { style: { left: '0', top: '0', height: '40px', width: '400px' } });
   label.append(numMask);
   const noTexts = STEPS.map((_, i) => {
-    const el = h('div.step-no', { style: { position: 'absolute' } }, i < 8 ? `STEP 0${i + 1} / 08` : 'EVERY STEP');
+    const el = h('div.step-no', { style: { position: 'absolute' } }, i < 8 ? L.journey.stepLabel(i + 1) : L.journey.every);
     numMask.append(el);
     gsap.set(el, { yPercent: 110 });
     return el;
@@ -251,15 +245,17 @@ export default function journey({ root, tl }) {
     if (i === 8) te.style.color = 'var(--orange)';
     const fit = Math.min(1, 900 / te.scrollWidth);
     if (fit < 1) te.style.fontSize = `${Math.floor(112 * fit)}px`;
-    gsap.set(chars, { yPercent: 118 });
-    tl.to(chars, { yPercent: 0, duration: 0.55, ease: 'expo.out', stagger: 0.022 }, t0);
+    gsap.set(chars, { y: 132, autoAlpha: 0 });
+    tl.set(chars, { autoAlpha: 1 }, t0);
+    tl.to(chars, { y: 0, duration: 0.55, ease: 'expo.out', stagger: 0.022 }, t0);
     const se = h('div.step-sub', {}, sub);
     label.append(se);
     gsap.set(se, { autoAlpha: 0 });
     tl.fromTo(se, { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false }, t0 + 0.1);
     tl.fromTo(noTexts[i], { yPercent: 110 }, { yPercent: 0, duration: 0.45, ease: 'expo.out', immediateRender: false }, t0);
     if (t1 !== null) {
-      tl.to(chars, { yPercent: -118, duration: 0.2, ease: 'power3.in', stagger: 0.012 }, t1);
+      tl.to(chars, { y: -132, duration: 0.2, ease: 'power3.in', stagger: 0.012 }, t1);
+      tl.set(chars, { autoAlpha: 0 }, t1 + 0.4);
       tl.to(se, { autoAlpha: 0, y: -16, duration: 0.18, ease: 'power2.in' }, t1);
       tl.to(noTexts[i], { yPercent: -110, duration: 0.2, ease: 'power3.in' }, t1);
     } else {
@@ -273,8 +269,9 @@ export default function journey({ root, tl }) {
    ===================================================================== */
 
 function buildAppointments(body, tl) {
+  const K = L.cards.appt;
   const colW = (788 - 96) / 3;
-  const docs = [['Dr. Aliyev', 'AL', '#fe4d1e'], ['Dr. Karimova', 'KA', '#4c8dff'], ['Dr. Demir', 'DE', '#2fd67f']];
+  const docs = K.docs.map(([name, ini], i) => [name, ini, ['#fe4d1e', '#4c8dff', '#2fd67f'][i]]);
   docs.forEach(([name, ini, col], c) => {
     body.append(h('div.cal-col-head', { style: { left: `${96 + c * colW + 6}px` } },
       h('div.avatar', { style: { background: col } }, ini), name));
@@ -284,11 +281,12 @@ function buildAppointments(body, tl) {
     body.append(h('div.cal-line', { style: { top: `${y}px` } }));
     body.append(h('div.cal-time', { style: { top: `${y + 8}px` } }, tm));
   });
+  // [column, first slot, end slot, colour] + name and visit type from the copy table
   const blocks = [
-    [0, 0, 1, 'Leyla M.', 'Check-up', 'or'], [0, 2, 4, 'Murat Y.', 'Root canal', 'bl'], [0, 5, 6, 'Anna P.', 'Follow-up', 'gn'],
-    [1, 1, 2, 'Elvin H.', 'Consultation', 'gn'], [1, 3, 5, 'Nigar A.', 'Cleaning', 'or'], [1, 6, 7, 'Aydin K.', 'X-ray review', 'bl'],
-    [2, 0, 1, 'Dilnoza R.', 'Vaccination', 'bl'], [2, 2, 3, 'Kamran G.', 'Check-up', 'or'], [2, 4, 6, 'Sara T.', 'Physio', 'gn'],
-  ];
+    [0, 0, 1, 'or'], [0, 2, 4, 'bl'], [0, 5, 6, 'gn'],
+    [1, 1, 2, 'gn'], [1, 3, 5, 'or'], [1, 6, 7, 'bl'],
+    [2, 0, 1, 'bl'], [2, 2, 3, 'or'], [2, 4, 6, 'gn'],
+  ].map(([c, a, b, col], i) => [c, a, b, ...K.blocks[i], col]);
   const els = blocks.map(([c, a, b, name, type, col]) => {
     const el = h(`div.appt.${col}`, {
       style: { left: `${96 + c * colW + 6}px`, top: `${76 + a * 80 + 5}px`, width: `${colW - 12}px`, height: `${(b - a) * 80 - 10}px` },
@@ -305,8 +303,8 @@ function buildAppointments(body, tl) {
   tl.to(nowLine, { scaleX: 1, duration: 0.6, ease: 'expo.out' }, 9.0);
 
   const slot = { left: `${96 + 2 * colW + 6}px`, top: `${76 + 6 * 80 + 5}px`, width: `${colW - 12}px`, height: '70px' };
-  const ghost = h('div.appt.new', { style: slot }, h('div.a-name', { style: { color: 'var(--orange)' } }, '+ New booking'));
-  const booked = h('div.appt.or', { style: slot }, h('div.a-name', {}, 'Leyla M.'), h('div.a-type', {}, 'Follow-up · booked'));
+  const ghost = h('div.appt.new', { style: slot }, h('div.a-name', { style: { color: 'var(--orange)' } }, K.newBooking));
+  const booked = h('div.appt.or', { style: slot }, h('div.a-name', {}, K.booked[0]), h('div.a-type', {}, K.booked[1]));
   body.append(ghost, booked);
   gsap.set([ghost, booked], { autoAlpha: 0 });
   tl.fromTo(ghost, { autoAlpha: 0, scale: 0.5 }, { autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.5)', immediateRender: false }, 9.3);
@@ -315,7 +313,7 @@ function buildAppointments(body, tl) {
   cue(9.3, 'tick');
   cue(9.55, 'confirm');
 
-  const toast = h('div.toast-mini', {}, h('div.check', { html: ICONS.check }), 'Reminder email sent · Leyla M.');
+  const toast = h('div.toast-mini', {}, h('div.check', { html: ICONS.check }), K.toast);
   body.append(toast);
   gsap.set(toast, { autoAlpha: 0, xPercent: -50 });
   tl.fromTo(toast, { autoAlpha: 0, y: 90 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(1.8)', immediateRender: false }, 9.62);
@@ -323,7 +321,8 @@ function buildAppointments(body, tl) {
 }
 
 function buildQueue(body, tl) {
-  body.append(h('div.abs.mono', { style: { left: '0', top: '0', fontSize: '22px', letterSpacing: '0.25em', color: '#8b8b96', fontWeight: '700' } }, 'NOW SERVING'));
+  const K = L.cards.queue;
+  body.append(h('div.abs.mono', { style: { left: '0', top: '0', fontSize: '22px', letterSpacing: '0.25em', color: '#8b8b96', fontWeight: '700' } }, K.nowServing));
   const row = h('div.flap-row.abs', { style: { left: '0', top: '40px' } });
   body.append(row);
   const from = 'A-014', to = 'A-015';
@@ -344,15 +343,11 @@ function buildQueue(body, tl) {
     cue(t0 + 0.11, 'flap', { n: i });
   });
   body.append(h('div.abs', { style: { left: '598px', top: '40px', width: '2px', height: '158px', background: 'rgba(255,255,255,0.12)' } }));
-  body.append(h('div.abs', { style: { left: '632px', top: '46px', fontFamily: 'var(--mono)', fontSize: '20px', letterSpacing: '0.2em', color: '#8b8b96', fontWeight: '700' } }, 'ROOM'));
+  body.append(h('div.abs', { style: { left: '632px', top: '46px', fontFamily: 'var(--mono)', fontSize: '20px', letterSpacing: '0.2em', color: '#8b8b96', fontWeight: '700' } }, K.room));
   body.append(h('div.abs', { style: { left: '628px', top: '80px', fontFamily: 'var(--display)', fontSize: '104px', fontWeight: '800', lineHeight: '1', color: 'var(--orange)' } }, '3'));
-  body.append(h('div.abs', { style: { left: '0', top: '222px', fontSize: '27px', fontWeight: '600', color: '#a5a5b0' } }, '→  Leyla M.  ·  Dr. Aliyev  ·  Check-up'));
+  body.append(h('div.abs', { style: { left: '0', top: '222px', fontSize: '27px', fontWeight: '600', color: '#a5a5b0' } }, K.line));
 
-  const rows = [
-    ['A-016', 'Murat Y.', ['Waiting', 'gr'], ['✓ Checked in', 'ok']],
-    ['A-017', 'Elvin H.', ['Waiting · 4 min', 'gr']],
-    ['A-018', 'Nigar A.', ['Waiting · 9 min', 'gr']],
-  ];
+  const rows = K.rows.map(([tok, name, s1, s2]) => [tok, name, [s1, 'gr'], s2 ? [s2, 'ok'] : undefined]);
   rows.forEach(([tok, name, [s1, c1], after], i) => {
     const r = h('div.q-row', { style: { top: `${292 + i * 96}px` } },
       h('div.q-tok', {}, tok), h('div.q-name', {}, name));
@@ -371,7 +366,7 @@ function buildQueue(body, tl) {
   });
   const foot = h('div.abs', { style: { left: '0', top: '600px', fontSize: '26px', fontWeight: '600', color: '#8b8b96' } });
   const wait = h('span', { style: { color: '#fff', fontFamily: 'var(--mono)', fontWeight: '700' } }, '6');
-  foot.append('Waiting now  ', wait, '   ·   Avg. wait  ', h('span', { style: { color: '#fff', fontFamily: 'var(--mono)', fontWeight: '700' } }, '7 min'));
+  foot.append(`${K.waiting}  `, wait, `   ·   ${K.avg}  `, h('span', { style: { color: '#fff', fontFamily: 'var(--mono)', fontWeight: '700' } }, K.avgValue));
   body.append(foot);
   onFrame((t) => {
     if (t < 9 || t > 19.2) return;
@@ -381,7 +376,8 @@ function buildQueue(body, tl) {
 }
 
 function buildSoap(body, tl) {
-  const vit = [['BP', '120/80', ''], ['HR', '88', 'bpm'], ['TEMP', '38.1°', 'C'], ['SPO2', '98', '%']];
+  const K = L.cards.soap;
+  const vit = K.vitals;
   const vEls = vit.map(([k, v, u], i) => {
     const el = h('div.vital.abs', { style: { left: `${i * 200.5}px`, top: '0', width: '186px' } },
       h('div.v-k', {}, k), h('div.v-v', {}, v, u ? h('small', {}, u) : null));
@@ -418,12 +414,7 @@ function buildSoap(body, tl) {
     headDot.setAttribute('cy', yAt(t).toFixed(1));
   });
 
-  const rows = [
-    ['S', 'Sore throat, fever for 3 days'],
-    ['O', 'Pharynx red · tonsils enlarged'],
-    ['A', 'Acute pharyngitis'],
-    ['P', 'Amoxicillin 500 mg · 7 days'],
-  ];
+  const rows = K.rows;
   rows.forEach(([k, v], i) => {
     const r = h('div.soap-row', { style: { top: `${262 + i * 74}px` } });
     const key = h('div.soap-k', {}, k);
@@ -444,7 +435,7 @@ function buildSoap(body, tl) {
     tl.set(caret, { autoAlpha: 0 }, t0 + 0.34);
     cue(t0, 'type', { dur: 0.26 });
     if (k === 'A') {
-      const chip = h('div.pill.or', { style: { position: 'absolute', left: `${w + 20}px`, top: '10px', fontFamily: 'var(--mono)', fontWeight: '800' } }, 'ICD-10 · J02.9');
+      const chip = h('div.pill.or', { style: { position: 'absolute', left: `${w + 20}px`, top: '10px', fontFamily: 'var(--mono)', fontWeight: '800' } }, K.icd);
       wrap.append(chip);
       gsap.set(chip, { autoAlpha: 0, scale: 0.5, transformOrigin: '0% 50%' });
       tl.to(chip, { autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.5)' }, 11.78);
@@ -452,11 +443,11 @@ function buildSoap(body, tl) {
     }
   });
 
-  const btn = h('div.btn', { style: { left: '0', top: '590px', background: '#fff', color: 'var(--text)' } }, 'Sign & lock');
+  const btn = h('div.btn', { style: { left: '0', top: '590px', background: '#fff', color: 'var(--text)' } }, K.sign);
   const done = h('div.btn', { style: { left: '0', top: '590px', background: 'rgba(47,214,127,0.16)', color: 'var(--ok)' } },
-    h('span', { html: ICONS.lock.replace('stroke="#fff"', 'stroke="#2fd67f"'), style: { width: '32px', height: '32px', display: 'inline-block' } }), 'Signed & locked');
+    h('span', { html: ICONS.lock.replace('stroke="#fff"', 'stroke="#2fd67f"'), style: { width: '32px', height: '32px', display: 'inline-block' } }), K.signed);
   body.append(btn, done);
-  body.append(h('div.abs', { style: { right: '0', top: '612px', fontSize: '25px', fontWeight: '600', color: '#8b8b96' } }, 'Dr. Aliyev · 11:42'));
+  body.append(h('div.abs', { style: { right: '0', top: '612px', fontSize: '25px', fontWeight: '600', color: '#8b8b96' } }, K.doctor));
   gsap.set(done, { autoAlpha: 0 });
   tl.to(btn, { scale: 0.9, duration: 0.07, ease: 'power2.in' }, 12.02);
   tl.to(btn, { autoAlpha: 0, duration: 0.05 }, 12.09);
@@ -465,6 +456,7 @@ function buildSoap(body, tl) {
 }
 
 function buildDental(body, tl) {
+  const K = L.cards.dental;
   const upper = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28];
   const lower = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38];
   const cond = { 16: 'caries', 24: 'caries', 45: 'caries', 26: 'filling', 12: 'filling', 47: 'filling', 36: 'crown', 21: 'crown', 46: 'missing', 38: 'missing', 18: 'missing' };
@@ -538,44 +530,43 @@ function buildDental(body, tl) {
   cue(13.54, 'pop', { n: 4 });
 
   const info = h('div.abs', { style: { left: '262px', top: '248px' } },
-    h('div', { style: { fontFamily: 'var(--display)', fontWeight: '800', fontSize: '46px', letterSpacing: '-0.03em' } }, 'Tooth 16'),
-    h('div', { style: { fontSize: '27px', fontWeight: '550', color: '#a9a9b4', marginTop: '10px' } }, 'Caries · mesio-occlusal'),
+    h('div', { style: { fontFamily: 'var(--display)', fontWeight: '800', fontSize: '46px', letterSpacing: '-0.03em' } }, K.tooth),
+    h('div', { style: { fontSize: '27px', fontWeight: '550', color: '#a9a9b4', marginTop: '10px' } }, K.finding),
     h('div', { style: { display: 'flex', gap: '12px', marginTop: '22px' } },
-      h('div.pill.or', {}, 'Plan: composite'), h('div.pill.gr', {}, 'Perio 3·2·4')));
+      h('div.pill.or', {}, K.plan), h('div.pill.gr', {}, K.perio)));
   body.append(info);
   gsap.set(info, { autoAlpha: 0, x: 30 });
   tl.to(info, { autoAlpha: 1, x: 0, duration: 0.45, ease: 'expo.out' }, 13.34);
 
   const legend = h('div.legend.abs', { style: { left: '0', top: '500px' } },
-    ...[['Caries', 'var(--orange)'], ['Filling', 'var(--blue)'], ['Crown', 'var(--gold)'], ['Missing', 'transparent']].map(([n, col]) =>
+    ...K.legend.map((n, i) => [n, ['var(--orange)', 'var(--blue)', 'var(--gold)', 'transparent'][i]]).map(([n, col]) =>
       h('div.lg', {}, h('div.sw', { style: { background: col, border: col === 'transparent' ? '3px dashed #5d5d68' : 'none' } }), n)));
   body.append(legend);
   const plan = h('div.stmt', { style: { top: '572px' } },
     h('div', { style: { fontFamily: 'var(--mono)', fontWeight: '800', color: 'var(--orange)' } }, '3'),
-    'procedures planned · 2 visits',
-    h('div.pill.ok', { style: { marginLeft: 'auto' } }, 'Accepted'));
+    K.planned,
+    h('div.pill.ok', { style: { marginLeft: 'auto' } }, K.accepted));
   body.append(plan);
   gsap.set([legend, plan], { autoAlpha: 0, y: 20 });
   tl.to([legend, plan], { autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', stagger: 0.08 }, 13.5);
 }
 
 function buildLab(body, tl) {
+  const K = L.cards.lab;
   const chips = h('div.abs', { style: { left: '0', top: '0', display: 'flex', gap: '12px' } },
-    h('div.pill.or', {}, 'CBC + CRP'), h('div.pill.ok', {}, '✓ Specimen collected'), h('div.pill.gr', {}, 'Verify before release'));
+    h('div.pill.or', {}, K.chips[0]), h('div.pill.ok', {}, K.chips[1]), h('div.pill.gr', {}, K.chips[2]));
   body.append(chips);
   const hdr = h('div.abs.mono', { style: { left: '0', right: '0', top: '70px', fontSize: '18px', letterSpacing: '0.2em', color: '#6d6d79', fontWeight: '700', display: 'flex' } },
-    h('div', { style: { width: '230px' } }, 'TEST'), h('div', { style: { width: '190px' } }, 'RESULT'), h('div', {}, 'REFERENCE'), h('div', { style: { marginLeft: 'auto' } }, 'FLAG'));
+    h('div', { style: { width: '230px' } }, K.head[0]), h('div', { style: { width: '190px' } }, K.head[1]), h('div', {}, K.head[2]), h('div', { style: { marginLeft: 'auto' } }, K.head[3]));
   body.append(hdr);
+  // [reference zone, value position, flag] + name, value and unit from the copy table
   const rows = [
-    ['Hemoglobin', '13.8', 'g/dL', [0.33, 0.67], 0.48, 'n'],
-    ['WBC', '12.4', '×10⁹/L', [0.25, 0.62], 0.8, 'h'],
-    ['CRP', '18', 'mg/L', [0.0, 0.17], 0.62, 'h'],
-    ['Glucose', '5.1', 'mmol/L', [0.27, 0.54], 0.44, 'n'],
-  ];
+    [[0.33, 0.67], 0.48, 'n'], [[0.25, 0.62], 0.8, 'h'], [[0.0, 0.17], 0.62, 'h'], [[0.27, 0.54], 0.44, 'n'],
+  ].map((r, i) => [...K.rows[i], ...r]);
   rows.forEach(([name, val, unit, [z0, z1], v, flag], i) => {
     const dot = h('div.dot');
     const range = h('div.range', {}, h('div.ok-zone', { style: { left: `${z0 * 100}%`, width: `${(z1 - z0) * 100}%` } }), dot);
-    const fl = h(`div.flag.${flag}`, {}, flag === 'h' ? 'H' : '—');
+    const fl = h(`div.flag.${flag}`, {}, flag === 'h' ? K.high : '—');
     const r = h('div.lab-row', { style: { top: `${104 + i * 76}px` } },
       h('div.lab-name', {}, name), h('div.lab-val', {}, val, h('small', {}, unit)), range, fl);
     body.append(r);
@@ -622,11 +613,11 @@ function buildLab(body, tl) {
   cue(14.12, 'scan', { dur: 0.7 });
 
   const side = h('div.abs', { style: { left: '430px', top: '440px' } },
-    h('div', { style: { fontSize: '30px', fontWeight: '700' } }, 'Imaging · OPG'),
-    h('div', { style: { fontSize: '24px', fontWeight: '500', color: '#9a9aa6', marginTop: '10px' } }, 'X-ray · CBCT · CT · MRI'),
-    h('div', { style: { fontSize: '24px', fontWeight: '500', color: '#9a9aa6', marginTop: '6px' } }, 'Radiology report attached'));
+    h('div', { style: { fontSize: '30px', fontWeight: '700' } }, K.imaging),
+    h('div', { style: { fontSize: '24px', fontWeight: '500', color: '#9a9aa6', marginTop: '10px' } }, K.modalities),
+    h('div', { style: { fontSize: '24px', fontWeight: '500', color: '#9a9aa6', marginTop: '6px' } }, K.report));
   body.append(side);
-  const ver = h('div.pill.ok', { style: { position: 'absolute', left: '430px', top: '604px' } }, '✓ Verified · released');
+  const ver = h('div.pill.ok', { style: { position: 'absolute', left: '430px', top: '604px' } }, K.verified);
   body.append(ver);
   gsap.set(side, { autoAlpha: 0, x: 24 });
   tl.to(side, { autoAlpha: 1, x: 0, duration: 0.45, ease: 'expo.out' }, 14.2);
@@ -636,18 +627,19 @@ function buildLab(body, tl) {
 }
 
 function buildPharmacy(body, tl) {
+  const K = L.cards.rx;
   const rx = h('div.rx');
   const name = h('div.rx-name', {},
     h('div', { style: { width: '58px', height: '58px', borderRadius: '16px', background: 'var(--orange)', display: 'grid', placeItems: 'center', fontFamily: 'var(--display)', fontWeight: '800', fontSize: '24px' } }, 'Rx'),
-    'Amoxicillin 500 mg');
-  const chipEls = ['Oral', '3× daily', '7 days', 'Refills 0'].map((c) => h('div.chip', {}, c));
+    K.drug);
+  const chipEls = K.chips.map((c) => h('div.chip', {}, c));
   rx.append(name, h('div.chips', {}, ...chipEls));
   body.append(rx);
   gsap.set(chipEls, { autoAlpha: 0, y: 14 });
   tl.to(chipEls, { autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.04 }, 14.96);
 
-  const allergy = h('div.pill.ok', { style: { position: 'absolute', left: '0', top: '218px', height: '54px', fontSize: '24px' } }, '✓ Allergy check · no conflicts');
-  const hand = h('div.pill.solid', { style: { position: 'absolute', right: '0', top: '218px', height: '54px', fontSize: '24px' } }, 'Sent to pharmacy →');
+  const allergy = h('div.pill.ok', { style: { position: 'absolute', left: '0', top: '218px', height: '54px', fontSize: '24px' } }, K.allergy);
+  const hand = h('div.pill.solid', { style: { position: 'absolute', right: '0', top: '218px', height: '54px', fontSize: '24px' } }, K.sent);
   body.append(allergy, hand);
   gsap.set(allergy, { autoAlpha: 0, scale: 0.6, transformOrigin: '0% 50%' });
   tl.to(allergy, { autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.5)' }, 15.18);
@@ -655,8 +647,8 @@ function buildPharmacy(body, tl) {
   tl.to(hand, { autoAlpha: 1, x: 0, duration: 0.4, ease: 'expo.out' }, 15.26);
   cue(15.18, 'confirm');
 
-  body.append(h('div.abs.mono', { style: { left: '0', top: '300px', fontSize: '19px', letterSpacing: '0.2em', color: '#6d6d79', fontWeight: '700' } }, 'STOCK · FIRST-EXPIRY, FIRST-OUT'));
-  const batches = [['B-2291', 'Exp 11/2026', 120, 0.4], ['B-2310', 'Exp 03/2027', 300, 1.0], ['B-2355', 'Exp 08/2027', 240, 0.8]];
+  body.append(h('div.abs.mono', { style: { left: '0', top: '300px', fontSize: '19px', letterSpacing: '0.2em', color: '#6d6d79', fontWeight: '700' } }, K.stock));
+  const batches = [['B-2291', `${K.exp} 11/2026`, 120, 0.4], ['B-2310', `${K.exp} 03/2027`, 300, 1.0], ['B-2355', `${K.exp} 08/2027`, 240, 0.8]];
   let qtyEl, pickRow;
   batches.forEach(([id, exp, q, lvl], i) => {
     const bar = h('div', { style: { flex: '1', height: '10px', borderRadius: '5px', background: 'rgba(255,255,255,0.08)', position: 'relative', overflow: 'hidden' } },
@@ -679,7 +671,7 @@ function buildPharmacy(body, tl) {
     const v = Math.round(lerp(120, 99, prog(t, 15.58, 15.88, 'power2.out')));
     if (qtyEl.textContent !== String(v)) qtyEl.textContent = String(v);
   });
-  const toast = h('div.toast-mini', {}, h('div.check', { html: ICONS.check }), 'Dispensed · 21 capsules');
+  const toast = h('div.toast-mini', {}, h('div.check', { html: ICONS.check }), K.toast);
   body.append(toast);
   gsap.set(toast, { autoAlpha: 0, xPercent: -50 });
   tl.fromTo(toast, { autoAlpha: 0, y: 90 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(1.8)', immediateRender: false }, 15.8);
@@ -687,11 +679,12 @@ function buildPharmacy(body, tl) {
 }
 
 function buildBilling(body, tl) {
+  const K = L.cards.bill;
   body.append(h('div.abs', { style: { left: '0', top: '0', display: 'flex', alignItems: 'center', gap: '18px', right: '0' } },
     h('div', { style: { fontFamily: 'var(--mono)', fontWeight: '800', fontSize: '27px', color: 'var(--orange-hi)' } }, 'INV-1043'),
-    h('div', { style: { fontSize: '28px', fontWeight: '650' } }, 'Leyla Mammadova'),
-    h('div.pill.gr', { style: { marginLeft: 'auto' } }, 'Due 14 Oct')));
-  const lines = [['Consultation', '60.00'], ['Lab panel · CBC + CRP', '45.00'], ['Amoxicillin 500 mg × 21', '12.60']];
+    h('div', { style: { fontSize: '28px', fontWeight: '650' } }, K.patient),
+    h('div.pill.gr', { style: { marginLeft: 'auto' } }, K.due)));
+  const lines = K.lines.map((n, i) => [n, L.amount([60, 45, 12.6][i])]);
   lines.forEach(([n, a], i) => {
     const el = h('div.inv-line', { style: { top: `${68 + i * 58}px` } }, n, h('div.amt', {}, a));
     body.append(el);
@@ -700,12 +693,12 @@ function buildBilling(body, tl) {
     cue(15.98 + i * 0.05, 'tick', { gain: 0.4 });
   });
   body.append(h('div.abs', { style: { left: '0', right: '0', top: '252px', height: '2px', background: 'rgba(255,255,255,0.1)' } }));
-  const amt = h('div.amt', {}, '$0.00');
-  body.append(h('div.inv-total', { style: { top: '262px' } }, h('div.lbl', {}, 'Total'), amt));
+  const amt = h('div.amt', {}, L.money(0));
+  body.append(h('div.inv-total', { style: { top: '262px' } }, h('div.lbl', {}, K.total), amt));
   onFrame((t) => {
     if (t < 15 || t > 19.2) return;
     const v = lerp(0, 117.6, prog(t, 16.08, 16.45, 'expo.out'));
-    const s = `$${v.toFixed(2)}`;
+    const s = L.money(v);
     if (amt.textContent !== s) amt.textContent = s;
   });
 
@@ -716,8 +709,8 @@ function buildBilling(body, tl) {
   gsap.set([ins, pat], { scaleX: 0, transformOrigin: '0% 50%' });
   tl.to(ins, { scaleX: 1, duration: 0.4, ease: 'expo.out' }, 16.22);
   tl.to(pat, { scaleX: 1, duration: 0.3, ease: 'expo.out' }, 16.34);
-  body.append(h('div.abs', { style: { left: '0', top: '398px', fontSize: '22px', fontWeight: '600', color: '#a3a3ae' } }, 'Insurer 80% · $94.08'));
-  body.append(h('div.abs', { style: { right: '0', top: '398px', fontSize: '22px', fontWeight: '600', color: '#a3a3ae' } }, 'Patient 20% · $23.52'));
+  body.append(h('div.abs', { style: { left: '0', top: '398px', fontSize: '22px', fontWeight: '600', color: '#a3a3ae' } }, `${K.insurer} 80% · ${L.money(94.08)}`));
+  body.append(h('div.abs', { style: { right: '0', top: '398px', fontSize: '22px', fontWeight: '600', color: '#a3a3ae' } }, `${K.patientShare} 20% · ${L.money(23.52)}`));
 
   const xs = [40, 276, 512, 748];
   const track = h('div.abs', { style: { left: '40px', width: '708px', top: '492px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.08)' } });
@@ -725,7 +718,7 @@ function buildBilling(body, tl) {
   body.append(track, fill);
   gsap.set(fill, { scaleX: 0, transformOrigin: '0% 50%' });
   tl.to(fill, { scaleX: 1, duration: 0.42, ease: 'none' }, 16.3);
-  ['Pre-auth', 'Submitted', 'Adjudicated', 'Paid'].forEach((lbl, i) => {
+  K.claim.forEach((lbl, i) => {
     const node = h('div.claim-node', { style: { left: `${xs[i]}px`, top: '478px' } });
     body.append(node, h('div.claim-lbl', { style: { left: `${xs[i]}px`, top: '528px' } }, lbl));
     tl.to(node, { backgroundColor: '#fe4d1e', borderColor: '#fe4d1e', scale: 1.25, duration: 0.1 }, 16.3 + i * 0.14);
@@ -733,8 +726,16 @@ function buildBilling(body, tl) {
     cue(16.3 + i * 0.14, 'blip', { n: 2 + i, gain: 0.45 });
   });
 
-  const stamp = h('div.stamp', { style: { left: '410px', top: '446px' } }, 'PAID');
+  const stamp = h('div.stamp', { style: { left: '410px', top: '446px' } }, K.stamp);
   body.append(stamp);
+  // longer words get a smaller stamp that still sits inside the card
+  const fs0 = parseFloat(getComputedStyle(stamp).fontSize);
+  fitWidth(stamp, 360);
+  const k = parseFloat(stamp.style.fontSize || fs0) / fs0;
+  if (k < 1) {
+    stamp.style.borderWidth = `${Math.max(7, 11 * k).toFixed(1)}px`;
+    stamp.style.left = `${Math.min(410, 770 - stamp.offsetWidth)}px`;
+  }
   gsap.set(stamp, { autoAlpha: 0, rotation: -14, scale: 2.6, transformOrigin: '50% 50%' });
   tl.to(stamp, { autoAlpha: 1, scale: 1, duration: 0.13, ease: 'power4.in' }, 16.62);
   tl.to(stamp, { scale: 1.06, duration: 0.06, yoyo: true, repeat: 1, ease: 'power1.out' }, 16.75);
@@ -751,11 +752,20 @@ function buildBilling(body, tl) {
 }
 
 function buildDashboard(body, tl) {
-  const kpis = [['Revenue · Sep', 48.2, (v) => `$${v.toFixed(1)}k`, '▲ 12% vs Aug'], ['Patients today', 64, (v) => `${Math.round(v)}`, '▲ 9 vs last Tue'], ['Claims paid', 96, (v) => `${Math.round(v)}%`, 'avg. 11 days']];
+  const K = L.cards.dash;
+  const kpis = [
+    [K.kpis[0], 48.2, L.kilo, K.deltas[0]],
+    [K.kpis[1], 64, (v) => `${Math.round(v)}`, K.deltas[1]],
+    [K.kpis[2], 96, (v) => `${Math.round(v)}%`, K.deltas[2]],
+  ];
   kpis.forEach(([k, target, fmt, delta], i) => {
     const val = h('div.k-v', {}, fmt(0));
     const el = h('div.kpi', { style: { left: `${i * 268}px`, width: '252px' } }, h('div.k-k', {}, k), val, h('div.k-d', {}, delta));
     body.append(el);
+    // size the counter for its final value so it never outgrows the tile
+    val.textContent = fmt(target);
+    el.querySelectorAll('.k-k, .k-v, .k-d').forEach((n) => fitWidth(n, 204));
+    val.textContent = fmt(0);
     gsap.set(el, { autoAlpha: 0, y: 30 });
     tl.to(el, { autoAlpha: 1, y: 0, duration: 0.4, ease: 'expo.out' }, 16.98 + i * 0.05);
     onFrame((t) => {
@@ -768,7 +778,7 @@ function buildDashboard(body, tl) {
   body.append(chart);
   [0, 0.5, 1].forEach((g) => chart.append(h('div.abs', { style: { left: '0', right: '0', top: `${g * 230 + 10}px`, height: '1px', background: 'rgba(255,255,255,0.07)' } })));
   const hs = [0.5, 0.6, 0.56, 0.7, 0.78, 0.94];
-  const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+  const months = K.months;
   const gap = (788 - 6 * 70) / 5;
   hs.forEach((v, i) => {
     const bar = h(`div.bar${i < 5 ? '.dim' : ''}`, { style: { left: `${i * (70 + gap)}px`, height: `${v * 230}px`, bottom: '22px' } });
@@ -780,21 +790,21 @@ function buildDashboard(body, tl) {
   const line = svg(`<svg class="abs" style="left:0;top:0;overflow:visible" width="788" height="262"><path d="M ${pts.map((p) => p.join(' ')).join(' L ')}" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="#0b0b0d" stroke="#fff" stroke-width="4"/>`).join('')}</svg>`);
   chart.append(line);
   const lp = line.querySelector('path');
-  const L = Math.ceil(lp.getTotalLength()) + 2;
-  lp.style.strokeDasharray = `${L} ${L}`;
-  gsap.set(lp, { strokeDashoffset: L });
+  const len = Math.ceil(lp.getTotalLength()) + 2;
+  lp.style.strokeDasharray = `${len} ${len}`;
+  gsap.set(lp, { strokeDashoffset: len });
   tl.to(lp, { strokeDashoffset: 0, duration: 0.45, ease: 'power2.inOut' }, 17.3);
   gsap.set(line.querySelectorAll('circle'), { autoAlpha: 0 });
   tl.to(line.querySelectorAll('circle'), { autoAlpha: 1, duration: 0.1, stagger: 0.06 }, 17.32);
-  const tag = h('div.pill.solid', { style: { position: 'absolute', left: `${5 * (70 + gap) - 60}px`, top: '-12px', fontFamily: 'var(--mono)', fontWeight: '800' } }, '$48.2k');
+  const tag = h('div.pill.solid', { style: { position: 'absolute', left: `${5 * (70 + gap) - 60}px`, top: '-12px', fontFamily: /₼/.test(L.kilo(48.2)) ? 'var(--ui)' : 'var(--mono)', fontWeight: '800' } }, L.kilo(48.2));
   chart.append(tag);
   gsap.set(tag, { autoAlpha: 0, scale: 0.4, y: 20 });
   tl.to(tag, { autoAlpha: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(2.5)' }, 17.52);
   cue(17.08, 'rise', { dur: 0.4 });
 
   const rows = [
-    [ICONS.check, 'Trial balance', 'Dr 1,284,310 = Cr 1,284,310'],
-    [ICONS.lock, 'September period', 'Closed & locked'],
+    [ICONS.check, ...K.rows[0]],
+    [ICONS.lock, ...K.rows[1]],
   ];
   rows.forEach(([icon, a, b], i) => {
     const el = h('div.stmt', { style: { top: `${512 + i * 80}px` } },

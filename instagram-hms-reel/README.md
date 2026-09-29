@@ -1,12 +1,13 @@
 # HMSNow — Instagram reel (9:16, 30 s)
 
-A 30-second motion-graphics reel for **HMSNow** (hospital and clinic management by iNeed.now), made for the **@ineednow_** Instagram page.
+A 30-second motion-graphics reel for **HMSNow** (hospital and clinic management by iNeed.now), made for the **@ineednow_** Instagram page. It comes in **English** and **Azerbaijani**, with the same animation, timing and sound in both.
 
 | File | What it's for |
 | --- | --- |
-| `export/HMSNow_reel_1080x1920.mp4` | **Post this one.** 1080×1920, 30 fps, H.264 + AAC. Includes the original music and sound design, mastered to −14 LUFS. |
-| `export/HMSNow_reel_1080x1920_sfx-only.mp4` | The same video with the sound effects but no music. Use it if you'd rather add a trending track from Instagram's music library. |
-| `export/HMSNow_reel_cover.jpg` | Cover image (the end card). It stays readable in the profile grid's 3:4 crop. |
+| `export/HMSNow_reel_1080x1920.mp4` | **English. Post this one.** 1080×1920, 30 fps, H.264 + AAC. Includes the original music and sound design, mastered to −14 LUFS. |
+| `export/HMSNow_reel_AZ_1080x1920.mp4` | **Azerbaijani** version of the same reel. All on-screen text is localized, including the product screens, dates, decimal commas and manat prices on the invoice. |
+| `export/HMSNow_reel[_AZ]_1080x1920_sfx-only.mp4` | The same video with the sound effects but no music. Use it if you'd rather add a trending track from Instagram's music library. |
+| `export/HMSNow_reel[_AZ]_cover.jpg` | Cover image (the end card). It stays readable in the profile grid's 3:4 crop. |
 
 The music and sound effects are synthesized from scratch in `audio/soundtrack.py`, with no samples and no stock tracks, so there are no licensing issues.
 
@@ -28,6 +29,7 @@ All key text stays inside the Reels safe area, clear of the header and the capti
 ## How it's built
 
 - `src/` holds the animation as a web page (HTML/CSS plus [GSAP](https://gsap.com) timelines), one file per scene in `src/scenes/`. You can preview it in a browser in real time.
+- `src/i18n.js` holds all on-screen copy for both languages. `?lang=az` selects Azerbaijani. Text that runs longer than the design allows is shrunk to fit automatically.
 - `scripts/render.mjs` renders every frame deterministically in headless Chromium. Each output frame blends 8 sub-frames across a 180° shutter, which gives real motion blur. The frames are rendered in parallel.
 - `audio/soundtrack.py` generates a 120 BPM track that resolves from A minor to C major. It places about 170 sound-effect cues (whooshes, UI clicks, the stamp, 2FA beeps and so on), which the animation exports to `audio/cues.json`, so picture and sound stay in sync.
 - `scripts/encode.sh` masters the audio (two-pass EBU R128 loudness normalization) and encodes the MP4s with BT.709 colour.
@@ -41,8 +43,12 @@ npx http-server -c-1 .           # then open http://localhost:8080/src/index.htm
 node scripts/stills.mjs out 12.5 29     # render single frames to check a change
 node scripts/render.mjs                  # all 900 frames with motion blur → render/frames (≈9 min on 4 cores)
 scripts/encode.sh                        # soundtrack + MP4s + cover → export/
+
+# Azerbaijani: preview at src/index.html?lang=az, then
+node scripts/render.mjs --lang az        # → render/frames_az
+scripts/encode.sh az                     # → export/HMSNow_reel_AZ_*
 ```
 
 `encode.sh` needs `ffmpeg` with libx264 on the `PATH` (or set `FFMPEG=...`). Python needs `numpy` and `scipy`.
 
-The copy lives in the scene files. For example, the call-to-action button text and the URL are in `src/scenes/cta.js`, and the step titles are in the `STEPS` list in `src/scenes/journey.js`. The brand colour `#FE4D1E` was sampled from the logo, and the logo geometry (square size, gaps, the hollow square's stroke and corner radii) was measured from the original artwork.
+To change any wording, edit `src/i18n.js`. For example, the call-to-action button text is under `cta.button` and the step titles are under `journey.steps`. The brand colour `#FE4D1E` was sampled from the logo, and the logo geometry (square size, gaps, the hollow square's stroke and corner radii) was measured from the original artwork.

@@ -1,0 +1,298 @@
+// All on-screen copy, per language. Pick with ?lang=en (default) or ?lang=az.
+// Timing, layout and sound are shared; only the words change.
+
+export const LANG = (new URLSearchParams(location.search).get('lang') || 'en').toLowerCase();
+document.documentElement.lang = LANG;
+
+const RED = '#ff4262', AMBER = '#ffb020', GREY = '#9a9aa6';
+
+const EN = {
+  hook: {
+    kicker: 'Still running your clinic on',
+    words: ['PAPER CHARTS?', 'SPREADSHEETS?', 'STICKY NOTES?', 'TOO MANY APPS?', 'SOUND FAMILIAR?'],
+    toasts: [
+      ['!', RED, 'Double booking — 10:30', 'Dr. Aliyev · Room 2', 'now'],
+      ['?', AMBER, 'Lab result not found', 'Patient MRN-10234', '1m'],
+      ['$', RED, 'Invoice #1043 overdue', '45 days · no reminder', '2m'],
+      ['×', RED, 'Insurance claim rejected', 'Missing pre-authorisation', 'now'],
+      ['!', AMBER, 'Amoxicillin batch expired', 'Still on shelf B-3', '4m'],
+      ['?', GREY, 'Who opened this chart?', 'No access log', 'now'],
+      ['!', AMBER, 'Paper chart missing', 'Room 3 · 10:42', '6m'],
+      ['#', GREY, 'patients_FINAL_v7.xlsx', 'Edited by 4 people', '9m'],
+      ['!', RED, 'No-show — reminder not sent', '09:00 · Check-up', 'now'],
+      ['%', AMBER, 'Stock count mismatch', 'Gloves −340', '3m'],
+      ['…', GREY, '12 patients waiting', 'No queue numbers', 'now'],
+      ['!', RED, 'Month-end books not closed', '3 weeks late', '1h'],
+      ['?', AMBER, 'Commission dispute', 'Dr. Demir · August', '2h'],
+      ['!', RED, 'Allergy not recorded', 'Penicillin · MRN-10871', 'now'],
+      ['$', AMBER, 'Payment not matched', 'Card · 117.60', '5m'],
+      ['!', RED, 'Two versions of one record', 'Leyla M. · DOB mismatch', 'now'],
+      ['?', GREY, 'Where is the X-ray?', 'CBCT · 12 Sep', '8m'],
+      ['!', AMBER, 'Roster clash — Friday', '2 doctors · 1 room', '7m'],
+    ],
+  },
+  logo: { tagline: 'Clinic & hospital management', by: 'BY INEED.NOW' },
+  map: {
+    title: ['modules,', 'one login.'],
+    heads: ['Core · included', 'Add-ons · as you grow'],
+    rows: ['Clinical', 'Billing', 'Staff & HR', 'Accounting', 'Analytics', 'Admin & Security', 'Diagnostics', 'Insurance', 'Pharmacy & Stock', 'Patient Portal'],
+    perMonth: '/mo',
+  },
+  journey: {
+    steps: [
+      ['BOOK', 'Appointments · reminders'],
+      ['CHECK-IN', 'Reception · live queue'],
+      ['TREAT', 'SOAP notes · vitals · ICD-10'],
+      ['DENTAL', 'Odontogram · FDI · perio'],
+      ['DIAGNOSE', 'Lab & imaging results'],
+      ['DISPENSE', 'Rx → pharmacy · FEFO stock'],
+      ['BILL', 'Invoices · payments · claims'],
+      ['GROW', 'Accounting · live dashboard'],
+      ['ALL IN ONE.', '37 modules · one login'],
+    ],
+    stepLabel: (n) => `STEP 0${n} / 08`,
+    every: 'EVERY STEP',
+  },
+  cards: {
+    appt: {
+      title: 'Appointments', meta: 'Tue · 14 Oct',
+      docs: [['Dr. Aliyev', 'AL'], ['Dr. Karimova', 'KA'], ['Dr. Demir', 'DE']],
+      blocks: [
+        ['Leyla M.', 'Check-up'], ['Murat Y.', 'Root canal'], ['Anna P.', 'Follow-up'],
+        ['Elvin H.', 'Consultation'], ['Nigar A.', 'Cleaning'], ['Aydin K.', 'X-ray review'],
+        ['Dilnoza R.', 'Vaccination'], ['Kamran G.', 'Check-up'], ['Sara T.', 'Physio'],
+      ],
+      newBooking: '+ New booking', booked: ['Leyla M.', 'Follow-up · booked'],
+      toast: 'Reminder email sent · Leyla M.',
+    },
+    queue: {
+      title: 'Reception', meta: 'Live board', nowServing: 'NOW SERVING', room: 'ROOM',
+      line: '→  Leyla M.  ·  Dr. Aliyev  ·  Check-up',
+      rows: [
+        ['A-016', 'Murat Y.', 'Waiting', '✓ Checked in'],
+        ['A-017', 'Elvin H.', 'Waiting · 4 min'],
+        ['A-018', 'Nigar A.', 'Waiting · 9 min'],
+      ],
+      waiting: 'Waiting now', avg: 'Avg. wait', avgValue: '7 min',
+    },
+    soap: {
+      title: 'Visit notes', meta: 'Leyla M. · MRN-10234',
+      vitals: [['BP', '120/80', ''], ['HR', '88', 'bpm'], ['TEMP', '38.1°', 'C'], ['SPO2', '98', '%']],
+      rows: [
+        ['S', 'Sore throat, fever for 3 days'],
+        ['O', 'Pharynx red · tonsils enlarged'],
+        ['A', 'Acute pharyngitis'],
+        ['P', 'Amoxicillin 500 mg · 7 days'],
+      ],
+      icd: 'ICD-10 · J02.9', sign: 'Sign & lock', signed: 'Signed & locked', doctor: 'Dr. Aliyev · 11:42',
+    },
+    dental: {
+      title: 'Dental chart', meta: 'FDI · adult', tooth: 'Tooth 16', finding: 'Caries · mesio-occlusal',
+      plan: 'Plan: composite', perio: 'Perio 3·2·4',
+      legend: ['Caries', 'Filling', 'Crown', 'Missing'],
+      planned: 'procedures planned · 2 visits', accepted: 'Accepted',
+    },
+    lab: {
+      title: 'Lab & imaging', meta: 'Order L-2291',
+      chips: ['CBC + CRP', '✓ Specimen collected', 'Verify before release'],
+      head: ['TEST', 'RESULT', 'REFERENCE', 'FLAG'],
+      rows: [['Hemoglobin', '13.8', 'g/dL'], ['WBC', '12.4', '×10⁹/L'], ['CRP', '18', 'mg/L'], ['Glucose', '5.1', 'mmol/L']],
+      high: 'H',
+      imaging: 'Imaging · OPG', modalities: 'X-ray · CBCT · CT · MRI', report: 'Radiology report attached',
+      verified: '✓ Verified · released',
+    },
+    rx: {
+      title: 'Prescription', meta: '→ Pharmacy', drug: 'Amoxicillin 500 mg',
+      chips: ['Oral', '3× daily', '7 days', 'Refills 0'],
+      allergy: '✓ Allergy check · no conflicts', sent: 'Sent to pharmacy →',
+      stock: 'STOCK · FIRST-EXPIRY, FIRST-OUT', exp: 'Exp', toast: 'Dispensed · 21 capsules',
+    },
+    bill: {
+      title: 'Invoice & claim', meta: 'INV-1043', patient: 'Leyla Mammadova', due: 'Due 14 Oct',
+      lines: ['Consultation', 'Lab panel · CBC + CRP', 'Amoxicillin 500 mg × 21'],
+      total: 'Total', insurer: 'Insurer', patientShare: 'Patient',
+      claim: ['Pre-auth', 'Submitted', 'Adjudicated', 'Paid'], stamp: 'PAID',
+    },
+    dash: {
+      title: 'Dashboard', meta: 'September',
+      kpis: ['Revenue · Sep', 'Patients today', 'Claims paid'],
+      deltas: ['▲ 12% vs Aug', '▲ 9 vs last Tue', 'avg. 11 days'],
+      months: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+      rows: [['Trial balance', 'Dr 1,284,310 = Cr 1,284,310'], ['September period', 'Closed & locked']],
+    },
+  },
+  // number formatting
+  money: (v) => `$${v.toFixed(2)}`,
+  amount: (v) => v.toFixed(2),
+  kilo: (v) => `$${v.toFixed(1)}k`,
+  security: {
+    depts: 'RECEPTION · DOCTORS & DENTISTS · NURSING · LABORATORY · RADIOLOGY · PHARMACY · BILLING · INSURANCE · HR · MANAGEMENT · ',
+    titles: [
+      ['FORCED 2FA.', 'Every user enrols. No exceptions.'],
+      ['ACCESS LOG.', 'Who opened whose chart — and when.'],
+      ['EVERY ROLE.', 'Access by department & module.'],
+    ],
+    verified: 'Verified — welcome back',
+    logHead: 'CHART ACCESS LOG', logFilter: 'staff · patient · date', opened: 'opened chart',
+    who: ['Nurse', 'Doctor', 'Reception'],
+    roles: [['Owner', 'Manager', 'Doctor'], ['Dentist', 'Nurse', 'Receptionist'], ['Pharmacist', 'Accountant', 'HR Manager']],
+  },
+  languages: {
+    order: ['EN', 'AZ', 'TR', 'RU', 'UZ'],
+    final: '5 LANGUAGES',
+    sub: 'Your whole team, in their own language.',
+  },
+  cta: {
+    lines: ['Everything', 'your clinic', 'needs.'],
+    now: 'Now',
+    tagline: ['Everything your clinic needs. ', 'Now.'],
+    button: 'Book a demo',
+    handle: ['or DM us ', '@ineednow_'],
+  },
+};
+
+const AZ = {
+  hook: {
+    kicker: 'KLİNİKANIZDA HƏLƏ DƏ',
+    words: ['KAĞIZ KARTLAR?', 'CƏDVƏLLƏR?', 'STİKERLƏR?', 'ONLARLA PROQRAM?', 'TANIŞ GƏLİR?'],
+    toasts: [
+      ['!', RED, 'İkiqat yazılış — 10:30', 'Dr. Əliyev · 2-ci otaq', 'indi'],
+      ['?', AMBER, 'Analiz nəticəsi tapılmadı', 'Pasiyent MRN-10234', '1 dəq'],
+      ['$', RED, 'Hesab #1043 ödənilməyib', '45 gün · xatırlatma yoxdur', '2 dəq'],
+      ['×', RED, 'Sığorta tələbi rədd edildi', 'İlkin razılıq alınmayıb', 'indi'],
+      ['!', AMBER, 'Dərmanın vaxtı keçib', 'Amoksisillin · B-3 rəfi', '4 dəq'],
+      ['?', GREY, 'Bu kartı kim açıb?', 'Giriş jurnalı yoxdur', 'indi'],
+      ['!', AMBER, 'Kağız kart itib', '3-cü otaq · 10:42', '6 dəq'],
+      ['#', GREY, 'pasiyentler_SON_v7.xlsx', '4 nəfər dəyişiklik edib', '9 dəq'],
+      ['!', RED, 'Gəlmədi — xatırlatma getməyib', '09:00 · Müayinə', 'indi'],
+      ['%', AMBER, 'Anbar qalığı uyğun deyil', 'Əlcək −340', '3 dəq'],
+      ['…', GREY, '12 pasiyent gözləyir', 'Növbə nömrəsi yoxdur', 'indi'],
+      ['!', RED, 'Ay sonu hesabatı bağlanmayıb', '3 həftə gecikir', '1 saat'],
+      ['?', AMBER, 'Komissiya mübahisəsi', 'Dr. Həsənov · avqust', '2 saat'],
+      ['!', RED, 'Allergiya qeyd olunmayıb', 'Penisillin · MRN-10871', 'indi'],
+      ['$', AMBER, 'Ödəniş uyğunlaşmayıb', 'Kart · 117,60 ₼', '5 dəq'],
+      ['!', RED, 'Bir kartın iki versiyası', 'Leyla M. · doğum tarixi fərqli', 'indi'],
+      ['?', GREY, 'Rentgen şəkli haradadır?', 'KŞKT · 12 sentyabr', '8 dəq'],
+      ['!', AMBER, 'Qrafik toqquşması — cümə', '2 həkim · 1 otaq', '7 dəq'],
+    ],
+  },
+  logo: { tagline: 'Klinika və xəstəxana idarəetməsi', by: 'INEED.NOW' },
+  map: {
+    title: ['modul,', 'bir giriş.'],
+    heads: ['ƏSAS · DAXİLDİR', 'ƏLAVƏLƏR · İNKİŞAF ETDİKCƏ'],
+    rows: ['Klinik', 'Ödənişlər', 'Heyət və kadrlar', 'Mühasibat', 'Analitika', 'İdarə və təhlükəsizlik', 'Diaqnostika', 'Sığorta', 'Aptek və anbar', 'Pasiyent portalı'],
+    perMonth: '/ay',
+  },
+  journey: {
+    steps: [
+      ['YAZILIŞ', 'Qəbullar · xatırlatmalar'],
+      ['QEYDİYYAT', 'Qəbul masası · canlı növbə'],
+      ['MÜALİCƏ', 'SOAP qeydləri · göstəricilər · XBT-10'],
+      ['STOMATOLOGİYA', 'Odontoqram · FDI · periodont'],
+      ['DİAQNOSTİKA', 'Laboratoriya və radiologiya'],
+      ['APTEK', 'Resept → aptek · FEFO anbar'],
+      ['ÖDƏNİŞ', 'Hesablar · ödənişlər · sığorta'],
+      ['İNKİŞAF', 'Mühasibat · canlı panel'],
+      ['VAHİD SİSTEM.', '37 modul · bir giriş'],
+    ],
+    stepLabel: (n) => `ADDIM 0${n} / 08`,
+    every: 'HƏR ADDIM',
+  },
+  cards: {
+    appt: {
+      title: 'Qəbullar', meta: 'Ç.a. · 14 okt',
+      docs: [['Dr. Əliyev', 'ƏL'], ['Dr. Kərimova', 'KƏ'], ['Dr. Həsənov', 'HƏ']],
+      blocks: [
+        ['Leyla M.', 'Müayinə'], ['Murad Y.', 'Kanal müalicəsi'], ['Aynur P.', 'Təkrar qəbul'],
+        ['Elvin H.', 'Konsultasiya'], ['Nigar A.', 'Diş təmizliyi'], ['Aydın K.', 'Rentgen baxışı'],
+        ['Dilarə R.', 'Peyvənd'], ['Kamran Q.', 'Müayinə'], ['Səbinə T.', 'Fizioterapiya'],
+      ],
+      newBooking: '+ Yeni yazılış', booked: ['Leyla M.', 'Təkrar qəbul · yazıldı'],
+      toast: 'E-poçt xatırlatması göndərildi · Leyla M.',
+    },
+    queue: {
+      title: 'Qəbul masası', meta: 'Canlı lövhə', nowServing: 'İNDİ QƏBULDA', room: 'OTAQ',
+      line: '→  Leyla M.  ·  Dr. Əliyev  ·  Müayinə',
+      rows: [
+        ['A-016', 'Murad Y.', 'Gözləyir', '✓ Qeydiyyatda'],
+        ['A-017', 'Elvin H.', 'Gözləyir · 4 dəq'],
+        ['A-018', 'Nigar A.', 'Gözləyir · 9 dəq'],
+      ],
+      waiting: 'Gözləyən', avg: 'Orta gözləmə', avgValue: '7 dəq',
+    },
+    soap: {
+      title: 'Qəbul qeydləri', meta: 'Leyla M. · MRN-10234',
+      vitals: [['AT', '120/80', ''], ['NƏBZ', '88', '/dəq'], ['HƏRARƏT', '38,1°', 'C'], ['SPO2', '98', '%']],
+      rows: [
+        ['S', 'Boğaz ağrısı, 3 gündür qızdırma'],
+        ['O', 'Udlaq qızarıb · badamcıqlar böyüyüb'],
+        ['A', 'Kəskin faringit'],
+        ['P', 'Amoksisillin 500 mq · 7 gün'],
+      ],
+      icd: 'XBT-10 · J02.9', sign: 'İmzala və kilidlə', signed: 'İmzalandı və kilidləndi', doctor: 'Dr. Əliyev · 11:42',
+    },
+    dental: {
+      title: 'Diş xəritəsi', meta: 'FDI · yetkin', tooth: 'Diş 16', finding: 'Karies · mezio-okklüzal',
+      plan: 'Plan: kompozit', perio: 'Perio 3·2·4',
+      legend: ['Karies', 'Plomb', 'Tac', 'Yoxdur'],
+      planned: 'prosedur planlaşdırılıb · 2 ziyarət', accepted: 'Təsdiqləndi',
+    },
+    lab: {
+      title: 'Laboratoriya', meta: 'Sifariş L-2291',
+      chips: ['ÜQA + CRP', '✓ Nümunə götürüldü', 'Yoxlanmadan buraxılmır'],
+      head: ['ANALİZ', 'NƏTİCƏ', 'NORMA', 'İŞARƏ'],
+      rows: [['Hemoqlobin', '13,8', 'q/dL'], ['Leykositlər', '12,4', '×10⁹/L'], ['CRP', '18', 'mq/L'], ['Qlükoza', '5,1', 'mmol/L']],
+      high: '↑',
+      imaging: 'Radiologiya · OPT', modalities: 'Rentgen · KŞKT · KT · MRT', report: 'Radioloq rəyi əlavə olunub',
+      verified: '✓ Təsdiqləndi · göndərildi',
+    },
+    rx: {
+      title: 'Resept', meta: '→ Aptek', drug: 'Amoksisillin 500 mq',
+      chips: ['Ağızdan', 'Gündə 3 dəfə', '7 gün', 'Təkrar: 0'],
+      allergy: '✓ Allergiya: risk yoxdur', sent: 'Aptekə göndərildi →',
+      stock: 'ANBAR · İLK BİTƏN, İLK ÇIXIR', exp: 'Son', toast: 'Verildi · 21 kapsul',
+    },
+    bill: {
+      title: 'Hesab və sığorta', meta: 'INV-1043', patient: 'Leyla Məmmədova', due: 'Son tarix: 14 okt',
+      lines: ['Konsultasiya', 'Analizlər · ÜQA + CRP', 'Amoksisillin 500 mq × 21'],
+      total: 'Cəmi', insurer: 'Sığorta', patientShare: 'Pasiyent',
+      claim: ['İlkin razılıq', 'Göndərildi', 'Baxıldı', 'Ödənildi'], stamp: 'ÖDƏNİLDİ',
+    },
+    dash: {
+      title: 'İdarə paneli', meta: 'Sentyabr',
+      kpis: ['Gəlir · sentyabr', 'Bu gün pasiyent', 'Sığorta ödənişi'],
+      deltas: ['▲ 12% ötən aydan', '▲ 9 ötən həftədən', 'orta 11 gün'],
+      months: ['Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sen'],
+      rows: [['Sınaq balansı', 'D 1 284 310 = K 1 284 310'], ['Sentyabr dövrü', 'Bağlandı və kilidləndi']],
+    },
+  },
+  money: (v) => `${v.toFixed(2).replace('.', ',')} ₼`,
+  amount: (v) => v.toFixed(2).replace('.', ','),
+  kilo: (v) => `${v.toFixed(1).replace('.', ',')}K ₼`,
+  security: {
+    depts: 'QEYDİYYAT · HƏKİMLƏR · TİBB BACILARI · LABORATORİYA · RADİOLOGİYA · APTEK · KASSA · SIĞORTA · KADRLAR · RƏHBƏRLİK · ',
+    titles: [
+      ['MƏCBURİ 2FA.', 'Hər istifadəçi üçün — istisnasız.'],
+      ['GİRİŞ JURNALI.', 'Kim, kimin kartını, nə vaxt açıb.'],
+      ['HƏR ROL.', 'Şöbə və modul üzrə giriş.'],
+    ],
+    verified: 'Təsdiqləndi — xoş gəldiniz',
+    logHead: 'KART GİRİŞ JURNALI', logFilter: 'işçi · pasiyent · tarix', opened: 'kartı açdı',
+    who: ['Tibb bacısı', 'Həkim', 'Qeydiyyat'],
+    roles: [['Sahib', 'Menecer', 'Həkim'], ['Stomatoloq', 'Tibb bacısı', 'Qeydiyyatçı'], ['Əczaçı', 'Mühasib', 'Kadr meneceri']],
+  },
+  languages: {
+    order: ['AZ', 'EN', 'TR', 'RU', 'UZ'],
+    final: '5 DİL',
+    sub: 'Bütün komanda — öz dilində.',
+  },
+  cta: {
+    lines: ['Klinikanıza', 'lazım olan', 'hər şey.'],
+    now: 'İndi',
+    tagline: ['Klinikanıza lazım olan hər şey. ', 'İndi.'],
+    button: 'Demo sifariş edin',
+    handle: ['və ya bizə yazın: ', '@ineednow_'],
+  },
+};
+
+export const L = LANG === 'az' ? AZ : EN;

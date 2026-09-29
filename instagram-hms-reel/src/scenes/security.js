@@ -1,8 +1,9 @@
 // 18.8 – 23.05s  SECURITY. The brand square floods the frame orange, becomes a
 // padlock, then: forced 2FA → chart access log → role-based access.
-import { h, svg, rng, onFrame, cue, impact, prog, lerp, clamp } from '../lib/core.js';
+import { h, svg, rng, onFrame, cue, impact, prog, lerp, clamp, fitWidth } from '../lib/core.js';
+import { L } from '../i18n.js';
 
-const DEPTS = 'RECEPTION · DOCTORS & DENTISTS · NURSING · LABORATORY · RADIOLOGY · PHARMACY · BILLING · INSURANCE · HR · MANAGEMENT · ';
+const DEPTS = L.security.depts;
 
 export default function security({ root, tl }) {
   const S = h('section.scene#s-security', { style: { color: '#fff' } });
@@ -79,11 +80,7 @@ export default function security({ root, tl }) {
   tl.to(lockWrap, { y: -40, scale: 0.8, duration: 0.5, ease: 'expo.inOut' }, 20.8);
 
   /* ---------- titles ---------- */
-  const titles = [
-    ['FORCED 2FA.', 'Every user enrols. No exceptions.', 19.32, 20.82],
-    ['ACCESS LOG.', 'Who opened whose chart — and when.', 20.94, 21.86],
-    ['EVERY ROLE.', 'Access by department & module.', 21.98, 22.78],
-  ];
+  const titles = [[19.32, 20.82], [20.94, 21.86], [21.98, 22.78]].map((times, i) => [...L.security.titles[i], ...times]);
   titles.forEach(([tt, sub, t0, t1]) => {
     const m = h('div.mask', { style: { left: '0', right: '0', top: '690px', height: '124px' } });
     const el = h('div.sec-title', { style: { top: '6px' } });
@@ -95,11 +92,15 @@ export default function security({ root, tl }) {
     });
     const se = h('div.sec-sub', {}, sub);
     S.append(m, se);
-    gsap.set(chars, { yPercent: 120 });
+    fitWidth(el, 980);
+    fitWidth(se, 960);
+    gsap.set(chars, { y: 125, autoAlpha: 0 });
+    tl.set(chars, { autoAlpha: 1 }, t0);
     gsap.set(se, { autoAlpha: 0 });
-    tl.to(chars, { yPercent: 0, duration: 0.5, ease: 'expo.out', stagger: 0.022 }, t0);
+    tl.to(chars, { y: 0, duration: 0.5, ease: 'expo.out', stagger: 0.022 }, t0);
     tl.fromTo(se, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false }, t0 + 0.12);
-    tl.to(chars, { yPercent: -120, duration: 0.2, ease: 'power3.in', stagger: 0.01 }, t1);
+    tl.to(chars, { y: -125, duration: 0.2, ease: 'power3.in', stagger: 0.01 }, t1);
+    tl.set(chars, { autoAlpha: 0 }, t1 + 0.35);
     tl.to(se, { autoAlpha: 0, y: -16, duration: 0.18, ease: 'power2.in' }, t1);
     cue(t0, 'swish', { gain: 0.6 });
   });
@@ -126,7 +127,7 @@ export default function security({ root, tl }) {
   });
   const verified = h('div.abs', { style: { left: '0', right: '0', top: '1130px', display: 'flex', justifyContent: 'center' } },
     h('div.pill', { style: { background: '#0b0b0d', color: '#fff', height: '76px', padding: '0 34px', borderRadius: '38px', fontSize: '32px', gap: '14px' } },
-      h('span', { style: { color: 'var(--ok)', fontWeight: '900' } }, '✓'), 'Verified — welcome back'));
+      h('span', { style: { color: 'var(--ok)', fontWeight: '900' } }, '✓'), L.security.verified));
   S.append(verified);
   gsap.set(verified, { autoAlpha: 0, scale: 0.6 });
   tl.to(verified, { autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2.4)' }, 20.36);
@@ -136,12 +137,12 @@ export default function security({ root, tl }) {
   /* ---------- access log ---------- */
   const log = h('div.log', { style: { top: '930px', height: '372px' } });
   log.append(h('div.abs', { style: { left: '30px', right: '30px', top: '26px', display: 'flex', alignItems: 'center' } },
-    h('div.mono', { style: { fontSize: '21px', letterSpacing: '0.2em', color: '#8b8b96', fontWeight: '700' } }, 'CHART ACCESS LOG'),
-    h('div', { style: { marginLeft: 'auto', fontSize: '21px', color: '#8b8b96', fontWeight: '600' } }, 'staff · patient · date')));
-  const entries = [['10:42', 'Nurse', 'MRN-10234'], ['10:44', 'Doctor', 'MRN-10871'], ['10:47', 'Reception', 'MRN-10234']];
+    h('div.mono', { style: { fontSize: '21px', letterSpacing: '0.2em', color: '#8b8b96', fontWeight: '700' } }, L.security.logHead),
+    h('div', { style: { marginLeft: 'auto', fontSize: '21px', color: '#8b8b96', fontWeight: '600' } }, L.security.logFilter)));
+  const entries = [['10:42', 'MRN-10234'], ['10:44', 'MRN-10871'], ['10:47', 'MRN-10234']].map(([tm, mrn], i) => [tm, L.security.who[i], mrn]);
   entries.forEach(([tm, who, mrn], i) => {
     const row = h('div.log-row', { style: { top: `${78 + i * 96}px` } },
-      h('div.log-time', {}, tm), h('div.log-who', {}, who), h('div.log-what', {}, 'opened chart'), h('div.log-mrn', {}, mrn));
+      h('div.log-time', {}, tm), h('div.log-who', {}, who), h('div.log-what', {}, L.security.opened), h('div.log-mrn', {}, mrn));
     log.append(row);
     gsap.set(row, { autoAlpha: 0, x: 120 });
     tl.to(row, { autoAlpha: 1, x: 0, duration: 0.45, ease: 'expo.out' }, 21.1 + i * 0.12);
@@ -158,7 +159,7 @@ export default function security({ root, tl }) {
   tl.to(log, { autoAlpha: 0, y: -50, duration: 0.25, ease: 'power2.in' }, 21.86);
 
   /* ---------- roles ---------- */
-  const ROLES = [['Owner', 'Manager', 'Doctor'], ['Dentist', 'Nurse', 'Receptionist'], ['Pharmacist', 'Accountant', 'HR Manager']];
+  const ROLES = L.security.roles;
   const rr = rng(4);
   let k = 0;
   ROLES.forEach((row, ri) => {

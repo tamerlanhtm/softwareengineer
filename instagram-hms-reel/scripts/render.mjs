@@ -5,7 +5,7 @@
 // accumulated in-process (sharp), so a frame can never be assembled from the
 // wrong sub-frames. Work is split across parallel browser instances.
 //
-//   node scripts/render.mjs [--samples 8] [--shutter 0.5] [--workers 4]
+//   node scripts/render.mjs [--lang en|az] [--samples 8] [--shutter 0.5] [--workers 4]
 //                           [--fps 30] [--from 0] [--to 30] [--out render/frames]
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,12 +19,13 @@ const samples = parseInt(args.samples ?? '8', 10);
 const shutter = parseFloat(args.shutter ?? '0.5');
 const workers = parseInt(args.workers ?? '4', 10);
 const fps = parseInt(args.fps ?? '30', 10);
-const outDir = path.resolve(ROOT, args.out ?? 'render/frames');
+const lang = args.lang ?? 'en';
+const outDir = path.resolve(ROOT, args.out ?? (lang === 'en' ? 'render/frames' : `render/frames_${lang}`));
 fs.mkdirSync(outDir, { recursive: true });
 
 const { server, port } = await serve();
 const probe = await launch();
-const { meta, page: probePage } = await openComposition(probe, port);
+const { meta, page: probePage } = await openComposition(probe, port, lang);
 // Cue sheet for the soundtrack generator.
 const cues = await probePage.evaluate(() => window.__cues);
 fs.mkdirSync(path.join(ROOT, 'audio'), { recursive: true });
@@ -35,7 +36,7 @@ const from = Math.round(parseFloat(args.from ?? '0') * fps);
 const to = Math.round(parseFloat(args.to ?? String(meta.duration)) * fps);
 const total = to - from;
 const chunk = Math.ceil(total / workers);
-console.log(`rendering frames ${from}..${to - 1} (${total}) · ${samples} samples · shutter ${shutter} · ${workers} workers`);
+console.log(`rendering [${lang}] frames ${from}..${to - 1} (${total}) · ${samples} samples · shutter ${shutter} · ${workers} workers`);
 
 const started = Date.now();
 let done = 0;
@@ -70,7 +71,7 @@ async function runWorker(w) {
   const b = Math.min(to, a + chunk);
   if (a >= b) return;
   const browser = await launch();
-  const comp = await openComposition(browser, port);
+  const comp = await openComposition(browser, port, lang);
   for (let f = a; f < b; f++) {
     await renderFrame(comp, f);
     done++;

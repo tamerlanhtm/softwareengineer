@@ -1,35 +1,10 @@
 // 0.0 – 3.0s  HOOK: the clinic before HMSNow. Notification chaos piles up while
 // kinetic words ask the question, then everything implodes into one orange square.
-import { h, rng, onFrame, cue, impact, noise1, prog, clamp } from '../lib/core.js';
+import { h, rng, onFrame, cue, impact, noise1, prog, clamp, fitWidth } from '../lib/core.js';
+import { L } from '../i18n.js';
 
-const TOASTS = [
-  ['!', '#ff4262', 'Double booking — 10:30', 'Dr. Aliyev · Room 2', 'now'],
-  ['?', '#ffb020', 'Lab result not found', 'Patient MRN-10234', '1m'],
-  ['$', '#ff4262', 'Invoice #1043 overdue', '45 days · no reminder', '2m'],
-  ['×', '#ff4262', 'Insurance claim rejected', 'Missing pre-authorisation', 'now'],
-  ['!', '#ffb020', 'Amoxicillin batch expired', 'Still on shelf B-3', '4m'],
-  ['?', '#9a9aa6', 'Who opened this chart?', 'No access log', 'now'],
-  ['!', '#ffb020', 'Paper chart missing', 'Room 3 · 10:42', '6m'],
-  ['#', '#9a9aa6', 'patients_FINAL_v7.xlsx', 'Edited by 4 people', '9m'],
-  ['!', '#ff4262', 'No-show — reminder not sent', '09:00 · Check-up', 'now'],
-  ['%', '#ffb020', 'Stock count mismatch', 'Gloves −340', '3m'],
-  ['…', '#9a9aa6', '12 patients waiting', 'No queue numbers', 'now'],
-  ['!', '#ff4262', 'Month-end books not closed', '3 weeks late', '1h'],
-  ['?', '#ffb020', 'Commission dispute', 'Dr. Demir · August', '2h'],
-  ['!', '#ff4262', 'Allergy not recorded', 'Penicillin · MRN-10871', 'now'],
-  ['$', '#ffb020', 'Payment not matched', 'Card · 117.60', '5m'],
-  ['!', '#ff4262', 'Two versions of one record', 'Leyla M. · DOB mismatch', 'now'],
-  ['?', '#9a9aa6', 'Where is the X-ray?', 'CBCT · 12 Sep', '8m'],
-  ['!', '#ffb020', 'Roster clash — Friday', '2 doctors · 1 room', '7m'],
-];
-
-const WORDS = [
-  { text: 'PAPER CHARTS?', style: 'fill' },
-  { text: 'SPREADSHEETS?', style: 'outline' },
-  { text: 'STICKY NOTES?', style: 'strike' },
-  { text: 'TOO MANY APPS?', style: 'flicker' },
-  { text: 'SOUND FAMILIAR?', style: 'hl' },
-];
+const TOASTS = L.hook.toasts;
+const WORDS = ['fill', 'outline', 'strike', 'flicker', 'hl'].map((style, i) => ({ text: L.hook.words[i], style }));
 
 export default function hook({ root, tl }) {
   const S = h('section.scene.dark#s-hook');
@@ -39,7 +14,7 @@ export default function hook({ root, tl }) {
   const alertV = h('div.alert-vignette');
   const toastLayer = h('div.abs', { style: { inset: '0' } });
   const glow = h('div.hook-glow');
-  const kicker = h('div.hook-kicker', {}, 'Still running your clinic on');
+  const kicker = h('div.hook-kicker', {}, L.hook.kicker);
   const wordLayer = h('div.abs', { style: { inset: '0' } });
   const lines = h('div.abs', { style: { inset: '0' } });
   const core = h('div.core');
@@ -78,6 +53,7 @@ export default function hook({ root, tl }) {
     drift.append(card);
     outer.append(drift);
     toastLayer.append(outer);
+    card.querySelectorAll('.t-title, .t-meta').forEach((el) => fitWidth(el, 450));
     card.style.opacity = String(0.7 + depth * 0.3);
     if (depth < 0.35) card.style.filter = `blur(${((0.35 - depth) * 12).toFixed(1)}px)`;
     const t0 = Math.max(times[i], -0.3);

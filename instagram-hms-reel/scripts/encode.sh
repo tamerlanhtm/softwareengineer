@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 # Master the soundtrack and encode the Instagram deliverables.
 #
-#   scripts/encode.sh            (expects frames in render/frames, cues in audio/cues.json)
+#   scripts/encode.sh [en|az]    (frames from render/frames or render/frames_<lang>)
 #
-# Outputs (export/):
+# Outputs (export/, "_AZ" etc. added for other languages):
 #   HMSNow_reel_1080x1920.mp4          full mix: music + sound design
 #   HMSNow_reel_1080x1920_sfx-only.mp4 sound design only, for adding Instagram music
 #   HMSNow_reel_cover.jpg              cover frame (end card)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 FFMPEG="${FFMPEG:-ffmpeg}"
+LANG_CODE="${1:-en}"
+if [ "$LANG_CODE" = en ]; then
+  FRAMES=render/frames; SUFFIX=""
+else
+  FRAMES="render/frames_$LANG_CODE"; SUFFIX="_$(echo "$LANG_CODE" | tr '[:lower:]' '[:upper:]')"
+fi
 mkdir -p export render
 
 # Two-pass EBU R128 loudness normalisation.
@@ -34,7 +40,7 @@ normalize render/sfx_raw.wav render/sfx.wav -18
 
 encode() { # audio out
   "$FFMPEG" -hide_banner -loglevel error -y \
-    -framerate 30 -i render/frames/f_%05d.png -i "$1" \
+    -framerate 30 -i "$FRAMES/f_%05d.png" -i "$1" \
     -map 0:v -map 1:a \
     -vf "scale=out_color_matrix=bt709:out_range=tv,format=yuv420p" \
     -c:v libx264 -preset slow -crf 16 -profile:v high -level:v 4.2 \
@@ -44,7 +50,7 @@ encode() { # audio out
     -movflags +faststart -shortest "$2"
 }
 
-encode render/music.wav export/HMSNow_reel_1080x1920.mp4
-encode render/sfx.wav export/HMSNow_reel_1080x1920_sfx-only.mp4
-"$FFMPEG" -hide_banner -loglevel error -y -i render/frames/f_00885.png -q:v 2 export/HMSNow_reel_cover.jpg
+encode render/music.wav "export/HMSNow_reel${SUFFIX}_1080x1920.mp4"
+encode render/sfx.wav "export/HMSNow_reel${SUFFIX}_1080x1920_sfx-only.mp4"
+"$FFMPEG" -hide_banner -loglevel error -y -i "$FRAMES/f_00885.png" -q:v 2 "export/HMSNow_reel${SUFFIX}_cover.jpg"
 ls -lh export

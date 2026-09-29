@@ -1,6 +1,7 @@
 // 24.8 – 30.0s  CALL TO ACTION. "Everything your clinic needs. Now." →
 // the mark assembles → product name, demo button, website and handle.
-import { h, rng, onFrame, cue, impact, prog, lerp, clamp } from '../lib/core.js';
+import { h, rng, onFrame, cue, impact, prog, lerp, clamp, fitWidth } from '../lib/core.js';
+import { L } from '../i18n.js';
 
 const LOGO_C = [540, 520];
 const SQ = 88;
@@ -42,12 +43,13 @@ export default function cta({ root, tl }) {
   });
 
   /* ---------- statement ---------- */
-  const lines = [['Everything', 600, 25.08], ['your clinic', 712, 25.28], ['needs.', 824, 25.5]];
+  const lines = [[600, 25.08], [712, 25.28], [824, 25.5]].map(([top, t0], i) => [L.cta.lines[i], top, t0]);
   const lineEls = lines.map(([txt, top, t0]) => {
     const m = h('div.mask', { style: { left: '0', right: '0', top: `${top}px`, height: '120px' } });
     const el = h('div.cta-line', { style: { top: '6px', fontSize: '100px' } }, txt);
     m.append(el);
     S.append(m);
+    fitWidth(el, 980);
     gsap.set(el, { yPercent: 110 });
     tl.to(el, { yPercent: 0, duration: 0.55, ease: 'expo.out' }, t0);
     cue(t0, 'swish', { gain: 0.5 });
@@ -55,10 +57,11 @@ export default function cta({ root, tl }) {
   });
 
   const now = h('div.cta-now', { style: { top: '930px' } });
-  const nowTxt = h('span', {}, 'Now');
+  const nowTxt = h('span', {}, L.cta.now);
   const dot = h('span', { style: { display: 'inline-block', width: '64px', height: '64px', border: '15.5px solid var(--orange)', borderRadius: '20px', marginLeft: '14px', verticalAlign: '0.02em' } });
   now.append(nowTxt, dot);
   S.append(now);
+  fitWidth(now, 1000);
   gsap.set(now, { autoAlpha: 0, scale: 2.6, transformOrigin: '50% 60%' });
   tl.to(now, { autoAlpha: 1, scale: 1, duration: 0.14, ease: 'power4.in' }, 25.88);
   tl.to(now, { scaleY: 0.9, scaleX: 1.06, duration: 0.07, yoyo: true, repeat: 1, ease: 'power2.out' }, 26.02);
@@ -77,7 +80,10 @@ export default function cta({ root, tl }) {
   }
 
   // statement exits
-  lineEls.forEach((el, i) => tl.to(el, { yPercent: -110, duration: 0.3, ease: 'power3.in' }, 26.5 + i * 0.04));
+  lineEls.forEach((el, i) => {
+    tl.to(el, { yPercent: -110, duration: 0.3, ease: 'power3.in' }, 26.5 + i * 0.04);
+    tl.set(el, { autoAlpha: 0 }, 26.85 + i * 0.04);
+  });
   tl.to(now, { scale: 0.12, autoAlpha: 0, y: -520, duration: 0.42, ease: 'power3.in' }, 26.5);
 
   /* ---------- the mark assembles ---------- */
@@ -128,16 +134,19 @@ export default function cta({ root, tl }) {
   tl.to(wchars, { yPercent: 0, duration: 0.6, ease: 'expo.out', stagger: 0.035 }, 26.95);
 
   const tag = h('div.tagline', { style: { top: '858px', fontSize: '40px', fontWeight: '600', color: '#55555e' } },
-    'Everything your clinic needs. ', h('b', { style: { color: 'var(--orange)' } }, 'Now.'));
+    L.cta.tagline[0], h('b', { style: { color: 'var(--orange)' } }, L.cta.tagline[1]));
   S.append(tag);
+  fitWidth(tag, 960);
   gsap.set(tag, { autoAlpha: 0 });
   tl.fromTo(tag, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false }, 27.12);
 
   const arrow = h('span', { style: { display: 'inline-block', color: 'var(--orange)' } }, '→');
-  const btn = h('div.cta-btn', { style: { top: '972px' } }, h('span', {}, 'Book a demo'), arrow);
+  const btnLabel = h('span', {}, L.cta.button);
+  const btn = h('div.cta-btn', { style: { top: '972px' } }, btnLabel, arrow);
   const sheen = h('div.sheen', { style: { width: '160px' } });
   btn.append(sheen);
   S.append(btn);
+  fitWidth(btnLabel, 620);
   gsap.set(btn, { autoAlpha: 0, scale: 0.6 });
   tl.to(btn, { autoAlpha: 1, scale: 1, duration: 0.5, ease: 'back.out(2)' }, 27.25);
   cue(27.25, 'pop', { n: 6 });
@@ -164,7 +173,7 @@ export default function cta({ root, tl }) {
   tl.to(urlChars, { autoAlpha: 1, y: 0, duration: 0.4, ease: 'expo.out', stagger: 0.022 }, 27.42);
   cue(27.42, 'type', { dur: 0.3 });
 
-  const handle = h('div.cta-handle', { style: { top: '1282px' } }, 'or DM us ', h('b', { style: { color: 'var(--text)' } }, '@ineednow_'));
+  const handle = h('div.cta-handle', { style: { top: '1282px' } }, L.cta.handle[0], h('b', { style: { color: 'var(--text)' } }, L.cta.handle[1]));
   S.append(handle);
   gsap.set(handle, { autoAlpha: 0 });
   tl.fromTo(handle, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out', immediateRender: false }, 27.62);

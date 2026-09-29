@@ -136,6 +136,23 @@ export function splitChars(el, { wrapWords = true } = {}) {
   return chars;
 }
 
+// Width of an element's text itself (not of its box).
+export function textWidth(el) {
+  const r = document.createRange();
+  r.selectNodeContents(el);
+  return r.getBoundingClientRect().width;
+}
+
+// Shrink the font only when the text would be wider than maxW.
+export function fitWidth(el, maxW) {
+  const w = textWidth(el);
+  if (w > maxW) {
+    const fs = parseFloat(getComputedStyle(el).fontSize);
+    el.style.fontSize = `${((fs * maxW) / w).toFixed(1)}px`;
+  }
+  return el;
+}
+
 // Wrap an element's children in an overflow mask so it can slide in from below.
 export function masked(el, pad = 0.18) {
   const m = h('span', {

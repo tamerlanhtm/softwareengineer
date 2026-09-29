@@ -2,20 +2,16 @@
 // product name lands, then the 9 squares become the first tiles of the
 // 37-module map (filled = core, hollow = add-ons). Finally every tile
 // collapses into one hollow square that we fly through into the product.
-import { h, rng, onFrame, cue, impact, prog, lerp, clamp, noise1, masked } from '../lib/core.js';
+import { h, rng, onFrame, cue, impact, prog, lerp, clamp, noise1, masked, fitWidth } from '../lib/core.js';
+import { L } from '../i18n.js';
 
-const ROWS = [
-  { label: 'Clinical', n: 6 },
-  { label: 'Billing', n: 6 },
-  { label: 'Staff & HR', n: 3 },
-  { label: 'Accounting', n: 4 },
-  { label: 'Analytics', n: 2 },
-  { label: 'Admin & Security', n: 7 },
-  { label: 'Diagnostics', n: 2, price: '+$29/mo' },
-  { label: 'Insurance', n: 2, price: '+$25/mo' },
-  { label: 'Pharmacy & Stock', n: 4, price: '+$22/mo' },
-  { label: 'Patient Portal', n: 1, price: '+$19/mo' },
-];
+// Modules per group; the last four groups are paid add-ons ($/month).
+const PRICES = [0, 0, 0, 0, 0, 0, 29, 25, 22, 19];
+const ROWS = [6, 6, 3, 4, 2, 7, 2, 2, 4, 1].map((n, i) => ({
+  label: L.map.rows[i],
+  n,
+  price: PRICES[i] ? `+$${PRICES[i]}${L.map.perMonth}` : null,
+}));
 
 const TILE = 56;
 const FILLED_B = TILE / 2; // border that fully fills the tile
@@ -150,13 +146,13 @@ export default function logoMap({ root, tl }) {
       const tt = tiles[i];
       let st;
       if (tt.logo !== undefined) {
-        const L = logoState(tt.logo, Math.min(t, 5.0));
+        const lg = logoState(tt.logo, Math.min(t, 5.0));
         const tf = 5.0 + tt.logo * 0.03;
         const p = E.expoInOut(clamp((t - tf) / 0.62));
         st = {
-          x: lerp(L.x, tt.mx, p), y: lerp(L.y, tt.my, p), s: lerp(L.s, 1, p),
-          sx: L.sx, sy: L.sy, rot: L.rot * (1 - p) + Math.sin(p * Math.PI) * (tt.logo % 2 ? 12 : -12),
-          op: L.op, hol: L.hol,
+          x: lerp(lg.x, tt.mx, p), y: lerp(lg.y, tt.my, p), s: lerp(lg.s, 1, p),
+          sx: lg.sx, sy: lg.sy, rot: lg.rot * (1 - p) + Math.sin(p * Math.PI) * (tt.logo % 2 ? 12 : -12),
+          op: lg.op, hol: lg.hol,
         };
       } else {
         const p = clamp((t - tt.appear) / 0.36);
@@ -228,8 +224,8 @@ export default function logoMap({ root, tl }) {
   tl.to(chars, { yPercent: -115, duration: 0.4, ease: 'power3.in', stagger: 0.02 }, 4.92);
   cue(3.86, 'swish');
 
-  const tag = h('div.tagline', { style: { top: '1150px' } }, 'Clinic & hospital management');
-  const by = h('div.tagline.mono', { style: { top: '1222px', fontSize: '26px', letterSpacing: '0.28em', color: '#9a9aa3', fontFamily: 'var(--mono)', fontWeight: '600' } }, 'BY INEED.NOW');
+  const tag = h('div.tagline', { style: { top: '1150px' } }, L.logo.tagline);
+  const by = h('div.tagline.mono', { style: { top: '1222px', fontSize: '26px', letterSpacing: '0.28em', color: '#9a9aa3', fontFamily: 'var(--mono)', fontWeight: '600' } }, L.logo.by);
   S.append(tag, by);
   gsap.set([tag, by], { autoAlpha: 0 });
   tl.fromTo(tag, { autoAlpha: 0, y: 26 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'expo.out', immediateRender: false }, 4.12);
@@ -240,8 +236,8 @@ export default function logoMap({ root, tl }) {
   const count = h('div.map-count', { style: { top: '12px' } }, '9');
   const countMask = h('div.abs', { style: { left: '0', top: '238px', right: '0', height: '276px', overflow: 'hidden' } });
   countMask.append(count);
-  const title1 = h('div.map-title', { style: { top: '322px' } }, 'modules,');
-  const title2 = h('div.map-title', { style: { top: '392px' } }, 'one login.');
+  const title1 = h('div.map-title', { style: { top: '322px' } }, L.map.title[0]);
+  const title2 = h('div.map-title', { style: { top: '392px' } }, L.map.title[1]);
   S.append(countMask, title1, title2);
   gsap.set(count, { yPercent: 112 });
   gsap.set([title1, title2], { autoAlpha: 0 });
@@ -259,8 +255,8 @@ export default function logoMap({ root, tl }) {
   tl.to([count, title1, title2], { y: -40, autoAlpha: 0, duration: 0.35, ease: 'power3.in', stagger: 0.05 }, 7.84);
 
   const heads = [
-    { top: 634, text: 'Core · included' },
-    { top: 1104, text: 'Add-ons · as you grow' },
+    { top: 634, text: L.map.heads[0] },
+    { top: 1104, text: L.map.heads[1] },
   ].map((hd, i) => {
     const ln = h('span.ln');
     const el = h('div.map-head', { style: { top: `${hd.top}px` } }, h('span', {}, hd.text), ln);
@@ -276,6 +272,7 @@ export default function logoMap({ root, tl }) {
   ROWS.forEach((row, ri) => {
     const lab = h('div.map-label', { style: { top: `${row.top}px`, lineHeight: `${TILE}px`, height: `${TILE}px` } }, row.label);
     S.append(lab);
+    fitWidth(lab, 316);
     gsap.set(lab, { autoAlpha: 0 });
     const first = tiles.find((t) => t.row === ri);
     const t0 = first.appear !== undefined ? first.appear - 0.06 : 5.12 + ri * 0.05;

@@ -11,11 +11,14 @@ const RENDER = params.has('render');
 if (RENDER) document.body.classList.add('render');
 
 async function loadFonts() {
+  // Sample text pulls in every unicode-range subset we use (Latin-Ext covers
+  // Azerbaijani: Ə İ Ğ Ş Ç Ö Ü and the manat sign).
+  const az = 'ƏİĞŞÇÖÜəığşçöü₼';
   const specs = [
-    ['900 100px "Unbounded Variable"', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ?.0123456789 Привет'],
-    ['700 100px "Unbounded Variable"', 'abcdefghijklmnopqrstuvwxyz'],
-    ['500 40px "Inter Variable"', 'abcdefghijklmnopqrstuvwxyz Azərbaycan Oʻzbek Türkçe Русский'],
-    ['700 40px "JetBrains Mono Variable"', 'A-0123456789 MRN'],
+    ['900 100px "Unbounded Variable"', `ABCDEFGHIJKLMNOPQRSTUVWXYZ?.0123456789 Привет ${az}`],
+    ['700 100px "Unbounded Variable"', `abcdefghijklmnopqrstuvwxyz ${az}`],
+    ['500 40px "Inter Variable"', `abcdefghijklmnopqrstuvwxyz Azərbaycan Oʻzbek Türkçe Русский ${az}`],
+    ['700 40px "JetBrains Mono Variable"', `A-0123456789 MRN ${az}`],
   ];
   await Promise.all(specs.map(([f, s]) => document.fonts.load(f, s)));
   await document.fonts.ready;

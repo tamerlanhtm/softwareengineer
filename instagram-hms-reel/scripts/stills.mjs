@@ -1,16 +1,20 @@
 // Render individual frames for review.
 //   node scripts/stills.mjs out_dir 0 0.5 3.1 ...      (times in seconds)
 //   node scripts/stills.mjs out_dir --every 0.5        (whole piece)
+//   add --lang az for the Azerbaijani version
 import fs from 'node:fs';
 import path from 'node:path';
 import { serve, launch, openComposition, capture } from './lib.mjs';
 
-const [outDir, ...rest] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const li = argv.indexOf('--lang');
+const lang = li >= 0 ? argv.splice(li, 2)[1] : 'en';
+const [outDir, ...rest] = argv;
 fs.mkdirSync(outDir, { recursive: true });
 
 const { server, port } = await serve();
 const browser = await launch();
-const comp = await openComposition(browser, port);
+const comp = await openComposition(browser, port, lang);
 
 let times = [];
 if (rest[0] === '--every') {

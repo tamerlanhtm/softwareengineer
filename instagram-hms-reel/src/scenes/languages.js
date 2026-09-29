@@ -1,14 +1,17 @@
 // 22.75 – 25.1s  LANGUAGES. Rapid-fire greetings in the five supported
 // languages, then the five language keys light up.
-import { h, onFrame, cue, impact, prog, lerp, clamp } from '../lib/core.js';
+import { h, onFrame, cue, impact, prog, lerp, clamp, fitWidth } from '../lib/core.js';
+import { L } from '../i18n.js';
 
-const LANGS = [
-  ['EN', 'English', 'Hello'],
-  ['AZ', 'Azərbaycan', 'Salam'],
-  ['TR', 'Türkçe', 'Merhaba'],
-  ['RU', 'Русский', 'Привет'],
-  ['UZ', 'Oʻzbek', 'Salom'],
-];
+const ALL = {
+  EN: ['English', 'Hello'],
+  AZ: ['Azərbaycan', 'Salam'],
+  TR: ['Türkçe', 'Merhaba'],
+  RU: ['Русский', 'Привет'],
+  UZ: ['Oʻzbek', 'Salom'],
+};
+// The viewer's own language comes first.
+const LANGS = L.languages.order.map((code) => [code, ...ALL[code]]);
 const T = [22.96, 23.25, 23.5, 23.75, 24.0];
 
 export default function languages({ root, tl }) {
@@ -42,9 +45,11 @@ export default function languages({ root, tl }) {
       el.append(s);
       return s;
     });
-    gsap.set(chars, { yPercent: 105 });
+    gsap.set(chars, { yPercent: 105, autoAlpha: 0 });
+    tl.set(chars, { autoAlpha: 1 }, t0);
     tl.to(chars, { yPercent: 0, duration: 0.24, ease: 'expo.out', stagger: 0.014 }, t0);
     tl.to(chars, { yPercent: -105, duration: 0.1, ease: 'power2.in', stagger: 0.008 }, t1 - 0.06);
+    tl.set(chars, { autoAlpha: 0 }, t1 + 0.1);
 
     const lab = h('div.lang-code', { style: { top: '6px' } }, `${code} — ${name}`);
     lab.style.fontFamily = 'var(--ui)';
@@ -76,15 +81,16 @@ export default function languages({ root, tl }) {
   const fin = h('div.lang-word', { style: { top: '10px', fontSize: '100px' } });
   fm.append(fin);
   S.append(fm);
-  const fchars = [...'5 LANGUAGES'].map((c) => {
+  const fchars = [...L.languages.final].map((c) => {
     const s = h('span', { style: { display: 'inline-block' } }, c === ' ' ? ' ' : c);
     if (c === '5') s.style.color = 'var(--orange)';
     fin.append(s);
     return s;
   });
-  gsap.set(fchars, { yPercent: 110 });
+  gsap.set(fchars, { yPercent: 110, autoAlpha: 0 });
+  tl.set(fchars, { autoAlpha: 1 }, 24.28);
   tl.to(fchars, { yPercent: 0, duration: 0.45, ease: 'expo.out', stagger: 0.02 }, 24.28);
-  const sub = h('div.sec-sub', { style: { top: '972px', color: '#a4a4ae' } }, 'Your whole team, in their own language.');
+  const sub = h('div.sec-sub', { style: { top: '972px', color: '#a4a4ae' } }, L.languages.sub);
   S.append(sub);
   gsap.set(sub, { autoAlpha: 0 });
   tl.fromTo(sub, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: 'expo.out', immediateRender: false }, 24.4);
