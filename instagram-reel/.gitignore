@@ -1,0 +1,6 @@
+node_modules/
+out/
+*.log
+__pycache__/
+# intermediate audio (the mastered soundtrack ships in deliverables/)
+audio/*.wav
