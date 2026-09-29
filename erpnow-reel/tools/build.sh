@@ -9,6 +9,9 @@ export FFMPEG
 SUB="${SUB:-6}"
 WORKERS="${WORKERS:-4}"
 mkdir -p build out
+# REEL_LANG=az bash tools/build.sh -> Azerbaijani version (*_AZ files); default is English.
+SFX="${REEL_LANG:+_${REEL_LANG^^}}"
+MASTER="build/video${REEL_LANG:+_$REEL_LANG}.mkv"
 
 echo "==> cue sheet";   node tools/render.mjs cues
 echo "==> soundtrack";  python3 tools/audio.py build/soundtrack.wav
@@ -24,14 +27,15 @@ X264=(-c:v libx264 -preset slow -crf 17 -maxrate 16M -bufsize 32M -profile:v hig
       -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv -movflags +faststart)
 
 echo "==> encode"
-"$FFMPEG" -y -v error -i build/video.mkv -i build/soundtrack.wav -map 0:v -map 1:a -vf "$VF" "${X264[@]}" \
-  -c:a aac -b:a 256k -ar 48000 -shortest out/ERPNow_Reel_30s.mp4
-"$FFMPEG" -y -v error -i build/video.mkv -vf "$VF" "${X264[@]}" -an out/ERPNow_Reel_30s_no-music.mp4
-cp build/soundtrack.wav out/ERPNow_Reel_soundtrack.wav
+"$FFMPEG" -y -v error -i "$MASTER" -i build/soundtrack.wav -map 0:v -map 1:a -vf "$VF" "${X264[@]}" \
+  -c:a aac -b:a 256k -ar 48000 -shortest out/ERPNow_Reel_30s${SFX}.mp4
+"$FFMPEG" -y -v error -i "$MASTER" -vf "$VF" "${X264[@]}" -an out/ERPNow_Reel_30s${SFX}_no-music.mp4
+[ -n "$SFX" ] || cp build/soundtrack.wav out/ERPNow_Reel_soundtrack.wav
 
 echo "==> covers"
 node tools/render.mjs stills 5.9 29.6
-cp build/stills/t_5.900.png out/ERPNow_Reel_cover.png
-cp build/stills/t_29.600.png out/ERPNow_Reel_endcard.png
+P="build/stills/${REEL_LANG:+${REEL_LANG}_}"
+cp "${P}t_5.900.png" "out/ERPNow_Reel${SFX}_cover.png"
+cp "${P}t_29.600.png" "out/ERPNow_Reel${SFX}_endcard.png"
 
 ls -lh out/

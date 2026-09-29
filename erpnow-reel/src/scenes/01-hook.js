@@ -25,7 +25,15 @@ K.def(() => {
     const group = h('div', { cls: 'fill' }, root);
     const word = h('div', { cls: 'abs display row', css: { left: '0px', top: '590px', width: '1080px', justifyContent: 'center',
       fontSize: '220px', fontWeight: 900, color: '#fff', letterSpacing: '-0.055em', lineHeight: 1 } }, group);
-    const L = ['I', 'N', 'E', 'E', 'D'].map((ch, i) => h('span', { text: ch, css: { display: 'inline-block', marginRight: i === 0 ? '0.2em' : '0px' } }, word));
+    const HW = K.T('I NEED').split(' ');
+    const L = [];
+    HW.forEach((w, wi) => [...w].forEach((ch, ci) => {
+      const el = document.createElement('span'); el.textContent = ch;
+      Object.assign(el.style, { display: 'inline-block', marginRight: wi < HW.length - 1 && ci === w.length - 1 ? '0.2em' : '0px' });
+      word.appendChild(el); el._w = wi; el._c = ci; L.push(el);
+    }));
+    const textW = L.reduce((a, el) => a + el.getBoundingClientRect().width + parseFloat(el.style.marginRight || 0) * 0, 0) + (HW.length - 1) * 0.2 * 220;
+    if (textW > 940) word.style.fontSize = px(220 * 940 / textW);
 
     // ---- slot: the logo's hollow tile stretched into an input field --------------------
     const BOX = { cx: 540, cy: 1000, w: 960, h: 236, b: 10, r: 46 };
@@ -73,7 +81,7 @@ K.def(() => {
     // ---- "NOW." --------------------------------------------------------------------------
     const now = h('div', { cls: 'abs display row', css: { left: '0px', top: '805px', width: '1080px', justifyContent: 'center',
       fontSize: '300px', fontWeight: 900, color: '#fff', letterSpacing: '-0.05em', lineHeight: 1, alignItems: 'baseline' } }, root);
-    const NL = ['N', 'O', 'W'].map((ch) => h('span', { text: ch, css: { display: 'inline-block' } }, now));
+    const NL = [...K.T('NOW')].map((ch) => { const el = document.createElement('span'); el.textContent = ch; el.style.display = 'inline-block'; now.appendChild(el); return el; });
     const dot = h('span', { css: { display: 'inline-block', width: '74px', height: '74px', marginLeft: '14px',
       borderRadius: px(74 * 0.186), background: C.orange } }, now);
     const [dx0, dy0] = K.offsetIn(dot, root);
@@ -114,8 +122,8 @@ K.def(() => {
       group.style.transformOrigin = '540px 880px';
 
       // letters
-      L.forEach((el, i) => {
-        const t0 = i === 0 ? -0.06 : 0.19 + (i - 1) * 0.028;
+      L.forEach((el) => {
+        const t0 = el._w === 0 ? -0.06 + el._c * 0.012 : 0.19 + el._c * 0.028;
         const p = norm(t, t0, t0 + 0.34);
         const e = E.outExpo(p);
         set(el, { y: lerp(-40, 0, e), s: lerp(2.6, 1, e), o: clamp(p * 4), blur: (1 - e) * 22 });
@@ -147,7 +155,7 @@ K.def(() => {
       set(now, { s: t < n0 ? 0 : lerp(1.7, 1, ne), o: t < n0 ? 0 : 1, blur: (1 - ne) * 16 * (t >= n0) });
       NL.forEach((el, i) => {
         const q = tw(t, 3.7 + i * 0.04, 0.24, E.in3);
-        set(el, { y: q * 150, s: 1 - q * 0.35, r: q * (i - 1) * 8, o: 1 - q, blur: q * 12 });
+        set(el, { y: q * 150, s: 1 - q * 0.35, r: q * (i - (NL.length - 1) / 2) * 8, o: 1 - q, blur: q * 12 });
       });
       // the period detaches and becomes the first logo tile, charging up before the drop
       const m = tw(t, 3.72, 0.22, E.snap);

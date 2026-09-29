@@ -57,7 +57,7 @@ K.def(() => {
     const stamp = h('div', { cls: 'abs', css: { width: '470px', height: '190px', border: `12px solid ${C.green}`, borderRadius: '30px',
       boxShadow: `inset 0 0 0 7px #fff, inset 0 0 0 12px ${C.green}`, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 30,
       background: 'rgba(255,255,255,0.72)' } }, content);
-    h('div', { cls: 'display', text: 'PAID', css: { fontSize: '128px', fontWeight: 900, color: C.green, letterSpacing: '0.02em' } }, stamp);
+    K.fit(h('div', { cls: 'display', text: 'PAID', css: { fontSize: '128px', fontWeight: 900, color: C.green, letterSpacing: '0.02em', whiteSpace: 'nowrap' } }, stamp), 400);
     const STAMP = { x: 712, y: 628 + 330, r: -12 };
     const R = K.rng(21);
     const dust = Array.from({ length: 16 }, (_, i) => ({ el: h('div', { cls: 'abs', css: { width: '14px', height: '14px', borderRadius: '4px', background: i % 3 ? C.green : C.orange, zIndex: 29 } }, content),

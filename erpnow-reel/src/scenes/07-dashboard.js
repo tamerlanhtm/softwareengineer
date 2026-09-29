@@ -31,7 +31,7 @@ K.def(() => {
     const KPI = [['Monthly collections', 84210, (v) => K.money(v, 0), '↑ 12.4% vs last month', C.green],
       ['Receivables', 23480, (v) => K.money(v, 0), '4 invoices overdue', C.red],
       ['Open orders', 37, (v) => K.int(v), '$61.2k in pipeline', C.muted],
-      ['Low stock', 5, (v) => K.int(v) + ' items', 'Reorder suggested', C.orange]];
+      ['Low stock', 5, (v) => K.int(v) + K.T(' items'), 'Reorder suggested', C.orange]];
     const kpis = KPI.map(([lab, v, fmt, foot, fc], i) => {
       const el = h('div', { cls: 'abs', css: { left: px(32 + (i % 2) * 460), top: px(124 + Math.floor(i / 2) * 188), width: '436px', height: '168px',
         borderRadius: '28px', background: '#FAF6F3', border: '1.5px solid rgba(20,20,22,0.05)' } }, win);

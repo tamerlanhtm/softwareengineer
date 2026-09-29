@@ -18,7 +18,9 @@ import url from 'node:url';
 
 const ROOT = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
 const BUILD = path.join(ROOT, 'build');
-const PAGE = url.pathToFileURL(path.join(ROOT, 'src/index.html')).href + '?capture=1';
+const LANG = process.env.REEL_LANG || '';   // e.g. REEL_LANG=az renders the Azerbaijani version
+const PAGE = url.pathToFileURL(path.join(ROOT, 'src/index.html')).href + '?capture=1' + (LANG ? `&lang=${LANG}` : '');
+const MASTER = LANG ? `video_${LANG}.mkv` : 'video.mkv';
 const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const W = 1080, H = 1920, FPS = 30, DURATION = 30;
 
@@ -52,7 +54,7 @@ async function stills(times, dir = path.join(BUILD, 'stills')) {
   const { shot } = await openPage(browser);
   const files = [];
   for (const t of times) {
-    const f = path.join(dir, `t_${Number(t).toFixed(3)}.png`);
+    const f = path.join(dir, `${LANG ? LANG + '_' : ''}t_${Number(t).toFixed(3)}.png`);
     fs.writeFileSync(f, await shot(Number(t)));
     files.push(f);
   }
@@ -91,7 +93,7 @@ async function renderSegment(browser, i, from, to, subAt, shutter) {
   return out;
 }
 
-async function video(outName = 'video.mkv') {
+async function video(outName = MASTER) {
   const sub = opt('sub', 6), fastsub = opt('fastsub', 16), shutter = opt('shutter', 0.5), workers = opt('workers', 4);
   const from = opt('from', 0), to = opt('to', DURATION * FPS);
   const t0 = Date.now();
@@ -129,11 +131,11 @@ async function video(outName = 'video.mkv') {
 }
 
 async function patch() {
-  const from = opt('from', 0), to = opt('to', 0), master = path.join(BUILD, 'video.mkv');
+  const from = opt('from', 0), to = opt('to', 0), master = path.join(BUILD, MASTER);
   const total = countFrames(master);
   if (!(to > from) || to > total) throw new Error(`patch: bad range ${from}-${to} for ${total} frames`);
   await video('patch.mkv');
-  const tmp = path.join(BUILD, 'video_patched.mkv');
+  const tmp = path.join(BUILD, 'patched_' + MASTER);
   const fc = `[0:v]trim=start_frame=0:end_frame=${from},setpts=PTS-STARTPTS[a];[1:v]setpts=PTS-STARTPTS[b];` +
     `[0:v]trim=start_frame=${to},setpts=PTS-STARTPTS[c];[a][b][c]concat=n=3:v=1:a=0[v]`;
   const r = spawnSync(FFMPEG, ['-y', '-v', 'error', '-i', master, '-i', path.join(BUILD, 'patch.mkv'), '-filter_complex', fc,

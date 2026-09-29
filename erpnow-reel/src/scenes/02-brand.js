@@ -44,7 +44,7 @@ K.def(() => {
       inner.appendChild(ic);
       if (g.addon) h('div', { cls: 'abs mono', text: 'ADD-ON', css: { left: 'auto', right: '22px', top: '30px', height: '32px', lineHeight: '32px', padding: '0 12px',
         borderRadius: '16px', background: 'rgba(255,255,255,0.22)', font: "700 15px 'Mono'", letterSpacing: '0.14em' } }, inner);
-      h('div', { cls: 'abs', text: g.label, css: { left: '28px', top: 'auto', bottom: '62px', font: "700 35px 'Inter'", letterSpacing: '-0.02em' } }, inner);
+      K.fit(h('div', { cls: 'abs', text: g.label, css: { left: '28px', top: 'auto', bottom: '62px', font: "700 35px 'Inter'", letterSpacing: '-0.02em', whiteSpace: 'nowrap' } }, inner), 204);
       h('div', { cls: 'abs', text: `${g.n} module${g.n > 1 ? 's' : ''}`, css: { left: '28px', top: 'auto', bottom: '28px', font: "500 23px 'Inter'", opacity: 0.82 } }, inner);
       const flash = h('div', { cls: 'fill', css: { background: '#fff', opacity: 0 } }, face);
       return { front, face, inner, flash };

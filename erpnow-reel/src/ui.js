@@ -93,6 +93,9 @@
       const wrap = h('div', { cls: 'line-wrap' }, el);
       return h('div', { cls: 'line', html }, wrap);
     });
+    const widest = Math.max(...inners.map((ln) => { ln.style.display = 'inline-block'; const w = ln.offsetWidth; ln.style.display = ''; return w; }));
+    const maxW = o.w ?? 912;
+    if (widest > maxW) el.style.fontSize = px((o.size ?? 96) * maxW / widest);
     return {
       el, lines: inners,
       update(t, tIn, tOut = 99, stagger = 0.075, outDur = 0.26) {
@@ -157,6 +160,14 @@
       tiles.push({ el, c, r, x: ox + c * pitch - size / 2, y: oy + r * pitch - size / 2 });
     }
     return { wrap, tiles };
+  };
+
+  // Shrink an element's font so its text fits maxW (for longer translations).
+  K.fit = (el, maxW) => {
+    const prev = el.style.display; el.style.display = 'inline-block';
+    const w = el.offsetWidth; el.style.display = prev;
+    if (w > maxW) el.style.fontSize = px(parseFloat(getComputedStyle(el).fontSize) * maxW / w);
+    return el;
   };
 
   // Money counter helper.

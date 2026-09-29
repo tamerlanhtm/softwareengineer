@@ -103,8 +103,8 @@
   function h(tag, o = {}, parent) {
     const n = document.createElement(tag);
     if (o.cls) n.className = o.cls;
-    if (o.text != null) n.textContent = o.text;
-    if (o.html != null) n.innerHTML = o.html;
+    if (o.text != null) n.textContent = window.I18N ? I18N.T(String(o.text)) : o.text;
+    if (o.html != null) n.innerHTML = window.I18N ? I18N.TH(o.html) : o.html;
     if (o.css) Object.assign(n.style, o.css);
     if (o.attrs) for (const k in o.attrs) n.setAttribute(k, o.attrs[k]);
     (o.parent || parent)?.appendChild(n);
@@ -154,6 +154,7 @@
   });
   // Scene files register builders; main.js runs them once fonts are loaded.
   K.def = (fn) => K.defs.push(fn);
+  K.T = (s) => (window.I18N ? I18N.T(s) : s);
 
   // A scene owns a full-frame root that is only displayed inside [t0, t1).
   K.scene = function (name, t0, t1, build, opts = {}) {
