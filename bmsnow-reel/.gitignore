@@ -1,0 +1,7 @@
+node_modules/
+out/frames/
+out/stems/
+out/audio_report/
+out/render.log
+out/*.wav
+__pycache__/
