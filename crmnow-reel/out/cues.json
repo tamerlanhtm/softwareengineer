@@ -1,0 +1,506 @@
+[
+ {
+  "t": 0.04,
+  "type": "blip",
+  "i": 0,
+  "scene": "hook"
+ },
+ {
+  "t": 0.08,
+  "type": "tick",
+  "i": 0,
+  "scene": "hook"
+ },
+ {
+  "t": 0.17,
+  "type": "blip",
+  "i": 1,
+  "scene": "hook"
+ },
+ {
+  "t": 0.3,
+  "type": "blip",
+  "i": 2,
+  "scene": "hook"
+ },
+ {
+  "t": 0.43,
+  "type": "blip",
+  "i": 3,
+  "scene": "hook"
+ },
+ {
+  "t": 0.56,
+  "type": "blip",
+  "i": 4,
+  "scene": "hook"
+ },
+ {
+  "t": 0.6900000000000001,
+  "type": "blip",
+  "i": 5,
+  "scene": "hook"
+ },
+ {
+  "t": 0.7,
+  "type": "tick",
+  "i": 1,
+  "scene": "hook"
+ },
+ {
+  "t": 0.8200000000000001,
+  "type": "blip",
+  "i": 6,
+  "scene": "hook"
+ },
+ {
+  "t": 0.9500000000000001,
+  "type": "blip",
+  "i": 7,
+  "scene": "hook"
+ },
+ {
+  "t": 1.08,
+  "type": "blip",
+  "i": 8,
+  "scene": "hook"
+ },
+ {
+  "t": 1.17,
+  "type": "tick",
+  "i": 2,
+  "scene": "hook"
+ },
+ {
+  "t": 1.21,
+  "type": "blip",
+  "i": 9,
+  "scene": "hook"
+ },
+ {
+  "t": 1.64,
+  "type": "tick",
+  "i": 3,
+  "scene": "hook"
+ },
+ {
+  "t": 1.875,
+  "type": "tick",
+  "i": 4,
+  "scene": "hook"
+ },
+ {
+  "t": 2.11,
+  "type": "spin",
+  "scene": "hook"
+ },
+ {
+  "t": 2.4,
+  "type": "land",
+  "scene": "hook"
+ },
+ {
+  "t": 2.81,
+  "type": "slam",
+  "scene": "hook"
+ },
+ {
+  "t": 3.05,
+  "type": "morph",
+  "scene": "hook"
+ },
+ {
+  "t": 3.15,
+  "type": "suck",
+  "scene": "hook"
+ },
+ {
+  "t": 3.75,
+  "type": "drop",
+  "scene": "hook"
+ },
+ {
+  "t": 3.86,
+  "type": "whoosh",
+  "v": 0.6,
+  "scene": "logo"
+ },
+ {
+  "t": 4.04,
+  "type": "pop",
+  "i": 0,
+  "scene": "logo"
+ },
+ {
+  "t": 4.095,
+  "type": "pop",
+  "i": 1,
+  "scene": "logo"
+ },
+ {
+  "t": 4.15,
+  "type": "pop",
+  "i": 2,
+  "scene": "logo"
+ },
+ {
+  "t": 4.22,
+  "type": "draw",
+  "scene": "logo"
+ },
+ {
+  "t": 4.3,
+  "type": "rise",
+  "scene": "logo"
+ },
+ {
+  "t": 5.14,
+  "type": "zoom",
+  "scene": "logo"
+ },
+ {
+  "t": 5.859,
+  "type": "card",
+  "i": 0,
+  "scene": "leads"
+ },
+ {
+  "t": 6.094,
+  "type": "card",
+  "i": 1,
+  "scene": "leads"
+ },
+ {
+  "t": 6.328,
+  "type": "card",
+  "i": 2,
+  "scene": "leads"
+ },
+ {
+  "t": 6.5625,
+  "type": "card",
+  "i": 3,
+  "scene": "leads"
+ },
+ {
+  "t": 6.797,
+  "type": "card",
+  "i": 4,
+  "scene": "leads"
+ },
+ {
+  "t": 7.075,
+  "type": "expand",
+  "scene": "leads"
+ },
+ {
+  "t": 7.1850000000000005,
+  "type": "star",
+  "i": 0,
+  "scene": "leads"
+ },
+ {
+  "t": 7.734999999999999,
+  "type": "click",
+  "scene": "leads"
+ },
+ {
+  "t": 7.845000000000001,
+  "type": "split",
+  "scene": "leads"
+ },
+ {
+  "t": 8.125,
+  "type": "confirm",
+  "scene": "leads"
+ },
+ {
+  "t": 8.925,
+  "type": "whoosh",
+  "v": 0.8,
+  "scene": "leads"
+ },
+ {
+  "t": 10.254999999999999,
+  "type": "grab",
+  "i": 0,
+  "scene": "pipeline"
+ },
+ {
+  "t": 10.615,
+  "type": "place",
+  "i": 0,
+  "scene": "pipeline"
+ },
+ {
+  "t": 10.725,
+  "type": "grab",
+  "i": 1,
+  "scene": "pipeline"
+ },
+ {
+  "t": 11.085,
+  "type": "place",
+  "i": 1,
+  "scene": "pipeline"
+ },
+ {
+  "t": 11.19,
+  "type": "grab",
+  "i": 2,
+  "scene": "pipeline"
+ },
+ {
+  "t": 11.55,
+  "type": "place",
+  "i": 2,
+  "scene": "pipeline"
+ },
+ {
+  "t": 11.655,
+  "type": "grab",
+  "i": 3,
+  "scene": "pipeline"
+ },
+ {
+  "t": 12.184999999999999,
+  "type": "place",
+  "i": 3,
+  "scene": "pipeline"
+ },
+ {
+  "t": 12.185,
+  "type": "win",
+  "scene": "pipeline"
+ },
+ {
+  "t": 12.675,
+  "type": "whip",
+  "scene": "pipeline"
+ },
+ {
+  "t": 13.375,
+  "type": "row",
+  "i": 0,
+  "scene": "billing"
+ },
+ {
+  "t": 13.495,
+  "type": "row",
+  "i": 1,
+  "scene": "billing"
+ },
+ {
+  "t": 13.615,
+  "type": "row",
+  "i": 2,
+  "scene": "billing"
+ },
+ {
+  "t": 13.875,
+  "type": "count",
+  "scene": "billing"
+ },
+ {
+  "t": 14.295,
+  "type": "click",
+  "scene": "billing"
+ },
+ {
+  "t": 14.345,
+  "type": "stamp",
+  "v": 0.7,
+  "scene": "billing"
+ },
+ {
+  "t": 14.535,
+  "type": "flip",
+  "scene": "billing"
+ },
+ {
+  "t": 15.235,
+  "type": "coin",
+  "i": 0,
+  "scene": "billing"
+ },
+ {
+  "t": 15.705,
+  "type": "coin",
+  "i": 1,
+  "scene": "billing"
+ },
+ {
+  "t": 15.935,
+  "type": "paid",
+  "scene": "billing"
+ },
+ {
+  "t": 16.425,
+  "type": "shrink",
+  "scene": "billing"
+ },
+ {
+  "t": 16.775,
+  "type": "tiles",
+  "scene": "dashboard"
+ },
+ {
+  "t": 17.175,
+  "type": "draw",
+  "v": 1.2,
+  "scene": "dashboard"
+ },
+ {
+  "t": 18.325,
+  "type": "pop",
+  "i": 3,
+  "scene": "dashboard"
+ },
+ {
+  "t": 18.775,
+  "type": "blip",
+  "i": 11,
+  "scene": "dashboard"
+ },
+ {
+  "t": 19.215,
+  "type": "click",
+  "scene": "dashboard"
+ },
+ {
+  "t": 19.295,
+  "type": "confirm",
+  "scene": "dashboard"
+ },
+ {
+  "t": 19.495,
+  "type": "count",
+  "v": 0.5,
+  "scene": "dashboard"
+ },
+ {
+  "t": 19.81625,
+  "type": "wipe",
+  "scene": "wipe"
+ },
+ {
+  "t": 20.05625,
+  "type": "wipe2",
+  "scene": "wipe"
+ },
+ {
+  "t": 20.27625,
+  "type": "node",
+  "i": 0,
+  "scene": "automation"
+ },
+ {
+  "t": 20.47625,
+  "type": "node",
+  "i": 1,
+  "scene": "automation"
+ },
+ {
+  "t": 20.71625,
+  "type": "node",
+  "i": 2,
+  "scene": "automation"
+ },
+ {
+  "t": 20.77625,
+  "type": "node",
+  "i": 3,
+  "scene": "automation"
+ },
+ {
+  "t": 21.05625,
+  "type": "run",
+  "scene": "automation"
+ },
+ {
+  "t": 21.22625,
+  "type": "tick",
+  "i": 7,
+  "scene": "automation"
+ },
+ {
+  "t": 21.46625,
+  "type": "tick",
+  "i": 8,
+  "scene": "automation"
+ },
+ {
+  "t": 21.65625,
+  "type": "confirm",
+  "scene": "automation"
+ },
+ {
+  "t": 22.52,
+  "type": "cascade",
+  "scene": "modules"
+ },
+ {
+  "t": 22.75,
+  "type": "tick",
+  "i": 9,
+  "scene": "modules"
+ },
+ {
+  "t": 23,
+  "type": "tick",
+  "i": 10,
+  "scene": "modules"
+ },
+ {
+  "t": 23.35,
+  "type": "shimmer",
+  "scene": "modules"
+ },
+ {
+  "t": 24.1,
+  "type": "collapse",
+  "scene": "modules"
+ },
+ {
+  "t": 24.84375,
+  "type": "logo",
+  "scene": "modules"
+ },
+ {
+  "t": 24.94375,
+  "type": "rise",
+  "scene": "endcard"
+ },
+ {
+  "t": 25.78375,
+  "type": "slam",
+  "v": 1,
+  "scene": "endcard"
+ },
+ {
+  "t": 26.25375,
+  "type": "pill",
+  "scene": "endcard"
+ },
+ {
+  "t": 26.44375,
+  "type": "type",
+  "scene": "endcard"
+ },
+ {
+  "t": 26.71875,
+  "type": "rise",
+  "v": 0.5,
+  "scene": "endcard"
+ },
+ {
+  "t": 27.65375,
+  "type": "click",
+  "scene": "endcard"
+ },
+ {
+  "t": 27.70375,
+  "type": "chime",
+  "scene": "endcard"
+ }
+]
